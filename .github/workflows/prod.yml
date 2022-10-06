@@ -5,9 +5,7 @@ on:
     types: [released]
 
 env:
-  APP: fritakagp
-  DOCKER_IMAGE_NAME: ghcr.io/${{ github.repository }}
-  IMAGE: ghcr.io/${{ github.repository }}/fritakagp:${{ github.sha }}
+  IMAGE: ghcr.io/${{ github.repository }}/${{ github.event.repository.name }}
 
 jobs:
   build:
@@ -38,9 +36,15 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and publish Docker image
-        run: |
-          docker build --tag ${IMAGE} .
-          docker push ${IMAGE}
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.IMAGE }}:latest
+          cache-to: type=inline
 
   deploy-to-prod:
     name: Deploy to prod-gcp
@@ -54,4 +58,4 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-gcp
           RESOURCE: deploy/prod.yaml
-          IMAGE: ${{ env.IMAGE }}
+          IMAGE: ${{ env.IMAGE }}:${{ github.sha }}
