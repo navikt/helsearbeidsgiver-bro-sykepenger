@@ -16,7 +16,7 @@ spec:
     periodSeconds: 30
     failureThreshold: 10
   readiness:
-    path: /s-ready
+    path: /is-ready
     initialDelay: 10
     timeout: 2
     periodSeconds: 5
