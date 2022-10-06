@@ -70,6 +70,6 @@ jobs:
           TEAM: helsearbeidsgiver
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
-          RESOURCE: deploy/dev.yaml
+          RESOURCE: deploy/dev.yml
           REF: ${{ env.COMMIT }}
           IMAGE: ${{ env.IMAGE }}:${{ github.sha }}
