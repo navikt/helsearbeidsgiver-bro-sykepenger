@@ -1,7 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val mainClassPath = "no.nav.helsearbeidsgiver.bro.sykepenger.AppKt"
-val githubPassword: String by project
 
 plugins {
     application
@@ -17,6 +16,33 @@ tasks {
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "17"
     }
+
+    withType<Test> {
+        useJUnitPlatform()
+        testLogging {
+            events("passed", "skipped", "failed")
+            showStackTraces = true
+            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        }
+    }
+
+    named<Jar>("jar") {
+        archiveBaseName.set("app")
+        manifest {
+            attributes["Main-Class"] = mainClassPath
+            attributes["Class-Path"] = configurations.runtimeClasspath.get().joinToString(separator = " ") {
+                it.name
+            }
+        }
+        doLast {
+            configurations.runtimeClasspath.get().forEach {
+                val file = File("$buildDir/libs/${it.name}")
+                if (!file.exists()) {
+                    it.copyTo(file)
+                }
+            }
+        }
+    }
 }
 
 java {
@@ -25,10 +51,12 @@ java {
 }
 
 repositories {
+    val githubPassword: String by project
+
     mavenCentral()
     google()
-    maven(url = "https://packages.confluent.io/maven/")
-    maven(url = "https://jitpack.io") {
+    maven("https://packages.confluent.io/maven/")
+    maven("https://jitpack.io") {
         content {
             excludeGroup("no.nav.helsearbeidsgiver")
         }
@@ -42,40 +70,14 @@ repositories {
     }
 }
 
-tasks.named<Jar>("jar") {
-    archiveBaseName.set("app")
-    manifest {
-        attributes["Main-Class"] = mainClassPath
-        attributes["Class-Path"] = configurations.runtimeClasspath.get().joinToString(separator = " ") {
-            it.name
-        }
-    }
-    doLast {
-        configurations.runtimeClasspath.get().forEach {
-            val file = File("$buildDir/libs/${it.name}")
-            if (!file.exists()) {
-                it.copyTo(file)
-            }
-        }
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-    testLogging {
-        events("passed", "skipped", "failed")
-        showStackTraces = true
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-    }
-}
-
 dependencies {
     val logbackVersion: String by project
     val slf4jVersion: String by project
     val ktorVersion: String by project
 
-    runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
+
+    runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
 }
