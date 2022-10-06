@@ -50,8 +50,9 @@ tasks.named<Jar>("jar") {
     doLast {
         configurations.runtimeClasspath.get().forEach {
             val file = File("$buildDir/libs/${it.name}")
-            if (!file.exists())
+            if (!file.exists()) {
                 it.copyTo(file)
+            }
         }
     }
 }
@@ -72,8 +73,10 @@ tasks.withType<Wrapper> {
 dependencies {
     val logbackVersion: String by project
     val slf4jVersion: String by project
+    val ktorVersion: String by project
 
     runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
-
+    implementation("io.ktor:ktor-server-core:$ktorVersion")
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
 }
