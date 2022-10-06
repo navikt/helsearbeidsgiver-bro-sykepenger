@@ -1,0 +1,46 @@
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: helsearbeidsgiver-bro-sykepenger
+  namespace: helsearbeidsgiver
+  labels:
+    team: helsearbeidsgiver
+    app: helsearbeidsgiver-bro-sykepenger
+spec:
+  image: {{image}}
+  port: 8080
+  liveness:
+    path: /health/is-alive
+    initialDelay: 10
+    timeout: 2
+    periodSeconds: 30
+    failureThreshold: 10
+  readiness:
+    path: /health/is-ready
+    initialDelay: 10
+    timeout: 2
+    periodSeconds: 5
+    failureThreshold: 10
+  prometheus:
+    enabled: true
+  replicas:
+    max: 1
+    min: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1024Mi
+    requests:
+      cpu: 200m
+      memory: 512Mi
+  secureLogs:
+    enabled: true
+  azure:
+    application:
+      enabled: true
+  envFrom:
+  env:
+    - name: GCP_PRJ_ID
+      value: helsearbeidsgiver-dev-6d06
+  kafka:
+    pool: nav-dev
