@@ -57,5 +57,5 @@ jobs:
           TEAM: helsearbeidsgiver
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-gcp
-          RESOURCE: deploy/prod.yaml
+          RESOURCE: deploy/prod.yml
           IMAGE: ${{ env.IMAGE }}:${{ github.sha }}
