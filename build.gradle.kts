@@ -6,14 +6,20 @@ val githubPassword: String by project
 plugins {
     application
     kotlin("jvm")
+    id("org.jmailen.kotlinter")
 }
 
 application {
     mainClass.set(mainClassPath)
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "17"
+tasks {
+    withType<KotlinCompile> {
+        kotlinOptions.jvmTarget = "17"
+    }
+    withType<Wrapper> {
+        gradleVersion = "7.5.1"
+    }
 }
 
 java {
@@ -64,10 +70,6 @@ tasks.withType<Test> {
         showStackTraces = true
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     }
-}
-
-tasks.withType<Wrapper> {
-    gradleVersion = "7.3"
 }
 
 dependencies {
