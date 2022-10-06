@@ -38,7 +38,8 @@ class BroApp {
             }
         )
 
-        webserver!!.start(wait = false)
+        // OBS skru av wait = true før prodsetting
+        webserver!!.start(wait = true)
     }
 
     fun shutdown() {
