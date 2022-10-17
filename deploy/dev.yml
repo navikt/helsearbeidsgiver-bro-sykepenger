@@ -13,14 +13,10 @@ spec:
     path: isalive
     initialDelay: 10
     timeout: 2
-    periodSeconds: 30
-    failureThreshold: 10
   readiness:
     path: isready
     initialDelay: 10
     timeout: 2
-    periodSeconds: 5
-    failureThreshold: 10
   prometheus:
     enabled: true
   replicas:
@@ -44,5 +40,7 @@ spec:
       value: helsearbeidsgiver-dev-6d06
     - name: KAFKA_RAPID_TOPIC
       value: tbd.arbeidsgiveropplysninger
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: helsearbeidsgiver-bro-sykepenger-v1
   kafka:
     pool: nav-dev
