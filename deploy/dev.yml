@@ -42,5 +42,7 @@ spec:
   env:
     - name: GCP_PRJ_ID
       value: helsearbeidsgiver-dev-6d06
+    - name: KAFKA_RAPID_TOPIC
+      value: tbd.arbeidsgiveropplysninger
   kafka:
     pool: nav-dev
