@@ -36,6 +36,7 @@ internal class ForespoerselRiver(
         logg.info("mottok meldingstype: ${packet["type"].asText()}")
         sikkerlogg.info("mottok melding:\n${packet.toJson()}")
 
+        packet["type"] = ""
         packet["@event_name"] = eventSvar
 
         packet["arbeidsgiveropplysninger"] = PriDto(
