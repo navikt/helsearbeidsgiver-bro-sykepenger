@@ -25,7 +25,7 @@ internal class ForespoerselRiver(
                 it.require(
                     "@opprettet" to JsonNode::asLocalDateTime,
                     "fom" to JsonNode::asLocalDate,
-                    "tom" to JsonNode::asLocalDate,
+                    "tom" to JsonNode::asLocalDate
                 )
                 it.requireKey("organisasjonsnummer", "fødselsnummer")
             }
@@ -41,7 +41,7 @@ internal class ForespoerselRiver(
         packet["arbeidsgiveropplysninger"] = PriDto(
             "dette er en periode",
             "dette er en refusjon",
-            "dette er en inntekt",
+            "dette er en inntekt"
         )
 
         context.publish(packet.toJson())
@@ -56,7 +56,7 @@ internal class ForespoerselRiver(
 class PriDto(
     val periode: String?,
     val refusjon: String?,
-    val inntekt: String?,
+    val inntekt: String?
 )
 
 private fun JsonMessage.require(vararg keyParserPairs: Pair<String, (JsonNode) -> Any>) {
