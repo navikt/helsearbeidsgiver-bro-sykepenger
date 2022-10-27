@@ -44,3 +44,8 @@ spec:
       value: helsearbeidsgiver-bro-sykepenger-v1
   kafka:
     pool: nav-dev
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_14
+        databases:
+          - name: helsearbeidsgiver-bro-sykepenger
