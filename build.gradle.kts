@@ -74,10 +74,14 @@ dependencies {
     val logbackVersion: String by project
     val slf4jVersion: String by project
     val rapidsAndRiversVersion: String by project
+    val hikariVersion: String by project
+    val flywayCoreVersion: String by project
 
     api("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
 
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
+    implementation("com.zaxxer:HikariCP:$hikariVersion")
+    implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
 
     runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
 }
