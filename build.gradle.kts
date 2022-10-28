@@ -76,12 +76,22 @@ dependencies {
     val rapidsAndRiversVersion: String by project
     val hikariVersion: String by project
     val flywayCoreVersion: String by project
+    val testcontainersPostgresqlVersion: String by project
+    val junitJupiterVersion: String by project
+    val kotliqueryVersion: String by project
 
     api("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
 
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
+    implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
 
     runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
+
+    testImplementation("org.testcontainers:postgresql:$testcontainersPostgresqlVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+
 }
