@@ -1,0 +1,4 @@
+CREATE TABLE forespoersel(
+    id BIGSERIAL NOT NULL PRIMARY KEY,
+    fnr BIGINT NOT NULL
+);

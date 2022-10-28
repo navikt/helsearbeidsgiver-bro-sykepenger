@@ -7,11 +7,18 @@ import org.junit.jupiter.api.Test
 
 internal class ForespoerselDAOTest : AbstractDatabaseTest() {
 
+    private companion object {
+        const val FNR = "123456789"
+    }
+
     @Test
     fun `Lagre forespørsel i databasen`() {
         val forespoerselDAO = ForespoerselDAO(dataSource)
-        forespoerselDAO.lagre()
+        forespoerselDAO.lagre(FNR)
         assertEquals(1, antallForespoersler())
+
+        forespoerselDAO.lagre(FNR)
+        assertEquals(2, antallForespoersler())
     }
 
     private fun antallForespoersler() = sessionOf((dataSource)).use { session ->
