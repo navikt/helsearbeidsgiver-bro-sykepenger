@@ -79,9 +79,11 @@ dependencies {
     val testcontainersPostgresqlVersion: String by project
     val junitJupiterVersion: String by project
     val kotliqueryVersion: String by project
+    val postgresqlVersion: String by project
 
     api("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
 
+    implementation("org.postgresql:postgresql:$postgresqlVersion")
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
