@@ -4,18 +4,19 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-internal data class ForespoerselDTO(
-    val organisasjonsnummer: String,
-    val fødselsnummer: String,
+internal data class ForespoerselDto(
+    val orgnr: String,
+    val fnr: String,
     val vedtaksperiodeId: UUID,
-    val vedtaksperiodeFom: LocalDate,
-    val vedtaksperiodeTom: LocalDate,
-    val behov: BehovDTO,
-    val status: Status?,
+    val fom: LocalDate,
+    val tom: LocalDate,
+    val forespurtData: ForespurtDataDto,
     val forespoerselBesvart: LocalDateTime?,
+    val status: Status,
     val opprettet: LocalDateTime = LocalDateTime.now(),
     val oppdatert: LocalDateTime = LocalDateTime.now()
 )
+
 internal enum class Status {
     TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER,
     BESVART,
@@ -23,4 +24,6 @@ internal enum class Status {
     AVBRUTT
 }
 
-internal class BehovDTO
+internal class ForespurtDataDto {
+    fun toJson() = "{}"
+}
