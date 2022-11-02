@@ -35,6 +35,7 @@ spec:
     application:
       enabled: true
   envFrom:
+    - secret: google-sql-helsearbeidsgiver-bro-sykepenger
   env:
     - name: GCP_PRJ_ID
       value: helsearbeidsgiver-dev-6d06
