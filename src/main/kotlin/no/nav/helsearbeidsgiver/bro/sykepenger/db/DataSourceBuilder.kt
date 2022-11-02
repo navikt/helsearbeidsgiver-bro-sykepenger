@@ -6,12 +6,21 @@ import org.flywaydb.core.Flyway
 import java.time.Duration
 import javax.sql.DataSource
 
+object DataSourceConfig {
+    private const val prefix: String = "NAIS_DATABASE_HELSEARBEIDSGIVER_BRO_SYKEPENGER_HELSEARBEIDSGIVER_BRO_SYKEPENGER"
+    const val HOST = "${prefix}_HOST"
+    const val PORT = "${prefix}_PORT"
+    const val DATABASE = "${prefix}_DATABASE"
+    const val USERNAME = "${prefix}_USERNAME"
+    const val PASSWORD = "${prefix}_PASSWORD"
+}
+
 internal class DataSourceBuilder(env: Map<String, String>) {
-    private val databaseHost: String = requireNotNull(env["DATABASE_HOST"]) { "host må settes" }
-    private val databasePort: String = requireNotNull(env["DATABASE_PORT"]) { "port må settes" }
-    private val databaseName: String = requireNotNull(env["DATABASE_DATABASE"]) { "databasenavn må settes" }
-    private val databaseUsername: String = requireNotNull(env["DATABASE_USERNAME"]) { "brukernavn må settes" }
-    private val databasePassword: String = requireNotNull(env["DATABASE_PASSWORD"]) { "passord må settes" }
+    private val databaseHost: String = requireNotNull(env[DataSourceConfig.HOST]) { "host må settes" }
+    private val databasePort: String = requireNotNull(env[DataSourceConfig.PORT]) { "port må settes" }
+    private val databaseName: String = requireNotNull(env[DataSourceConfig.DATABASE]) { "databasenavn må settes" }
+    private val databaseUsername: String = requireNotNull(env[DataSourceConfig.USERNAME]) { "brukernavn må settes" }
+    private val databasePassword: String = requireNotNull(env[DataSourceConfig.PASSWORD]) { "passord må settes" }
 
     private val dbUrl = String.format("jdbc:postgresql://%s:%s/%s", databaseHost, databasePort, databaseName)
 

@@ -5,17 +5,18 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 internal class DataSourceBuilderTest {
+    private val prefix: String = "NAIS_DATABASE_HELSEARBEIDSGIVER_BRO_SYKEPENGER_HELSEARBEIDSGIVER_BRO_SYKEPENGER_"
 
     @Test
     fun `kaster ikke exception når tilkobling konfigureres riktig`() {
         assertDoesNotThrow {
             DataSourceBuilder(
                 mapOf(
-                    "DATABASE_HOST" to "foobar",
-                    "DATABASE_PORT" to "foobar",
-                    "DATABASE_DATABASE" to "foobar",
-                    "DATABASE_USERNAME" to "foobar",
-                    "DATABASE_PASSWORD" to "foobar"
+                    DataSourceConfig.HOST to "foobar",
+                    DataSourceConfig.PORT to "foobar",
+                    DataSourceConfig.DATABASE to "foobar",
+                    DataSourceConfig.USERNAME to "foobar",
+                    DataSourceConfig.PASSWORD to "foobar"
                 )
             )
         }
@@ -30,7 +31,7 @@ internal class DataSourceBuilderTest {
         assertThrows<IllegalArgumentException> {
             DataSourceBuilder(
                 mapOf(
-                    "DATABASE_HOST" to "foobar"
+                    DataSourceConfig.HOST to "foobar"
                 )
             )
         }
@@ -38,8 +39,8 @@ internal class DataSourceBuilderTest {
         assertThrows<IllegalArgumentException> {
             DataSourceBuilder(
                 mapOf(
-                    "DATABASE_HOST" to "foobar",
-                    "DATABASE_PORT" to "foobar"
+                    DataSourceConfig.HOST to "foobar",
+                    DataSourceConfig.PORT to "foobar"
                 )
             )
         }
@@ -47,9 +48,9 @@ internal class DataSourceBuilderTest {
         assertThrows<IllegalArgumentException> {
             DataSourceBuilder(
                 mapOf(
-                    "DATABASE_HOST" to "foobar",
-                    "DATABASE_PORT" to "foobar",
-                    "DATABASE_DATABASE" to "foobar"
+                    DataSourceConfig.HOST to "foobar",
+                    DataSourceConfig.PORT to "foobar",
+                    DataSourceConfig.DATABASE to "foobar"
                 )
             )
         }
@@ -57,10 +58,10 @@ internal class DataSourceBuilderTest {
         assertThrows<IllegalArgumentException> {
             DataSourceBuilder(
                 mapOf(
-                    "DATABASE_HOST" to "foobar",
-                    "DATABASE_PORT" to "foobar",
-                    "DATABASE_DATABASE" to "foobar",
-                    "DATABASE_USERNAME" to "foobar"
+                    DataSourceConfig.HOST to "foobar",
+                    DataSourceConfig.PORT to "foobar",
+                    DataSourceConfig.DATABASE to "foobar",
+                    DataSourceConfig.USERNAME to "foobar"
                 )
             )
         }
