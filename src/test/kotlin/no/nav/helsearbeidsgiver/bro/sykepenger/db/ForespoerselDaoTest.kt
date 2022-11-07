@@ -44,9 +44,10 @@ internal class ForespoerselDaoTest : AbstractDatabaseTest() {
             oppdatert = timestamp
         )
 
-        forespoerselDao.lagre(forespoersel)
-
+        val forespoerselId = forespoerselDao.lagre(forespoersel)
+        val lagretForespoersel = forespoerselDao.hent(forespoerselId!!)
         assertEquals(1, antallForespoersler())
+        assertEquals(forespoersel, lagretForespoersel)
     }
 
     private fun antallForespoersler() = sessionOf(dataSource).use { session ->

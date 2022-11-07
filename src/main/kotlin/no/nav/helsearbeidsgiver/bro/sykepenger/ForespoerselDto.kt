@@ -1,7 +1,9 @@
+@file:UseSerializers(LocalDateSerializer::class)
+
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -19,23 +21,19 @@ data class ForespoerselDto(
     val oppdatert: LocalDateTime = LocalDateTime.now()
 )
 
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    property = "opplysningstype"
-)
-@JsonSubTypes(
-    JsonSubTypes.Type(ArbeidsgiverPeriode::class),
-    JsonSubTypes.Type(Refusjon::class),
-    JsonSubTypes.Type(Inntekt::class)
-)
+@Serializable
 sealed class ForespurtDataDto
 
+@Serializable
 data class ArbeidsgiverPeriode(val forslag: List<Forslag>) : ForespurtDataDto()
 
+@Serializable
 object Refusjon : ForespurtDataDto()
 
+@Serializable
 object Inntekt : ForespurtDataDto()
 
+@Serializable
 data class Forslag(
     val fom: LocalDate,
     val tom: LocalDate

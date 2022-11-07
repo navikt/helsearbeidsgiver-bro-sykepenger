@@ -7,5 +7,6 @@ pluginManagement {
 
         kotlin("jvm") version kotlinVersion
         id("org.jmailen.kotlinter") version kotlinterVersion
+        kotlin("plugin.serialization") version kotlinVersion
     }
 }

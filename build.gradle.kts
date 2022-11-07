@@ -6,6 +6,7 @@ plugins {
     application
     kotlin("jvm")
     id("org.jmailen.kotlinter")
+    kotlin("plugin.serialization")
 }
 
 application {
@@ -80,6 +81,7 @@ dependencies {
     val junitJupiterVersion: String by project
     val kotliqueryVersion: String by project
     val postgresqlVersion: String by project
+    val kotlinSerializationVersion: String by project
 
     api("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
 
@@ -88,6 +90,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
 
     runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
 
@@ -95,5 +98,4 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
-
 }

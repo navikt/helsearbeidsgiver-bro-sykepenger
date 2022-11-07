@@ -1,6 +1,8 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
 import com.fasterxml.jackson.databind.JsonNode
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -16,8 +18,6 @@ class ForespoerselRiver(
 ) : River.PacketListener {
     private val logg = LoggerFactory.getLogger(this::class.java)
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
-
-    private val objectMapper = customObjectMapper()
 
     val meldingstype = "TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER"
 
@@ -50,12 +50,11 @@ class ForespoerselRiver(
             fom = packet.value(Key.FOM).asLocalDate(),
             tom = packet.value(Key.TOM).asLocalDate(),
             // TODO ikke helt korrekt måte å deserialisere
-            forespurtData = packet.value(Key.FORESPURT_DATA).map { objectMapper.convertValue(it, ForespurtDataDto::class.java) },
+            forespurtData = packet.value(Key.FORESPURT_DATA).asText().let { Json.decodeFromString(it) },
             forespoerselBesvart = null,
             status = Status.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER
         )
-
-        forespoerselDao.lagre(forespoersel)
+        // forespoerselDao.lagre(forespoersel)
     }
 }
 
