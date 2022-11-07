@@ -54,7 +54,7 @@ class ForespoerselRiver(
             forespoerselBesvart = null,
             status = Status.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER
         )
-        // forespoerselDao.lagre(forespoersel)
+        sikkerlogg.info("forespoersel: $forespoersel")
     }
 }
 
