@@ -2,9 +2,14 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
 import kotliquery.queryOf
 import kotliquery.sessionOf
+import no.nav.helsearbeidsgiver.bro.sykepenger.ArbeidsgiverPeriode
 import no.nav.helsearbeidsgiver.bro.sykepenger.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.ForespurtDataDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.Forslag
+import no.nav.helsearbeidsgiver.bro.sykepenger.Inntekt
+import no.nav.helsearbeidsgiver.bro.sykepenger.Refusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.Status
+import no.nav.helsearbeidsgiver.bro.sykepenger.januar
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -19,7 +24,6 @@ internal class ForespoerselDaoTest : AbstractDatabaseTest() {
         val vedtaksveriodeId = UUID.randomUUID()
         val fom = LocalDate.EPOCH
         val tom = LocalDate.EPOCH.plusMonths(1)
-        val forespurtData = ForespurtDataDto()
         val status = Status.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER
         val timestamp = LocalDateTime.now()
     }
@@ -33,17 +37,43 @@ internal class ForespoerselDaoTest : AbstractDatabaseTest() {
             vedtaksperiodeId = vedtaksveriodeId,
             fom = fom,
             tom = tom,
-            forespurtData = forespurtData,
+            forespurtData = mockForespurtDataListe(),
             forespoerselBesvart = null,
             status = status,
             opprettet = timestamp,
             oppdatert = timestamp
         )
+
         forespoerselDao.lagre(forespoersel)
+
         assertEquals(1, antallForespoersler())
     }
 
-    private fun antallForespoersler() = sessionOf((dataSource)).use { session ->
-        requireNotNull(session.run(queryOf("SELECT COUNT(1) FROM forespoersel").map { it.int(1) }.asSingle))
+    private fun antallForespoersler() = sessionOf(dataSource).use { session ->
+        requireNotNull(
+            session.run(
+                queryOf("SELECT COUNT(1) FROM forespoersel")
+                    .map { it.int(1) }
+                    .asSingle
+            )
+        )
     }
 }
+
+private fun mockForespurtDataListe(): List<ForespurtDataDto> =
+    listOf(
+        ArbeidsgiverPeriode(
+            forslag = listOf(
+                Forslag(
+                    fom = 1.januar,
+                    tom = 10.januar
+                ),
+                Forslag(
+                    fom = 15.januar,
+                    tom = 20.januar
+                )
+            )
+        ),
+        Refusjon,
+        Inntekt
+    )

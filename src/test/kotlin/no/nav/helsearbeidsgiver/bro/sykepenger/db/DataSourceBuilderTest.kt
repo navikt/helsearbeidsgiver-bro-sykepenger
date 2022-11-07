@@ -5,8 +5,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 internal class DataSourceBuilderTest {
-    private val prefix: String = "NAIS_DATABASE_HELSEARBEIDSGIVER_BRO_SYKEPENGER_HELSEARBEIDSGIVER_BRO_SYKEPENGER_"
-
     @Test
     fun `kaster ikke exception når tilkobling konfigureres riktig`() {
         assertDoesNotThrow {
@@ -23,7 +21,7 @@ internal class DataSourceBuilderTest {
     }
 
     @Test
-    fun `kaster exception ved mangende konfig`() {
+    fun `kaster exception ved manglende konfig`() {
         assertThrows<IllegalArgumentException> {
             DataSourceBuilder(emptyMap())
         }

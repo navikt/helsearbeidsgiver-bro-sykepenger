@@ -3,9 +3,12 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.db
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helsearbeidsgiver.bro.sykepenger.ForespoerselDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.customObjectMapper
 import javax.sql.DataSource
 
-internal class ForespoerselDao(private val dataSource: DataSource) {
+class ForespoerselDao(private val dataSource: DataSource) {
+    private val objectMapper = customObjectMapper()
+
     fun lagre(forespoersel: ForespoerselDto) {
         val felter = mapOf(
             "fnr" to forespoersel.fnr,
@@ -20,12 +23,12 @@ internal class ForespoerselDao(private val dataSource: DataSource) {
         )
 
         val jsonFelter = mapOf(
-            "forespurt_data" to forespoersel.forespurtData.toJson()
-
+            "forespurt_data" to objectMapper.writeValueAsString(forespoersel.forespurtData)
         )
         val kolonnenavn = (felter + jsonFelter).keys.joinToString()
         val noekler = felter.keys.joinToString { ":$it" } + ", " + jsonFelter.keys.joinToString { ":$it::json" }
         val query = "INSERT INTO forespoersel($kolonnenavn) VALUES ($noekler)"
+
         sessionOf(dataSource).use {
             it.run(queryOf(query, felter + jsonFelter).asExecute)
         }

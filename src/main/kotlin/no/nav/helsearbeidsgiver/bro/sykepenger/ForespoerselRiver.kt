@@ -6,59 +6,58 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDate
-import no.nav.helse.rapids_rivers.asLocalDateTime
+import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import org.slf4j.LoggerFactory
+import java.util.UUID
 
-internal class ForespoerselRiver(
-    rapidsConnection: RapidsConnection
+class ForespoerselRiver(
+    rapidsConnection: RapidsConnection,
+    val forespoerselDao: ForespoerselDao
 ) : River.PacketListener {
-    val logg = LoggerFactory.getLogger(this::class.java)
-    val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
+    private val logg = LoggerFactory.getLogger(this::class.java)
+    private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
+
+    private val objectMapper = customObjectMapper()
 
     val meldingstype = "TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER"
-    val eventSvar = "opplysninger_fra_arbeidsgiver"
 
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandValue("type", meldingstype)
+                it.demandValue(Key.TYPE.str, meldingstype)
                 it.require(
-                    "@opprettet" to JsonNode::asLocalDateTime,
-                    "fom" to JsonNode::asLocalDate,
-                    "tom" to JsonNode::asLocalDate
+                    Key.FOM.str to JsonNode::asLocalDate,
+                    Key.TOM.str to JsonNode::asLocalDate
                 )
-                it.requireKey("organisasjonsnummer", "fødselsnummer")
+                it.requireKey(
+                    Key.ORGANISASJONSNUMMER.str,
+                    Key.FØDSELSNUMMER.str,
+                    Key.VEDTAKSPERIODE_ID.str,
+                    Key.FORESPURT_DATA.str
+                )
             }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logg.info("mottok meldingstype: ${packet["type"].asText()}")
+        logg.info("mottok meldingstype: ${packet.value(Key.TYPE).asText()}")
         sikkerlogg.info("mottok melding:\n${packet.toJson()}")
 
-        packet["type"] = ""
-        packet["@event_name"] = eventSvar
-
-        packet["arbeidsgiveropplysninger"] = PriDto(
-            "dette er en periode",
-            "dette er en refusjon",
-            "dette er en inntekt"
+        val forespoersel = ForespoerselDto(
+            orgnr = packet.value(Key.ORGANISASJONSNUMMER).asText(),
+            fnr = packet.value(Key.FØDSELSNUMMER).asText(),
+            vedtaksperiodeId = packet.value(Key.VEDTAKSPERIODE_ID).asText().let(UUID::fromString),
+            fom = packet.value(Key.FOM).asLocalDate(),
+            tom = packet.value(Key.TOM).asLocalDate(),
+            // TODO ikke helt korrekt måte å deserialisere
+            forespurtData = packet.value(Key.FORESPURT_DATA).map { objectMapper.convertValue(it, ForespurtDataDto::class.java) },
+            forespoerselBesvart = null,
+            status = Status.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER
         )
 
-        context.publish(packet.toJson())
-
-        "Publiserte '$eventSvar' til sparkel-arbeidsgiver".let {
-            logg.info(it)
-            sikkerlogg.info("$it med data=${packet.toJson()}")
-        }
+        forespoerselDao.lagre(forespoersel)
     }
 }
-
-class PriDto(
-    val periode: String?,
-    val refusjon: String?,
-    val inntekt: String?
-)
 
 private fun JsonMessage.require(vararg keyParserPairs: Pair<String, (JsonNode) -> Any>) {
     keyParserPairs.forEach { (key, parser) ->
