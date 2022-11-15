@@ -1,0 +1,21 @@
+[
+  {
+    "type": "no.nav.helsearbeidsgiver.bro.sykepenger.ArbeidsgiverPeriode",
+    "forslag": [
+      {
+        "fom": "2018-01-01",
+        "tom": "2018-01-10"
+      },
+      {
+        "fom": "2018-01-15",
+        "tom": "2018-01-20"
+      }
+    ]
+  },
+  {
+    "type": "no.nav.helsearbeidsgiver.bro.sykepenger.Refusjon"
+  },
+  {
+    "type": "no.nav.helsearbeidsgiver.bro.sykepenger.Inntekt"
+  }
+]

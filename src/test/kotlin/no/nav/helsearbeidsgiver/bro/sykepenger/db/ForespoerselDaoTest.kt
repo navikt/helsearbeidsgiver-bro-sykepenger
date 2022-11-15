@@ -2,15 +2,10 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import no.nav.helsearbeidsgiver.bro.sykepenger.ArbeidsgiverPeriode
 import no.nav.helsearbeidsgiver.bro.sykepenger.ForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.ForespurtDataDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.Forslag
-import no.nav.helsearbeidsgiver.bro.sykepenger.Inntekt
-import no.nav.helsearbeidsgiver.bro.sykepenger.Refusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.truncMillis
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.januar
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespurtDataListe
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -61,21 +56,3 @@ internal class ForespoerselDaoTest : AbstractDatabaseTest() {
         )
     }
 }
-
-private fun mockForespurtDataListe(): List<ForespurtDataDto> =
-    listOf(
-        ArbeidsgiverPeriode(
-            forslag = listOf(
-                Forslag(
-                    fom = 1.januar,
-                    tom = 10.januar
-                ),
-                Forslag(
-                    fom = 15.januar,
-                    tom = 20.januar
-                )
-            )
-        ),
-        Refusjon,
-        Inntekt
-    )
