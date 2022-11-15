@@ -17,8 +17,8 @@ data class ForespoerselDto(
     val forespurtData: List<ForespurtDataDto>,
     val forespoerselBesvart: LocalDateTime?,
     val status: Status,
-    val opprettet: LocalDateTime = LocalDateTime.now(),
-    val oppdatert: LocalDateTime = LocalDateTime.now()
+    val opprettet: LocalDateTime = LocalDateTime.now().truncMillis(),
+    val oppdatert: LocalDateTime = LocalDateTime.now().truncMillis()
 )
 
 @Serializable

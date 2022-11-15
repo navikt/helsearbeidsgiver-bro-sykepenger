@@ -9,7 +9,8 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.Forslag
 import no.nav.helsearbeidsgiver.bro.sykepenger.Inntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.Refusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.Status
-import no.nav.helsearbeidsgiver.bro.sykepenger.januar
+import no.nav.helsearbeidsgiver.bro.sykepenger.truncMillis
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.januar
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -25,7 +26,7 @@ internal class ForespoerselDaoTest : AbstractDatabaseTest() {
         val fom = LocalDate.EPOCH
         val tom = LocalDate.EPOCH.plusMonths(1)
         val status = Status.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER
-        val timestamp = LocalDateTime.now()
+        val timestamp = LocalDateTime.now().truncMillis()
     }
 
     @Test
