@@ -79,6 +79,7 @@ dependencies {
     val kotlinSerializationVersion: String by project
     val kotliqueryVersion: String by project
     val logbackVersion: String by project
+    val mockkVersion: String by project
     val postgresqlVersion: String by project
     val rapidsAndRiversVersion: String by project
     val slf4jVersion: String by project
@@ -97,6 +98,7 @@ dependencies {
 
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersPostgresqlVersion")

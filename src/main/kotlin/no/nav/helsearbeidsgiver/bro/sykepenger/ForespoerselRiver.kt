@@ -17,7 +17,7 @@ class ForespoerselRiver(
     val forespoerselDao: ForespoerselDao
 ) : River.PacketListener {
     private val logg = LoggerFactory.getLogger(this::class.java)
-    private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
+    private val sikkerlogg = sikkerLogger()
 
     val meldingstype = "TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER"
 
