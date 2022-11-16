@@ -50,7 +50,7 @@ class ForespoerselRiver(
             fom = packet.value(Key.FOM).asLocalDate(),
             tom = packet.value(Key.TOM).asLocalDate(),
             // TODO ikke helt korrekt måte å deserialisere
-            forespurtData = packet.value(Key.FORESPURT_DATA).asText().let { Json.decodeFromString(it) },
+            forespurtData = packet.value(Key.FORESPURT_DATA).asText().let(Json::decodeFromString),
             forespoerselBesvart = null,
             status = Status.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER
         )

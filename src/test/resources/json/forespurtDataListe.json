@@ -1,6 +1,6 @@
 [
   {
-    "type": "no.nav.helsearbeidsgiver.bro.sykepenger.ArbeidsgiverPeriode",
+    "opplysningstype": "Arbeidsgiverperiode",
     "forslag": [
       {
         "fom": "2018-01-01",
@@ -13,9 +13,9 @@
     ]
   },
   {
-    "type": "no.nav.helsearbeidsgiver.bro.sykepenger.Refusjon"
+    "opplysningstype": "Refusjon"
   },
   {
-    "type": "no.nav.helsearbeidsgiver.bro.sykepenger.Inntekt"
+    "opplysningstype": "Inntekt"
   }
 ]
