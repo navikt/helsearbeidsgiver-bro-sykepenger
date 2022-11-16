@@ -72,30 +72,34 @@ repositories {
 }
 
 dependencies {
-    val logbackVersion: String by project
-    val slf4jVersion: String by project
-    val rapidsAndRiversVersion: String by project
-    val hikariVersion: String by project
     val flywayCoreVersion: String by project
-    val testcontainersPostgresqlVersion: String by project
+    val hikariVersion: String by project
     val junitJupiterVersion: String by project
-    val kotliqueryVersion: String by project
-    val postgresqlVersion: String by project
+    val kotestVersion: String by project
     val kotlinSerializationVersion: String by project
+    val kotliqueryVersion: String by project
+    val logbackVersion: String by project
+    val postgresqlVersion: String by project
+    val rapidsAndRiversVersion: String by project
+    val slf4jVersion: String by project
+    val testcontainersPostgresqlVersion: String by project
 
     api("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
 
-    implementation("org.postgresql:postgresql:$postgresqlVersion")
-    implementation("org.slf4j:slf4j-api:$slf4jVersion")
+    implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
-    implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
+    implementation("org.postgresql:postgresql:$postgresqlVersion")
+    implementation("org.slf4j:slf4j-api:$slf4jVersion")
 
     runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
 
-    testImplementation("org.testcontainers:postgresql:$testcontainersPostgresqlVersion")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
+    testImplementation("org.testcontainers:postgresql:$testcontainersPostgresqlVersion")
+
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 }
