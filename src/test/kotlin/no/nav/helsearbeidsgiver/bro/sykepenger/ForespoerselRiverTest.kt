@@ -4,7 +4,7 @@ import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.extensions.time.withConstantNow
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.ints.shouldBeExactly
 import io.mockk.mockk
 import io.mockk.verify
@@ -59,13 +59,18 @@ class ForespoerselRiverTest : FunSpec({
             .toJson()
             .toString()
 
-        withConstantNow(forespoerselDto.oppdatert) {
-            testRapid.sendTestMessage(event)
-        }
+        testRapid.sendTestMessage(event)
+
         sikkerlogCollector.list.size shouldBeExactly 2
         sikkerlogCollector.list.single { it.message.contains("mottok melding:") }
         sikkerlogCollector.list.single { it.message.contains("forespoersel:") }
-        verify(exactly = 1) { forespoerselDao.lagre(forespoerselDto) }
+        verify(exactly = 1) {
+            forespoerselDao.lagre(
+                withArg {
+                    it.shouldBeEqualToIgnoringFields(forespoerselDto, forespoerselDto::oppdatert, forespoerselDto::opprettet)
+                }
+            )
+        }
     }
 })
 
