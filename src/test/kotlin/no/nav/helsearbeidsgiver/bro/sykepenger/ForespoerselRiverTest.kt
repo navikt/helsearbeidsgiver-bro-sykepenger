@@ -1,11 +1,7 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
-import ch.qos.logback.classic.Logger
-import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.core.read.ListAppender
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
-import io.kotest.matchers.ints.shouldBeExactly
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.serialization.json.Json
@@ -21,20 +17,14 @@ const val MOCK_UUID = "01234567-abcd-0123-abcd-012345678901"
 
 class ForespoerselRiverTest : FunSpec({
     val testRapid = TestRapid()
-    val forespoerselDao = mockk<ForespoerselDao>(relaxed = true)
+    val mockForespoerselDao = mockk<ForespoerselDao>(relaxed = true)
 
     ForespoerselRiver(
         rapidsConnection = testRapid,
-        forespoerselDao = forespoerselDao
+        forespoerselDao = mockForespoerselDao
     )
 
-    val sikkerlogCollector = ListAppender<ILoggingEvent>().also {
-        (sikkerLogger() as Logger).addAppender(it)
-        it.start()
-    }
-
-    test("ForespørselRiver plukker opp og logger events") {
-
+    test("Innkommende forespørsler lagres") {
         val forespoerselDto = ForespoerselDto(
             orgnr = "12345678901",
             fnr = "123456789",
@@ -45,6 +35,7 @@ class ForespoerselRiverTest : FunSpec({
             forespoerselBesvart = null,
             status = Status.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER
         )
+
         val eventMap: Map<Key, JsonElement> = mapOf(
             Key.TYPE to "TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER".toJson(),
             Key.FOM to forespoerselDto.fom.toString().toJson(),
@@ -61,11 +52,8 @@ class ForespoerselRiverTest : FunSpec({
 
         testRapid.sendTestMessage(event)
 
-        sikkerlogCollector.list.size shouldBeExactly 2
-        sikkerlogCollector.list.single { it.message.contains("mottok melding:") }
-        sikkerlogCollector.list.single { it.message.contains("forespoersel:") }
         verify(exactly = 1) {
-            forespoerselDao.lagre(
+            mockForespoerselDao.lagre(
                 withArg {
                     it.shouldBeEqualToIgnoringFields(forespoerselDto, forespoerselDto::oppdatert, forespoerselDto::opprettet)
                 }
