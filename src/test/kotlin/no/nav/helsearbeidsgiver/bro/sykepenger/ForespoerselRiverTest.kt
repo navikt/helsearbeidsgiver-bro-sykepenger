@@ -9,11 +9,9 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.januar
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.MOCK_UUID
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespurtDataListe
-import java.util.*
-
-const val MOCK_UUID = "01234567-abcd-0123-abcd-012345678901"
 
 class ForespoerselRiverTest : FunSpec({
     val testRapid = TestRapid()
@@ -25,19 +23,10 @@ class ForespoerselRiverTest : FunSpec({
     )
 
     test("Innkommende forespørsler lagres") {
-        val forespoerselDto = ForespoerselDto(
-            orgnr = "12345678901",
-            fnr = "123456789",
-            vedtaksperiodeId = UUID.fromString(MOCK_UUID),
-            fom = 1.januar,
-            tom = 16.januar,
-            forespurtData = mockForespurtDataListe(),
-            forespoerselBesvart = null,
-            status = Status.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER
-        )
+        val forespoerselDto = mockForespoerselDto()
 
         val eventMap: Map<Key, JsonElement> = mapOf(
-            Key.TYPE to "TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER".toJson(),
+            Key.TYPE to FORESPOERSEL_TYPE.toJson(),
             Key.FOM to forespoerselDto.fom.toString().toJson(),
             Key.TOM to forespoerselDto.tom.toString().toJson(),
             Key.ORGANISASJONSNUMMER to forespoerselDto.orgnr.toJson(),
