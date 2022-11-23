@@ -57,8 +57,11 @@ class ForespoerselRiver(
 
         val id = forespoerselDao.lagre(forespoersel)
 
-        if (id != null) logg.info("Forespørsel lagret med id=$id.")
-        else logg.info("Forespørsel ble ikke lagret.")
+        if (id != null) {
+            logg.info("Forespørsel lagret med id=$id.")
+        } else {
+            logg.info("Forespørsel ble ikke lagret.")
+        }
     }
 }
 
