@@ -12,6 +12,8 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
+const val FORESPOERSEL_TYPE = "TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER"
+
 class ForespoerselRiver(
     rapidsConnection: RapidsConnection,
     val forespoerselDao: ForespoerselDao
@@ -19,12 +21,10 @@ class ForespoerselRiver(
     private val logg = LoggerFactory.getLogger(this::class.java)
     private val sikkerlogg = sikkerLogger()
 
-    val meldingstype = "TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER"
-
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandValue(Key.TYPE.str, meldingstype)
+                it.demandValue(Key.TYPE.str, FORESPOERSEL_TYPE)
                 it.require(
                     Key.FOM.str to JsonNode::asLocalDate,
                     Key.TOM.str to JsonNode::asLocalDate
@@ -40,8 +40,8 @@ class ForespoerselRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logg.info("mottok meldingstype: ${packet.value(Key.TYPE).asText()}")
-        sikkerlogg.info("mottok melding:\n${packet.toJson()}")
+        logg.info("Mottok melding av type '${packet.value(Key.TYPE).asText()}'")
+        sikkerlogg.info("Mottok melding med innhold:\n${packet.toJson()}")
 
         val forespoersel = ForespoerselDto(
             orgnr = packet.value(Key.ORGANISASJONSNUMMER).asText(),
@@ -49,13 +49,14 @@ class ForespoerselRiver(
             vedtaksperiodeId = packet.value(Key.VEDTAKSPERIODE_ID).asText().let(UUID::fromString),
             fom = packet.value(Key.FOM).asLocalDate(),
             tom = packet.value(Key.TOM).asLocalDate(),
-            // TODO ikke helt korrekt måte å deserialisere
             forespurtData = packet.value(Key.FORESPURT_DATA).toString().let(Json::decodeFromString),
             forespoerselBesvart = null,
             status = Status.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER
         )
-        sikkerlogg.info("forespoersel: $forespoersel")
+        sikkerlogg.info("Forespoersel lest: $forespoersel")
+
         forespoerselDao.lagre(forespoersel)
+        logg.info("Forespoersel lagret.")
     }
 }
 
