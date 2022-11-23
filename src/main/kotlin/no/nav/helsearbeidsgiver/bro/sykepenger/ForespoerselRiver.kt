@@ -55,8 +55,10 @@ class ForespoerselRiver(
         )
         sikkerlogg.info("Forespoersel lest: $forespoersel")
 
-        forespoerselDao.lagre(forespoersel)
-        logg.info("Forespoersel lagret.")
+        val id = forespoerselDao.lagre(forespoersel)
+
+        if (id != null) logg.info("Forespørsel lagret med id=$id.")
+        else logg.info("Forespørsel ble ikke lagret.")
     }
 }
 
