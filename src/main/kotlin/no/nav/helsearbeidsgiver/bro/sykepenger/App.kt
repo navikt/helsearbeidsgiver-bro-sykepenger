@@ -10,13 +10,21 @@ import org.slf4j.LoggerFactory
 fun main() {
     val broLogger = LoggerFactory.getLogger("BroLogger")
     broLogger.info("Hello bro!")
+
     val env = System.getenv()
     val dataSourceBuilder = DataSourceBuilder(env)
     val dataSource by lazy { dataSourceBuilder.getDataSource() }
-    RapidApplication.create(env).apply {
-        ForespoerselRiver(this, ForespoerselDao(dataSource))
-        registerDatasource(dataSourceBuilder, dataSource)
-    }.start()
+
+    val connection = RapidApplication.create(env)
+
+    ForespoerselRiver(
+        rapidsConnection = connection,
+        forespoerselDao = ForespoerselDao(dataSource)
+    )
+
+    connection.registerDatasource(dataSourceBuilder, dataSource)
+
+    connection.start()
 }
 
 private fun RapidsConnection.registerDatasource(dataSourceBuilder: DataSourceBuilder, dataSource: HikariDataSource) {
