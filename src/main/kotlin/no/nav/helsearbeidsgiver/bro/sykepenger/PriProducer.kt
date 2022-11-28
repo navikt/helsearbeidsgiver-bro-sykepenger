@@ -1,7 +1,5 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -57,6 +55,6 @@ private fun kafkaProperties(): Properties =
 
 private class ForespoerselMottattSerializer : Serializer<ForespoerselMottatt> {
     override fun serialize(topic: String, data: ForespoerselMottatt): ByteArray =
-        Json.encodeToString(data)
+        data.toJson()
             .toByteArray()
 }

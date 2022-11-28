@@ -8,6 +8,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifySequence
 import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.errors.TimeoutException
 
@@ -31,7 +32,12 @@ class PriProducerTest : FunSpec({
 
         bleMeldingSendt.shouldBeTrue()
 
-        verifySequence { mockProducer.send(any()) }
+        val expected = ProducerRecord<String, ForespoerselMottatt>(
+            "helsearbeidsgiver.pri",
+            forespoerselMottatt
+        )
+
+        verifySequence { mockProducer.send(expected) }
     }
 
     test("gir false ved feilet sending til kafka stream") {

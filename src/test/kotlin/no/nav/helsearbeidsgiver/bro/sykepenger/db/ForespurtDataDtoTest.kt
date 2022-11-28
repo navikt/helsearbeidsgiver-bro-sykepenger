@@ -7,9 +7,8 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.helsearbeidsgiver.bro.sykepenger.ForespurtDataDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespurtDataListe
-
-private val jsonWhitespaceRegex = Regex("""("(?:\\"|[^"])*")|\s""")
 
 class ForespurtDataDtoTest : StringSpec({
     val forespurtDataJson = "json/forespurtDataListe.json".readResource().removeJsonWhitespace()
@@ -35,6 +34,3 @@ private fun String.readResource(): String =
     ClassLoader.getSystemClassLoader()
         .getResource(this)
         ?.readText()!!
-
-private fun String.removeJsonWhitespace(): String =
-    replace(jsonWhitespaceRegex, "$1")
