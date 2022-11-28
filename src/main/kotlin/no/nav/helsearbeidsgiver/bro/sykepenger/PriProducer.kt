@@ -14,11 +14,7 @@ import java.util.Properties
 
 object PriProducer {
     private const val TOPIC = "helsearbeidsgiver.pri"
-    private val producer = KafkaProducer(
-        kafkaProperties(),
-        StringSerializer(),
-        ForespoerselMottattSerializer()
-    )
+    private val producer = createProducer()
 
     fun send(forespoerselMottatt: ForespoerselMottatt): Boolean =
         forespoerselMottatt.toRecord()
@@ -30,6 +26,13 @@ object PriProducer {
     private fun <T : Any> T.toRecord(): ProducerRecord<String, T> =
         ProducerRecord(TOPIC, this)
 }
+
+fun createProducer(): KafkaProducer<String, ForespoerselMottatt> =
+    KafkaProducer(
+        kafkaProperties(),
+        StringSerializer(),
+        ForespoerselMottattSerializer()
+    )
 
 private fun kafkaProperties(): Properties =
     Properties().apply {
@@ -46,8 +49,6 @@ private fun kafkaProperties(): Properties =
                 SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to Env.Kafka.keystorePath,
                 SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to Env.Kafka.credstorePassword,
 
-                ProducerConfig.ACKS_CONFIG to "1",
-                ProducerConfig.LINGER_MS_CONFIG to "0",
                 ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION to "1"
             )
         )

@@ -44,6 +44,15 @@ tasks {
             }
         }
     }
+
+    test {
+        environment(
+            "KAFKA_BROKERS" to "http://localhost:8080",
+            "KAFKA_KEYSTORE_PATH" to "mockKeystorePath",
+            "KAFKA_TRUSTSTORE_PATH" to "mockTruststorePath",
+            "KAFKA_CREDSTORE_PASSWORD" to "mockCredstorePassword"
+        )
+    }
 }
 
 java {
