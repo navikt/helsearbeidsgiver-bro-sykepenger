@@ -16,7 +16,8 @@ const val FORESPOERSEL_TYPE = "TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER"
 
 class ForespoerselRiver(
     rapidsConnection: RapidsConnection,
-    val forespoerselDao: ForespoerselDao
+    private val forespoerselDao: ForespoerselDao,
+    private val priProducer: PriProducer
 ) : River.PacketListener {
     private val logg = LoggerFactory.getLogger(this::class.java)
     private val sikkerlogg = sikkerLogger()
@@ -55,13 +56,28 @@ class ForespoerselRiver(
         )
         sikkerlogg.info("Forespoersel lest: $forespoersel")
 
-        val id = forespoerselDao.lagre(forespoersel)
+        forespoerselDao.lagre(forespoersel)
+            .let { id ->
+                if (id != null) {
+                    logg.info("Forespørsel lagret med id=$id.")
+                } else {
+                    logg.info("Forespørsel ble ikke lagret.")
+                }
+            }
 
-        if (id != null) {
-            logg.info("Forespørsel lagret med id=$id.")
-        } else {
-            logg.info("Forespørsel ble ikke lagret.")
-        }
+        priProducer.send(
+            ForespoerselMottatt(
+                orgnr = forespoersel.orgnr,
+                fnr = forespoersel.fnr
+            )
+        )
+            .let { bleMeldingSendt ->
+                if (bleMeldingSendt) {
+                    logg.info("Sa ifra om mottatt forespørsel til Simba.")
+                } else {
+                    logg.info("Klarte ikke si ifra om mottatt forespørsel til Simba.")
+                }
+            }
     }
 }
 

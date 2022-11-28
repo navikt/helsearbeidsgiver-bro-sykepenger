@@ -3,7 +3,7 @@ package no.nav.helsearbeidsgiver.bro.sykepenger
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.verifySequence
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
@@ -16,14 +16,21 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespurtDataListe
 class ForespoerselRiverTest : FunSpec({
     val testRapid = TestRapid()
     val mockForespoerselDao = mockk<ForespoerselDao>(relaxed = true)
+    val mockPriProducer = mockk<PriProducer>(relaxed = true)
 
     ForespoerselRiver(
         rapidsConnection = testRapid,
-        forespoerselDao = mockForespoerselDao
+        forespoerselDao = mockForespoerselDao,
+        priProducer = mockPriProducer
     )
 
     test("Innkommende forespørsler lagres") {
         val forespoerselDto = mockForespoerselDto()
+
+        val expectedForespoerselMottatt = ForespoerselMottatt(
+            orgnr = forespoerselDto.orgnr,
+            fnr = forespoerselDto.fnr
+        )
 
         val eventMap: Map<Key, JsonElement> = mapOf(
             Key.TYPE to FORESPOERSEL_TYPE.toJson(),
@@ -41,12 +48,14 @@ class ForespoerselRiverTest : FunSpec({
 
         testRapid.sendTestMessage(event)
 
-        verify(exactly = 1) {
+        verifySequence {
             mockForespoerselDao.lagre(
                 withArg {
                     it.shouldBeEqualToIgnoringFields(forespoerselDto, forespoerselDto::oppdatert, forespoerselDto::opprettet)
                 }
             )
+
+            mockPriProducer.send(expectedForespoerselMottatt)
         }
     }
 })
