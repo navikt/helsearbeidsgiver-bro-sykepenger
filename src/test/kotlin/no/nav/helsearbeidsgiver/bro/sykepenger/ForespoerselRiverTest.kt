@@ -19,7 +19,8 @@ class ForespoerselRiverTest : FunSpec({
 
     ForespoerselRiver(
         rapidsConnection = testRapid,
-        forespoerselDao = mockForespoerselDao
+        forespoerselDao = mockForespoerselDao,
+        priProducer = mockk(relaxed = true)
     )
 
     test("Innkommende forespørsler lagres") {

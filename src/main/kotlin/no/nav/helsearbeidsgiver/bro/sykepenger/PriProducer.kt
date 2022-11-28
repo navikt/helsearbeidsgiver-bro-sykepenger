@@ -12,9 +12,10 @@ import org.apache.kafka.common.serialization.Serializer
 import org.apache.kafka.common.serialization.StringSerializer
 import java.util.Properties
 
-object PriProducer {
-    private const val TOPIC = "helsearbeidsgiver.pri"
-    private val producer = createProducer()
+class PriProducer(
+    private val producer: KafkaProducer<String, ForespoerselMottatt> = createProducer()
+) {
+    private val topic = "helsearbeidsgiver.pri"
 
     fun send(forespoerselMottatt: ForespoerselMottatt): Boolean =
         forespoerselMottatt.toRecord()
@@ -24,10 +25,10 @@ object PriProducer {
             .isSuccess
 
     private fun <T : Any> T.toRecord(): ProducerRecord<String, T> =
-        ProducerRecord(TOPIC, this)
+        ProducerRecord(topic, this)
 }
 
-fun createProducer(): KafkaProducer<String, ForespoerselMottatt> =
+private fun createProducer(): KafkaProducer<String, ForespoerselMottatt> =
     KafkaProducer(
         kafkaProperties(),
         StringSerializer(),

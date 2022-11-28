@@ -19,7 +19,8 @@ fun main() {
 
     ForespoerselRiver(
         rapidsConnection = connection,
-        forespoerselDao = ForespoerselDao(dataSource)
+        forespoerselDao = ForespoerselDao(dataSource),
+        priProducer = PriProducer()
     )
 
     connection.registerDatasource(dataSourceBuilder, dataSource)

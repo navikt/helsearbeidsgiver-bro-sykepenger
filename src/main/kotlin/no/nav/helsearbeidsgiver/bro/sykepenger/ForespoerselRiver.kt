@@ -16,7 +16,8 @@ const val FORESPOERSEL_TYPE = "TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER"
 
 class ForespoerselRiver(
     rapidsConnection: RapidsConnection,
-    private val forespoerselDao: ForespoerselDao
+    private val forespoerselDao: ForespoerselDao,
+    private val priProducer: PriProducer
 ) : River.PacketListener {
     private val logg = LoggerFactory.getLogger(this::class.java)
     private val sikkerlogg = sikkerLogger()
@@ -64,7 +65,7 @@ class ForespoerselRiver(
                 }
             }
 
-        PriProducer.send(
+        priProducer.send(
             ForespoerselMottatt(
                 orgnr = forespoersel.orgnr,
                 fnr = forespoersel.fnr

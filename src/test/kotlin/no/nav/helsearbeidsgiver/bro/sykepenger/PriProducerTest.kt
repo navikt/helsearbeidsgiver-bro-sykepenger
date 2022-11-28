@@ -3,10 +3,9 @@ package no.nav.helsearbeidsgiver.bro.sykepenger
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
 import io.mockk.verifySequence
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.RecordMetadata
@@ -15,13 +14,12 @@ import org.apache.kafka.common.errors.TimeoutException
 class PriProducerTest : FunSpec({
     val mockProducer = mockk<KafkaProducer<String, ForespoerselMottatt>>()
 
-    beforeSpec {
-        mockkStatic(::createProducer)
-        every { createProducer() } returns mockProducer
-    }
+    val priProducer = PriProducer(
+        producer = mockProducer
+    )
 
-    afterSpec {
-        unmockkStatic(::createProducer)
+    beforeTest {
+        clearAllMocks()
     }
 
     test("gir true ved sendt melding til kafka stream") {
@@ -29,7 +27,7 @@ class PriProducerTest : FunSpec({
 
         val forespoerselMottatt = mockForespoerselMottatt()
 
-        val bleMeldingSendt = PriProducer.send(forespoerselMottatt)
+        val bleMeldingSendt = priProducer.send(forespoerselMottatt)
 
         bleMeldingSendt.shouldBeTrue()
 
@@ -41,7 +39,7 @@ class PriProducerTest : FunSpec({
 
         val forespoerselMottatt = mockForespoerselMottatt()
 
-        val bleMeldingSendt = PriProducer.send(forespoerselMottatt)
+        val bleMeldingSendt = priProducer.send(forespoerselMottatt)
 
         bleMeldingSendt.shouldBeFalse()
 
