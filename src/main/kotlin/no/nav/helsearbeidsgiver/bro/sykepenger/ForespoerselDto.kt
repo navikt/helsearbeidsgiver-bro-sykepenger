@@ -18,8 +18,7 @@ data class ForespoerselDto(
 )
 
 enum class Status {
-    TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER,
+    AKTIV,
     BESVART,
-    FORKASTET,
-    AVBRUTT
+    FORKASTET
 }

@@ -20,7 +20,7 @@ fun mockForespoerselDto(): ForespoerselDto =
         tom = 16.januar,
         forespurtData = mockForespurtDataListe(),
         forespoerselBesvart = null,
-        status = Status.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER
+        status = Status.AKTIV
     )
 
 fun mockForespurtDataListe(): List<ForespurtDataDto> =

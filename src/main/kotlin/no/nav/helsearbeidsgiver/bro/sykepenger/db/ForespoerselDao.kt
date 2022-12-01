@@ -7,10 +7,13 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helsearbeidsgiver.bro.sykepenger.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.Status
+import java.util.UUID
 import javax.sql.DataSource
 
 class ForespoerselDao(private val dataSource: DataSource) {
     fun lagre(forespoersel: ForespoerselDto): Long? {
+        forkastAlleAktiveForespoerslerFor(forespoersel.vedtaksperiodeId)
+
         val felter = mapOf(
             "fnr" to forespoersel.fnr,
             "orgnr" to forespoersel.orgnr,
@@ -33,6 +36,17 @@ class ForespoerselDao(private val dataSource: DataSource) {
         return sessionOf(dataSource, returnGeneratedKey = true).use {
             it.run(queryOf(query, felter + jsonFelter).asUpdateAndReturnGeneratedKey)
         }
+    }
+
+    private fun forkastAlleAktiveForespoerslerFor(vedtaksperiodeId: UUID) = sessionOf(dataSource).use { session ->
+        requireNotNull(
+            session.run(
+                queryOf(
+                    "UPDATE forespoersel SET status=:nyStatus WHERE vedtaksperiode_id=:vedtaksperiodeId AND status=:gammelStatus",
+                    mapOf("vedtaksperiodeId" to vedtaksperiodeId, "nyStatus" to Status.FORKASTET.name, "gammelStatus" to Status.AKTIV.name))
+                    .asExecute
+            )
+        )
     }
 
     fun hent(forespoerselId: Long): ForespoerselDto? {
