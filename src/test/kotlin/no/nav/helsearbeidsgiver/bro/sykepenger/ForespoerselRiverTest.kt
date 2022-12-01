@@ -34,7 +34,7 @@ class ForespoerselRiverTest : FunSpec({
             vedtaksperiodeId = UUID.fromString(MOCK_UUID)
         )
 
-        val eventMap: Map<Key, JsonElement> = mapOf(
+        testRapid.sendJson(
             Key.TYPE to FORESPOERSEL_TYPE.toJson(),
             Key.FOM to forespoerselDto.fom.toString().toJson(),
             Key.TOM to forespoerselDto.tom.toString().toJson(),
@@ -43,12 +43,6 @@ class ForespoerselRiverTest : FunSpec({
             Key.VEDTAKSPERIODE_ID to MOCK_UUID.toJson(),
             Key.FORESPURT_DATA to mockForespurtDataListe().toJson()
         )
-
-        val event = eventMap.mapKeys { (key, _) -> key.str }
-            .toJson()
-            .toString()
-
-        testRapid.sendTestMessage(event)
 
         verifySequence {
             mockForespoerselDao.lagre(
@@ -61,6 +55,14 @@ class ForespoerselRiverTest : FunSpec({
         }
     }
 })
+
+private fun TestRapid.sendJson(vararg keyValuePairs: Pair<Key, JsonElement>) {
+    keyValuePairs.toMap()
+        .mapKeys { (key, _) -> key.str }
+        .toJson()
+        .toString()
+        .let(this::sendTestMessage)
+}
 
 /** Obs! Denne kan feile runtime. */
 private inline fun <reified T : Any> T.toJson(): JsonElement =
