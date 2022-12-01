@@ -11,10 +11,10 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.errors.TimeoutException
-import java.util.*
+import java.util.UUID
 
 class PriProducerTest : FunSpec({
-    val mockProducer = mockk<KafkaProducer<String, ForespoerselMottatt>>()
+    val mockProducer = mockk<KafkaProducer<String, String>>()
 
     val priProducer = PriProducer(
         producer = mockProducer
@@ -29,13 +29,13 @@ class PriProducerTest : FunSpec({
 
         val forespoerselMottatt = mockForespoerselMottatt()
 
-        val bleMeldingSendt = priProducer.send(forespoerselMottatt)
+        val bleMeldingSendt = priProducer.send(forespoerselMottatt, ForespoerselMottatt::toJson)
 
         bleMeldingSendt.shouldBeTrue()
 
-        val expected = ProducerRecord<String, ForespoerselMottatt>(
+        val expected = ProducerRecord<String, String>(
             "helsearbeidsgiver.pri",
-            forespoerselMottatt
+            forespoerselMottatt.toJson().toString()
         )
 
         verifySequence { mockProducer.send(expected) }
@@ -46,7 +46,7 @@ class PriProducerTest : FunSpec({
 
         val forespoerselMottatt = mockForespoerselMottatt()
 
-        val bleMeldingSendt = priProducer.send(forespoerselMottatt)
+        val bleMeldingSendt = priProducer.send(forespoerselMottatt, ForespoerselMottatt::toJson)
 
         bleMeldingSendt.shouldBeFalse()
 

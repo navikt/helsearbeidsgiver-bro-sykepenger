@@ -1,36 +1,38 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
+import kotlinx.serialization.json.JsonElement
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
-import org.apache.kafka.common.serialization.Serializer
 import org.apache.kafka.common.serialization.StringSerializer
 import java.util.Properties
 
 class PriProducer(
-    private val producer: KafkaProducer<String, ForespoerselMottatt> = createProducer()
+    private val producer: KafkaProducer<String, String> = createProducer()
 ) {
     private val topic = "helsearbeidsgiver.pri"
 
-    fun send(forespoerselMottatt: ForespoerselMottatt): Boolean =
-        forespoerselMottatt.toRecord()
+    fun <T : Any> send(record: T, toJson: T.() -> JsonElement): Boolean =
+        record.toJson()
+            .toString()
+            .toRecord()
             .runCatching {
                 producer.send(this).get()
             }
             .isSuccess
 
-    private fun <T : Any> T.toRecord(): ProducerRecord<String, T> =
+    private fun String.toRecord(): ProducerRecord<String, String> =
         ProducerRecord(topic, this)
 }
 
-private fun createProducer(): KafkaProducer<String, ForespoerselMottatt> =
+private fun createProducer(): KafkaProducer<String, String> =
     KafkaProducer(
         kafkaProperties(),
         StringSerializer(),
-        ForespoerselMottattSerializer()
+        StringSerializer()
     )
 
 private fun kafkaProperties(): Properties =
@@ -52,9 +54,3 @@ private fun kafkaProperties(): Properties =
             )
         )
     }
-
-private class ForespoerselMottattSerializer : Serializer<ForespoerselMottatt> {
-    override fun serialize(topic: String, data: ForespoerselMottatt): ByteArray =
-        data.toJson()
-            .toByteArray()
-}

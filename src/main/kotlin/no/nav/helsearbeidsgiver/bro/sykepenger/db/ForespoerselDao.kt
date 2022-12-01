@@ -43,7 +43,8 @@ class ForespoerselDao(private val dataSource: DataSource) {
             session.run(
                 queryOf(
                     "UPDATE forespoersel SET status=:nyStatus WHERE vedtaksperiode_id=:vedtaksperiodeId AND status=:gammelStatus",
-                    mapOf("vedtaksperiodeId" to vedtaksperiodeId, "nyStatus" to Status.FORKASTET.name, "gammelStatus" to Status.AKTIV.name))
+                    mapOf("vedtaksperiodeId" to vedtaksperiodeId, "nyStatus" to Status.FORKASTET.name, "gammelStatus" to Status.AKTIV.name)
+                )
                     .asExecute
             )
         )

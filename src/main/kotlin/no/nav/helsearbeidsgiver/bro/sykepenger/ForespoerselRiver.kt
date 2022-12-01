@@ -52,7 +52,7 @@ class ForespoerselRiver(
             tom = packet.value(Key.TOM).asLocalDate(),
             forespurtData = packet.value(Key.FORESPURT_DATA).toString().let(Json::decodeFromString),
             forespoerselBesvart = null,
-            status = Status.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER
+            status = Status.AKTIV
         )
         sikkerlogg.info("Forespoersel lest: $forespoersel")
 
@@ -70,7 +70,8 @@ class ForespoerselRiver(
                 orgnr = forespoersel.orgnr,
                 fnr = forespoersel.fnr,
                 vedtaksperiodeId = forespoersel.vedtaksperiodeId
-            )
+            ),
+            ForespoerselMottatt::toJson
         )
             .let { bleMeldingSendt ->
                 if (bleMeldingSendt) {

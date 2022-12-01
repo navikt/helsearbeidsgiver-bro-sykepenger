@@ -2,7 +2,7 @@ package no.nav.helsearbeidsgiver.bro.sykepenger
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.comparables.shouldBeEqualComparingTo
-import java.util.*
+import java.util.UUID
 
 class ForespoerselMottattTest : FunSpec({
     test("data serialiseres korrekt") {
@@ -21,7 +21,7 @@ class ForespoerselMottattTest : FunSpec({
             }
         """.removeJsonWhitespace()
 
-        val actualJson = forespoerselMottatt.toJson()
+        val actualJson = forespoerselMottatt.toJson().toString()
 
         actualJson shouldBeEqualComparingTo expectedJson
     }

@@ -1,9 +1,10 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.util.*
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.encodeToJsonElement
+import java.util.UUID
 
 private val jsonBuilder = Json {
     encodeDefaults = true
@@ -18,6 +19,6 @@ data class ForespoerselMottatt(
 ) {
     val eventType = "FORESPØRSEL_MOTTATT"
 
-    fun toJson(): String =
-        jsonBuilder.encodeToString(this)
+    fun toJson(): JsonElement =
+        jsonBuilder.encodeToJsonElement(this)
 }

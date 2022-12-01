@@ -5,7 +5,6 @@ import kotliquery.sessionOf
 import no.nav.helsearbeidsgiver.bro.sykepenger.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.truncMillis
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.januar
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespurtDataListe
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
