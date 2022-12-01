@@ -68,7 +68,8 @@ class ForespoerselRiver(
         priProducer.send(
             ForespoerselMottatt(
                 orgnr = forespoersel.orgnr,
-                fnr = forespoersel.fnr
+                fnr = forespoersel.fnr,
+                vedtaksperiodeId = forespoersel.vedtaksperiodeId
             )
         )
             .let { bleMeldingSendt ->

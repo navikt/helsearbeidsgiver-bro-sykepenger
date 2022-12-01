@@ -12,6 +12,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.MOCK_UUID
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespurtDataListe
+import java.util.*
 
 class ForespoerselRiverTest : FunSpec({
     val testRapid = TestRapid()
@@ -24,12 +25,13 @@ class ForespoerselRiverTest : FunSpec({
         priProducer = mockPriProducer
     )
 
-    test("Innkommende forespørsler lagres") {
+    test("Innkommende forespørsler blir lagret og sender notifikasjon videre") {
         val forespoerselDto = mockForespoerselDto()
 
         val expectedForespoerselMottatt = ForespoerselMottatt(
             orgnr = forespoerselDto.orgnr,
-            fnr = forespoerselDto.fnr
+            fnr = forespoerselDto.fnr,
+            vedtaksperiodeId = UUID.fromString(MOCK_UUID)
         )
 
         val eventMap: Map<Key, JsonElement> = mapOf(

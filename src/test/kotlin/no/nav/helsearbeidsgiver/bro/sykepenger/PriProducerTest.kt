@@ -11,6 +11,7 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.errors.TimeoutException
+import java.util.*
 
 class PriProducerTest : FunSpec({
     val mockProducer = mockk<KafkaProducer<String, ForespoerselMottatt>>()
@@ -56,7 +57,8 @@ class PriProducerTest : FunSpec({
 private fun mockForespoerselMottatt(): ForespoerselMottatt =
     ForespoerselMottatt(
         orgnr = "123",
-        fnr = "abc"
+        fnr = "abc",
+        vedtaksperiodeId = UUID.randomUUID()
     )
 
 private fun mockRecordMetadata(): RecordMetadata =
