@@ -16,8 +16,8 @@ class ForespurtDataRiver(
     private val forespoerselDao: ForespoerselDao,
     private val priProducer: PriProducer
 ) : River.PacketListener {
-    private val logg = LoggerFactory.getLogger(this::class.java)
-    private val sikkerlogg = sikkerLogger()
+    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val sikkerlogger = sikkerLogger()
 
     init {
         River(rapidsConnection).apply {
@@ -33,13 +33,15 @@ class ForespurtDataRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logg.info("Mottok melding av type '${packet.value(Key.EVENT_TYPE).asText()}'")
-        sikkerlogg.info("Mottok melding med innhold:\n${packet.toJson()}")
+        logger.info("Mottok melding av type '${packet.value(Key.EVENT_TYPE).asText()}'")
+        sikkerlogger.info("Mottok melding med innhold:\n${packet.toJson()}")
 
         val trengerForespurtData = TrengerForespurtData(
             fnr = packet.value(Key.FNR).asText(),
             orgnr = packet.value(Key.ORGNR).asText(),
             vedtaksperiodeId = packet.value(Key.VEDTAKSPERIODE_ID).asText().let(UUID::fromString)
         )
+
+        val forespoersel = forespoerselDao.hentAktivForespørselFor(trengerForespurtData.vedtaksperiodeId)
     }
 }

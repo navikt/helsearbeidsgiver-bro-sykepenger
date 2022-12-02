@@ -30,7 +30,7 @@ class ForespurtDataRiverTest : FunSpec({
         )
 
         verifySequence {
-            mockForespoerselDao.hent(any())
+            mockForespoerselDao.hentAktivForespørselFor(any())
             mockPriProducer.send(expected, any())
         }
     }

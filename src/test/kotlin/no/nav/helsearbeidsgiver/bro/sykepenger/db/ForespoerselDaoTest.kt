@@ -5,6 +5,7 @@ import kotliquery.sessionOf
 import no.nav.helsearbeidsgiver.bro.sykepenger.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.truncMillis
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.januar
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespurtDataListe
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -17,7 +18,7 @@ internal class ForespoerselDaoTest : AbstractDatabaseTest() {
     private companion object {
         const val FNR = "123456789"
         const val ORGNR = "4321"
-        val vedtaksveriodeId = UUID.randomUUID()
+        val vedtaksperiodeId = UUID.randomUUID()
         val fom = LocalDate.EPOCH
         val tom = LocalDate.EPOCH.plusMonths(1)
         val status = Status.AKTIV
@@ -41,7 +42,7 @@ internal class ForespoerselDaoTest : AbstractDatabaseTest() {
         val (forespoerselId1, forespoerselId2) = List(2) {
             forespoerselDao.lagre(forespoerselDto())!!
         }
-        oppdaterStatus(forespoerselId1)
+        oppdaterStatusTilAktiv(forespoerselId1)
 
         val forespoerselId3 = forespoerselDao.lagre(forespoerselDto())!!
         val forespoerselId4 = forespoerselDao.lagre(forespoerselDto().copy(vedtaksperiodeId = UUID.randomUUID()))!!
@@ -59,6 +60,38 @@ internal class ForespoerselDaoTest : AbstractDatabaseTest() {
         assertEquals(Status.AKTIV, forespoersel4!!.status)
     }
 
+    @Test
+    fun `Henter eneste aktive forespørsel i databasen knyttet til en vedtaksperideId`() {
+        forespoerselDto()
+            .copy(fom = 1.januar, tom = 31.januar)
+            .also(forespoerselDao::lagre)
+        val forespoersel2 = forespoerselDto()
+            .copy(fom = 2.januar, tom = 30.januar)
+            .also(forespoerselDao::lagre)
+        forespoerselDto()
+            .copy(vedtaksperiodeId = UUID.randomUUID())
+            .also(forespoerselDao::lagre)
+
+        val aktivForespoersel = forespoerselDao.hentAktivForespørselFor(vedtaksperiodeId)!!
+
+        assertEquals(forespoersel2, aktivForespoersel)
+    }
+
+    @Test
+    fun `Skal returnere siste aktive forespørsel dersom det er flere, og logge error`() {
+        val forespoerselId1 = forespoerselDto()
+            .copy(fom = 1.januar, tom = 31.januar)
+            .let(forespoerselDao::lagre)
+        val forespoersel2 = forespoerselDto()
+            .copy(fom = 2.januar, tom = 30.januar)
+            .also(forespoerselDao::lagre)
+
+        oppdaterStatusTilAktiv(forespoerselId1!!)
+
+        val aktivForespoersel = forespoerselDao.hentAktivForespørselFor(vedtaksperiodeId)
+        assertEquals(forespoersel2, aktivForespoersel)
+    }
+
     private fun antallForespoersler() = sessionOf(dataSource).use { session ->
         requireNotNull(
             session.run(
@@ -69,7 +102,7 @@ internal class ForespoerselDaoTest : AbstractDatabaseTest() {
         )
     }
 
-    private fun oppdaterStatus(forespoerselId: Long) = sessionOf(dataSource).use { session ->
+    private fun oppdaterStatusTilAktiv(forespoerselId: Long) = sessionOf(dataSource).use { session ->
         requireNotNull(
             session.run(
                 queryOf("UPDATE forespoersel SET status = 'AKTIV' WHERE id=:id", mapOf("id" to forespoerselId))
@@ -81,7 +114,7 @@ internal class ForespoerselDaoTest : AbstractDatabaseTest() {
     private fun forespoerselDto() = ForespoerselDto(
         orgnr = ORGNR,
         fnr = FNR,
-        vedtaksperiodeId = vedtaksveriodeId,
+        vedtaksperiodeId = vedtaksperiodeId,
         fom = fom,
         tom = tom,
         forespurtData = mockForespurtDataListe(),

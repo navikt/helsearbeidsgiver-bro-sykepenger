@@ -19,8 +19,8 @@ class ForespoerselRiver(
     private val forespoerselDao: ForespoerselDao,
     private val priProducer: PriProducer
 ) : River.PacketListener {
-    private val logg = LoggerFactory.getLogger(this::class.java)
-    private val sikkerlogg = sikkerLogger()
+    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val sikkerlogger = sikkerLogger()
 
     init {
         River(rapidsConnection).apply {
@@ -41,8 +41,8 @@ class ForespoerselRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logg.info("Mottok melding av type '${packet.value(Key.TYPE).asText()}'")
-        sikkerlogg.info("Mottok melding med innhold:\n${packet.toJson()}")
+        logger.info("Mottok melding av type '${packet.value(Key.TYPE).asText()}'")
+        sikkerlogger.info("Mottok melding med innhold:\n${packet.toJson()}")
 
         val forespoersel = ForespoerselDto(
             orgnr = packet.value(Key.ORGANISASJONSNUMMER).asText(),
@@ -54,14 +54,14 @@ class ForespoerselRiver(
             forespoerselBesvart = null,
             status = Status.AKTIV
         )
-        sikkerlogg.info("Forespoersel lest: $forespoersel")
+        sikkerlogger.info("Forespoersel lest: $forespoersel")
 
         forespoerselDao.lagre(forespoersel)
             .let { id ->
                 if (id != null) {
-                    logg.info("Forespørsel lagret med id=$id.")
+                    logger.info("Forespørsel lagret med id=$id.")
                 } else {
-                    logg.info("Forespørsel ble ikke lagret.")
+                    logger.info("Forespørsel ble ikke lagret.")
                 }
             }
 
@@ -75,9 +75,9 @@ class ForespoerselRiver(
         )
             .let { bleMeldingSendt ->
                 if (bleMeldingSendt) {
-                    logg.info("Sa ifra om mottatt forespørsel til Simba.")
+                    logger.info("Sa ifra om mottatt forespørsel til Simba.")
                 } else {
-                    logg.info("Klarte ikke si ifra om mottatt forespørsel til Simba.")
+                    logger.info("Klarte ikke si ifra om mottatt forespørsel til Simba.")
                 }
             }
     }
