@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.truncMillis
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespurtDataListe
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -59,6 +60,31 @@ internal class ForespoerselDaoTest : AbstractDatabaseTest() {
         assertEquals(Status.AKTIV, forespoersel4!!.status)
     }
 
+    @Test
+    fun `Henter eneste aktive forespørsel i databasen knyttet til en vedtaksperideId`() {
+        forespoerselDao.lagre(forespoerselDto())
+        val expectedForespoerselId = forespoerselDao.lagre(forespoerselDto())!!
+        forespoerselDao.lagre(forespoerselDto().copy(vedtaksperiodeId = UUID.randomUUID()))
+
+        val forespoersel = forespoerselDao.hentAktivForespørselFor(vedtaksveriodeId)!!
+        val actualForespoerelId = forespoersel.hentForespoerselId(expectedForespoerselId)
+
+        assertEquals(expectedForespoerselId, actualForespoerelId)
+    }
+
+
+    // TODO: diskuter hvordan vi ønsker å håndtere det
+    @Test
+    fun `Skal kaste exception dersom det er flere aktive forespørsler på en vedtaksperiode`() {
+        val forespoerselId1 = forespoerselDao.lagre(forespoerselDto())
+        forespoerselDao.lagre(forespoerselDto())
+        oppdaterStatus(forespoerselId1!!)
+
+        assertThrows<IllegalArgumentException> {
+            forespoerselDao.hentAktivForespørselFor(vedtaksveriodeId)
+        }
+    }
+
     private fun antallForespoersler() = sessionOf(dataSource).use { session ->
         requireNotNull(
             session.run(
@@ -74,6 +100,16 @@ internal class ForespoerselDaoTest : AbstractDatabaseTest() {
             session.run(
                 queryOf("UPDATE forespoersel SET status = 'AKTIV' WHERE id=:id", mapOf("id" to forespoerselId))
                     .asExecute
+            )
+        )
+    }
+
+    private fun ForespoerselDto.hentForespoerselId(forespoerselId: Long) = sessionOf(dataSource).use { session ->
+        requireNotNull(
+            session.run(
+                queryOf("SELECT id FROM forespoersel where id=:id", mapOf("id" to forespoerselId))
+                    .map { it.long(1) }
+                    .asSingle
             )
         )
     }

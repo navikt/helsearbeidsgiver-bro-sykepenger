@@ -15,7 +15,7 @@ class ForespurtDataRiverTest : FunSpec({
 
     ForespurtDataRiver(testRapid, mockForespoerselDao, mockPriProducer)
 
-    test("!Ved innkommende event, svar ut korrekt forespurtData") {
+    test("Ved innkommende event, svar ut korrekt forespurtData") {
         val expected = TrengerForespurtData(
             fnr = "fnr",
             orgnr = "orgnr",
@@ -30,7 +30,7 @@ class ForespurtDataRiverTest : FunSpec({
         )
 
         verifySequence {
-            mockForespoerselDao.hent(any())
+            mockForespoerselDao.hentAktivForespørselFor(any())
             mockPriProducer.send(expected, any())
         }
     }

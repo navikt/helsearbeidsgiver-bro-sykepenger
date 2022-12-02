@@ -41,5 +41,7 @@ class ForespurtDataRiver(
             orgnr = packet.value(Key.ORGNR).asText(),
             vedtaksperiodeId = packet.value(Key.VEDTAKSPERIODE_ID).asText().let(UUID::fromString)
         )
+
+        val forespoersel = forespoerselDao.hentAktivForespørselFor(trengerForespurtData.vedtaksperiodeId)
     }
 }

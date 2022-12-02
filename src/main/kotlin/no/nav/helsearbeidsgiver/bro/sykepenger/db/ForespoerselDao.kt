@@ -39,7 +39,7 @@ class ForespoerselDao(private val dataSource: DataSource) {
     }
 
     private fun forkastAlleAktiveForespoerslerFor(vedtaksperiodeId: UUID) = sessionOf(dataSource).use { session ->
-        requireNotNull(
+        requireNotNull( // TODO: dis make sense???
             session.run(
                 queryOf(
                     "UPDATE forespoersel SET status=:nyStatus WHERE vedtaksperiode_id=:vedtaksperiodeId AND status=:gammelStatus",
@@ -48,6 +48,32 @@ class ForespoerselDao(private val dataSource: DataSource) {
                     .asExecute
             )
         )
+    }
+
+    fun hentAktivForespørselFor(vedtaksperiodeId: UUID): ForespoerselDto? {
+        val query = "SELECT * FROM forespoersel WHERE vedtaksperiode_id=:vedtaksperiodeId AND status='AKTIV'"
+        val aktiveForespoersler = sessionOf((dataSource)).use {
+            it.run(
+                queryOf(query, mapOf("vedtaksperiodeId" to vedtaksperiodeId)).map { row ->
+                    ForespoerselDto(
+                        orgnr = row.string("orgnr"),
+                        fnr = row.string("fnr"),
+                        vedtaksperiodeId = row.uuid("vedtaksperiode_id"),
+                        fom = row.localDate("fom"),
+                        tom = row.localDate("tom"),
+                        forespurtData = Json.decodeFromString(row.string("forespurt_data")),
+                        forespoerselBesvart = row.localDateTimeOrNull("forespoersel_besvart"),
+                        status = Status.valueOf(row.string("status")),
+                        opprettet = row.localDateTime("opprettet"),
+                        oppdatert = row.localDateTime("oppdatert")
+
+                    )
+                }.asList
+            )
+        }
+
+        require(aktiveForespoersler.size < 2)
+        return aktiveForespoersler.firstOrNull()
     }
 
     fun hent(forespoerselId: Long): ForespoerselDto? {
