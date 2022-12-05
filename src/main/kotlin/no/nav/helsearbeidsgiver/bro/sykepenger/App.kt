@@ -17,7 +17,7 @@ fun main() {
 
     val connection = RapidApplication.create(env)
 
-    ForespoerselRiver(
+    LagreForespoerselRiver(
         rapidsConnection = connection,
         forespoerselDao = ForespoerselDao(dataSource),
         priProducer = PriProducer()

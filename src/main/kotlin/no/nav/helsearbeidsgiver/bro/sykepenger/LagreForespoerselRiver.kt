@@ -12,9 +12,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
-const val FORESPOERSEL_TYPE = "TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER"
-
-class ForespoerselRiver(
+class LagreForespoerselRiver(
     rapidsConnection: RapidsConnection,
     private val forespoerselDao: ForespoerselDao,
     private val priProducer: PriProducer
@@ -25,7 +23,7 @@ class ForespoerselRiver(
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandValue(Key.TYPE.str, FORESPOERSEL_TYPE)
+                it.demandValue(Key.TYPE.str, Event.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER)
                 it.require(
                     Key.FOM.str to JsonNode::asLocalDate,
                     Key.TOM.str to JsonNode::asLocalDate

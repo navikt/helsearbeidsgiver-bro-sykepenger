@@ -11,12 +11,12 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespurtDataListe
 import java.util.UUID
 
-class ForespoerselRiverTest : FunSpec({
+class LagreForespoerselRiverTest : FunSpec({
     val testRapid = TestRapid()
     val mockForespoerselDao = mockk<ForespoerselDao>(relaxed = true)
     val mockPriProducer = mockk<PriProducer>(relaxed = true)
 
-    ForespoerselRiver(
+    LagreForespoerselRiver(
         rapidsConnection = testRapid,
         forespoerselDao = mockForespoerselDao,
         priProducer = mockPriProducer
@@ -32,7 +32,7 @@ class ForespoerselRiverTest : FunSpec({
         )
 
         testRapid.sendJson(
-            Key.TYPE to FORESPOERSEL_TYPE.tryToJson(),
+            Key.TYPE to Event.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER.tryToJson(),
             Key.FOM to forespoerselDto.fom.toString().tryToJson(),
             Key.TOM to forespoerselDto.tom.toString().tryToJson(),
             Key.ORGANISASJONSNUMMER to forespoerselDto.orgnr.tryToJson(),

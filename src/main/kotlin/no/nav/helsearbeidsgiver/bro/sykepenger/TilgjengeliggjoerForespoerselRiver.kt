@@ -1,5 +1,7 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -8,10 +10,8 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
-const val EVENT_TYPE = "TRENGER_FORESPURT_DATA"
-
 /* Tilgjengeliggjør hvilke data spleis forespør fra arbeidsgiver */
-class ForespurtDataRiver(
+class TilgjengeliggjoerForespoerselRiver(
     rapidsConnection: RapidsConnection,
     private val forespoerselDao: ForespoerselDao,
     private val priProducer: PriProducer
@@ -22,10 +22,10 @@ class ForespurtDataRiver(
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandValue(Key.EVENT_TYPE.str, EVENT_TYPE)
+                it.demandValue(Key.EVENT_TYPE.str, Event.TRENGER_FORESPOERSEL)
                 it.requireKey(
-                    Key.ORGANISASJONSNUMMER.str,
-                    Key.FØDSELSNUMMER.str,
+                    Key.ORGNR.str,
+                    Key.FNR.str,
                     Key.VEDTAKSPERIODE_ID.str
                 )
             }
@@ -36,12 +36,18 @@ class ForespurtDataRiver(
         logger.info("Mottok melding av type '${packet.value(Key.EVENT_TYPE).asText()}'")
         sikkerlogger.info("Mottok melding med innhold:\n${packet.toJson()}")
 
-        val trengerForespurtData = TrengerForespurtData(
+        val trengerForespoersel = TrengerForespoersel(
             fnr = packet.value(Key.FNR).asText(),
             orgnr = packet.value(Key.ORGNR).asText(),
             vedtaksperiodeId = packet.value(Key.VEDTAKSPERIODE_ID).asText().let(UUID::fromString)
         )
 
-        val forespoersel = forespoerselDao.hentAktivForespørselFor(trengerForespurtData.vedtaksperiodeId)
+        val forespoersel = forespoerselDao.hentAktivForespørselFor(trengerForespoersel.vedtaksperiodeId)
+
+        if (forespoersel != null) {
+            priProducer.send(ForespoerselSvar(forespoersel), ForespoerselSvar::toJson)
+        } else {
+            priProducer.send("null", Json::encodeToJsonElement)
+        }
     }
 }
