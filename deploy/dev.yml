@@ -39,10 +39,12 @@ spec:
   env:
     - name: GCP_PRJ_ID
       value: helsearbeidsgiver-dev-6d06
-    - name: KAFKA_RAPID_TOPIC
-      value: tbd.arbeidsgiveropplysninger
     - name: KAFKA_CONSUMER_GROUP_ID
       value: helsearbeidsgiver-bro-sykepenger-v1
+    - name: KAFKA_RAPID_TOPIC
+      value: tbd.arbeidsgiveropplysninger
+    - name: KAFKA_EXTRA_TOPIC
+      value: helsearbeidsgiver.pri
   kafka:
     pool: nav-dev
   gcp:

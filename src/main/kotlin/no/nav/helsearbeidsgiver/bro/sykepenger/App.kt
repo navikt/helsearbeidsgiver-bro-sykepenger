@@ -14,13 +14,21 @@ fun main() {
     val env = System.getenv()
     val dataSourceBuilder = DataSourceBuilder(env)
     val dataSource by lazy { dataSourceBuilder.getDataSource() }
+    val forespoerselDao = ForespoerselDao(dataSource)
+    val priProducer = PriProducer()
 
     val connection = RapidApplication.create(env)
 
     LagreForespoerselRiver(
         rapidsConnection = connection,
-        forespoerselDao = ForespoerselDao(dataSource),
-        priProducer = PriProducer()
+        forespoerselDao = forespoerselDao,
+        priProducer = priProducer
+    )
+
+    TilgjengeliggjoerForespoerselRiver(
+        rapidsConnection = connection,
+        forespoerselDao = forespoerselDao,
+        priProducer = priProducer
     )
 
     connection.registerDatasource(dataSourceBuilder, dataSource)
