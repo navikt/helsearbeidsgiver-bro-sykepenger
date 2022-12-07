@@ -17,21 +17,21 @@ fun execute(dataSource: DataSource, query: String, params: Map<String, *>): Bool
     }
 }
 
-fun <T> hentListe(dataSource: DataSource, query: String, params: Map<String, *>, transerFunction: (Row) -> T): List<T> {
+fun <T> hentListe(dataSource: DataSource, query: String, params: Map<String, *>, transform: (Row) -> T): List<T> {
     return sessionOf(dataSource).use { session ->
         session.run(
             queryOf(query, params)
-                .map { row -> transerFunction(row) }
+                .map { row -> transform(row) }
                 .asList
         )
     }
 }
 
-fun <T> hent(dataSource: DataSource, query: String, params: Map<String, *>, transerFunction: (Row) -> T): T? {
+fun <T> hent(dataSource: DataSource, query: String, params: Map<String, *>, transform: (Row) -> T): T? {
     return sessionOf(dataSource).use { session ->
         session.run(
             queryOf(query, params)
-                .map { row -> transerFunction(row) }
+                .map { row -> transform(row) }
                 .asSingle
         )
     }

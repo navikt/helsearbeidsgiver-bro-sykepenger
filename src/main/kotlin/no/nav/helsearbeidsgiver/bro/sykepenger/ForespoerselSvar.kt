@@ -20,7 +20,7 @@ data class ForespoerselSvar(
     val tom: LocalDate,
     val forespurtData: List<ForespurtDataDto>
 ) {
-    val eventType = "FORESPØRSEL_SVAR"
+    val eventType = Event.FORESPOERSEL_SVAR
 
     constructor(forespoersel: ForespoerselDto) : this(
         orgnr = forespoersel.orgnr,

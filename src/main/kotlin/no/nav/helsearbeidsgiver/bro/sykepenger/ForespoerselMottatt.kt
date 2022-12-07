@@ -16,7 +16,7 @@ data class ForespoerselMottatt(
     val fnr: String,
     val vedtaksperiodeId: UUID
 ) {
-    val eventType = "FORESPØRSEL_MOTTATT"
+    val eventType = Event.FORESPOERSEL_MOTTATT
 
     fun toJson(): JsonElement =
         jsonBuilder.encodeToJsonElement(this)
