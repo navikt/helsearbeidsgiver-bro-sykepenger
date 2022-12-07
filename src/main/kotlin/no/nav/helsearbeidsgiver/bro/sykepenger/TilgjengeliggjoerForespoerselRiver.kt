@@ -42,7 +42,7 @@ class TilgjengeliggjoerForespoerselRiver(
             vedtaksperiodeId = packet.value(Key.VEDTAKSPERIODE_ID).asText().let(UUID::fromString)
         )
 
-        val forespoersel = forespoerselDao.hentAktivForespørselFor(trengerForespoersel.vedtaksperiodeId)
+        val forespoersel = forespoerselDao.hentAktivForespoerselFor(trengerForespoersel.vedtaksperiodeId)
 
         if (forespoersel != null) {
             priProducer.send(ForespoerselSvar(forespoersel), ForespoerselSvar::toJson)

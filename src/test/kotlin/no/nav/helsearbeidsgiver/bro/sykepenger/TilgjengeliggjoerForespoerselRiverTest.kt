@@ -17,7 +17,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
 
     test("Ved innkommende event, svar ut korrekt ForespoerselSvar") {
         val forespoersel = mockForespoerselDto()
-        every { mockForespoerselDao.hentAktivForespørselFor(any()) } returns forespoersel
+        every { mockForespoerselDao.hentAktivForespoerselFor(any()) } returns forespoersel
         val expected = ForespoerselSvar(forespoersel)
 
         testRapid.sendJson(
@@ -28,7 +28,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         )
 
         verifySequence {
-            mockForespoerselDao.hentAktivForespørselFor(any())
+            mockForespoerselDao.hentAktivForespoerselFor(any())
             mockPriProducer.send(expected, any())
         }
     }

@@ -32,7 +32,7 @@ internal class ForespoerselDaoTest : AbstractDatabaseTest() {
         val forespoersel = forespoerselDto()
 
         val forespoerselId = forespoerselDao.lagre(forespoersel)
-        val lagretForespoersel = forespoerselDao.hent(forespoerselId!!)
+        val lagretForespoersel = forespoerselDao.hentForespoersel(forespoerselId!!)
         assertEquals(1, antallForespoersler())
         assertEquals(forespoersel, lagretForespoersel)
     }
@@ -52,7 +52,7 @@ internal class ForespoerselDaoTest : AbstractDatabaseTest() {
             forespoersel2,
             forespoersel3,
             forespoersel4
-        ) = listOf(forespoerselId1, forespoerselId2, forespoerselId3, forespoerselId4).map(forespoerselDao::hent)
+        ) = listOf(forespoerselId1, forespoerselId2, forespoerselId3, forespoerselId4).map(forespoerselDao::hentForespoersel)
 
         assertEquals(Status.FORKASTET, forespoersel1!!.status)
         assertEquals(Status.FORKASTET, forespoersel2!!.status)
@@ -72,7 +72,7 @@ internal class ForespoerselDaoTest : AbstractDatabaseTest() {
             .copy(vedtaksperiodeId = UUID.randomUUID())
             .also(forespoerselDao::lagre)
 
-        val aktivForespoersel = forespoerselDao.hentAktivForespørselFor(vedtaksperiodeId)!!
+        val aktivForespoersel = forespoerselDao.hentAktivForespoerselFor(vedtaksperiodeId)!!
 
         assertEquals(forespoersel2, aktivForespoersel)
     }
@@ -88,7 +88,7 @@ internal class ForespoerselDaoTest : AbstractDatabaseTest() {
 
         oppdaterStatusTilAktiv(forespoerselId1!!)
 
-        val aktivForespoersel = forespoerselDao.hentAktivForespørselFor(vedtaksperiodeId)
+        val aktivForespoersel = forespoerselDao.hentAktivForespoerselFor(vedtaksperiodeId)
         assertEquals(forespoersel2, aktivForespoersel)
     }
 
