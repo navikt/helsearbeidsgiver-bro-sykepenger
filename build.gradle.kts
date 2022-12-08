@@ -74,7 +74,6 @@ repositories {
 dependencies {
     val flywayCoreVersion: String by project
     val hikariVersion: String by project
-    val junitJupiterVersion: String by project
     val kotestVersion: String by project
     val kotlinSerializationVersion: String by project
     val kotliqueryVersion: String by project
@@ -85,8 +84,7 @@ dependencies {
     val slf4jVersion: String by project
     val testcontainersPostgresqlVersion: String by project
 
-    api("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
-
+    implementation("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
@@ -96,12 +94,8 @@ dependencies {
 
     runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
 
-    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersPostgresqlVersion")
-
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 }
