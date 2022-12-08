@@ -7,8 +7,8 @@ import kotliquery.Row
 import no.nav.helsearbeidsgiver.bro.sykepenger.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.hent
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.hentListe
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.listResult
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.nullableResult
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.updateAndReturnGeneratedKey
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -42,44 +42,43 @@ class ForespoerselDao(private val dataSource: DataSource) {
             jsonFelter.keys.joinToString { ":$it::json" }
         ).joinToString()
 
-        return updateAndReturnGeneratedKey(
-            query = "INSERT INTO forespoersel($kolonnenavn) VALUES ($noekler)",
-            params = felter + jsonFelter,
-            dataSource = dataSource
-        )
+        return "INSERT INTO forespoersel($kolonnenavn) VALUES ($noekler)"
+            .updateAndReturnGeneratedKey(
+                params = felter + jsonFelter,
+                dataSource = dataSource
+            )
     }
 
     private fun forkastAlleAktiveForespoerslerFor(vedtaksperiodeId: UUID): Boolean =
-        execute(
-            query = "UPDATE forespoersel SET status=:nyStatus WHERE vedtaksperiode_id=:vedtaksperiodeId AND status=:gammelStatus",
-            params = mapOf(
-                "vedtaksperiodeId" to vedtaksperiodeId,
-                "nyStatus" to Status.FORKASTET.name,
-                "gammelStatus" to Status.AKTIV.name
-            ),
-            dataSource = dataSource
-        )
+        "UPDATE forespoersel SET status=:nyStatus WHERE vedtaksperiode_id=:vedtaksperiodeId AND status=:gammelStatus"
+            .execute(
+                params = mapOf(
+                    "vedtaksperiodeId" to vedtaksperiodeId,
+                    "nyStatus" to Status.FORKASTET.name,
+                    "gammelStatus" to Status.AKTIV.name
+                ),
+                dataSource = dataSource
+            )
 
-    fun hentAktivForespoerselFor(vedtaksperiodeId: UUID): ForespoerselDto? {
-        val aktiveForespoersler = hentListe(
-            query = "SELECT * FROM forespoersel WHERE vedtaksperiode_id=:vedtaksperiode_id AND status='AKTIV'",
-            params = mapOf("vedtaksperiode_id" to vedtaksperiodeId),
-            dataSource = dataSource,
-            transform = Row::toForespoerselDto
-        )
-
-        if (aktiveForespoersler.size > 1) logger.error("Fant flere aktive forespørsler på vedtaksperiode: $vedtaksperiodeId")
-
-        return aktiveForespoersler.maxByOrNull { it.opprettet }
-    }
+    fun hentAktivForespoerselFor(vedtaksperiodeId: UUID): ForespoerselDto? =
+        "SELECT * FROM forespoersel WHERE vedtaksperiode_id=:vedtaksperiode_id AND status='AKTIV'"
+            .listResult(
+                params = mapOf("vedtaksperiode_id" to vedtaksperiodeId),
+                dataSource = dataSource,
+                transform = Row::toForespoerselDto
+            )
+            .also {
+                if (it.size > 1) logger.error("Fant flere aktive forespørsler på vedtaksperiode: $vedtaksperiodeId")
+            }
+            .maxByOrNull { it.opprettet }
 
     fun hentForespoersel(forespoerselId: Long): ForespoerselDto? =
-        hent(
-            query = "SELECT * FROM forespoersel WHERE id=:id",
-            params = mapOf("id" to forespoerselId),
-            dataSource = dataSource,
-            transform = Row::toForespoerselDto
-        )
+        "SELECT * FROM forespoersel WHERE id=:id"
+            .nullableResult(
+                params = mapOf("id" to forespoerselId),
+                dataSource = dataSource,
+                transform = Row::toForespoerselDto
+            )
 }
 
 private fun Row.toForespoerselDto(): ForespoerselDto =

@@ -1,38 +1,46 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.utils
 
+import kotliquery.Query
 import kotliquery.Row
+import kotliquery.action.QueryAction
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import javax.sql.DataSource
 
-fun updateAndReturnGeneratedKey(dataSource: DataSource, query: String, params: Map<String, *>): Long? {
-    return sessionOf(dataSource, returnGeneratedKey = true).use { session ->
-        session.run(queryOf(query, params).asUpdateAndReturnGeneratedKey)
+fun String.updateAndReturnGeneratedKey(params: Map<String, *>, dataSource: DataSource): Long? =
+    runQuery(params, dataSource, returnGeneratedKey = true) {
+        asUpdateAndReturnGeneratedKey
     }
-}
 
-fun execute(dataSource: DataSource, query: String, params: Map<String, *>): Boolean {
-    return sessionOf(dataSource).use { session ->
-        session.run(queryOf(query, params).asExecute)
+fun String.execute(params: Map<String, *>, dataSource: DataSource): Boolean =
+    runQuery(params, dataSource) {
+        asExecute
     }
-}
 
-fun <T> hentListe(dataSource: DataSource, query: String, params: Map<String, *>, transform: (Row) -> T): List<T> {
-    return sessionOf(dataSource).use { session ->
-        session.run(
-            queryOf(query, params)
-                .map { row -> transform(row) }
-                .asList
-        )
+fun <T : Any> String.listResult(params: Map<String, *>, dataSource: DataSource, transform: Row.() -> T): List<T> =
+    runQuery(params, dataSource) {
+        map { transform(it) }
+            .asList
     }
-}
 
-fun <T> hent(dataSource: DataSource, query: String, params: Map<String, *>, transform: (Row) -> T): T? {
-    return sessionOf(dataSource).use { session ->
-        session.run(
-            queryOf(query, params)
-                .map { row -> transform(row) }
-                .asSingle
-        )
+fun <T : Any> String.nullableResult(params: Map<String, *>, dataSource: DataSource, transform: Row.() -> T): T? =
+    runQuery(params, dataSource) {
+        map { transform(it) }
+            .asSingle
     }
-}
+
+private fun <T> String.runQuery(
+    params: Map<String, *>,
+    dataSource: DataSource,
+    returnGeneratedKey: Boolean = false,
+    transform: Query.() -> QueryAction<T>
+): T =
+    sessionOf(
+        dataSource = dataSource,
+        returnGeneratedKey = returnGeneratedKey
+    )
+        .use { session ->
+            queryOf(this, params)
+                .transform()
+                .runWithSession(session)
+        }

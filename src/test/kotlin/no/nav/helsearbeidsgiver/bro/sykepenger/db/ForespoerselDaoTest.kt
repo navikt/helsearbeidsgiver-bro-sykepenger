@@ -1,126 +1,108 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
-import kotliquery.queryOf
-import kotliquery.sessionOf
+import io.kotest.matchers.comparables.shouldBeEqualComparingTo
+import io.kotest.matchers.equality.shouldBeEqualToComparingFields
+import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.nulls.shouldNotBeNull
 import no.nav.helsearbeidsgiver.bro.sykepenger.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.Status
-import no.nav.helsearbeidsgiver.bro.sykepenger.truncMillis
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.MockUuid
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.januar
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespurtDataListe
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
-import java.time.LocalDate
-import java.time.LocalDateTime
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespoerselDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.nullableResult
 import java.util.UUID
+import javax.sql.DataSource
 
-internal class ForespoerselDaoTest : AbstractDatabaseTest() {
+class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
+    val forespoerselDao = ForespoerselDao(dataSource)
 
-    private companion object {
-        const val FNR = "123456789"
-        const val ORGNR = "4321"
-        val vedtaksperiodeId = UUID.randomUUID()
-        val fom = LocalDate.EPOCH
-        val tom = LocalDate.EPOCH.plusMonths(1)
-        val status = Status.AKTIV
-        val timestamp = LocalDateTime.now().truncMillis()
+    fun ForespoerselDto.lagreNotNull(): Long =
+        forespoerselDao.lagre(this).shouldNotBeNull()
+
+    test("Lagre forespørsel i databasen") {
+        val forespoersel = mockForespoerselDto()
+
+        val forespoerselId = forespoersel.lagreNotNull()
+        val lagretForespoersel = forespoerselDao.hentForespoersel(forespoerselId).shouldNotBeNull()
+
+        dataSource.antallForespoersler() shouldBeExactly 1
+        lagretForespoersel shouldBeEqualToComparingFields forespoersel
     }
 
-    private val forespoerselDao = ForespoerselDao(dataSource)
-
-    @Test
-    fun `Lagre forespørsel i databasen`() {
-        val forespoersel = forespoerselDto()
-
-        val forespoerselId = forespoerselDao.lagre(forespoersel)
-        val lagretForespoersel = forespoerselDao.hentForespoersel(forespoerselId!!)
-        assertEquals(1, antallForespoersler())
-        assertEquals(forespoersel, lagretForespoersel)
-    }
-
-    @Test
-    fun `Forkaster alle aktive forespørsler knyttet til en vedtaksperiodeId når ny forespørsel med lik vedtaksperiodeId mottas`() {
+    test("Forkaster alle aktive forespørsler knyttet til en vedtaksperiodeId når ny forespørsel med lik vedtaksperiodeId mottas") {
         val (forespoerselId1, forespoerselId2) = List(2) {
-            forespoerselDao.lagre(forespoerselDto())!!
+            mockForespoerselDto().lagreNotNull()
         }
-        oppdaterStatusTilAktiv(forespoerselId1)
+        dataSource.oppdaterStatusTilAktiv(forespoerselId1)
 
-        val forespoerselId3 = forespoerselDao.lagre(forespoerselDto())!!
-        val forespoerselId4 = forespoerselDao.lagre(forespoerselDto().copy(vedtaksperiodeId = UUID.randomUUID()))!!
+        val forespoerselId3 = mockForespoerselDto().lagreNotNull()
+        val forespoerselId4 = mockForespoerselDto()
+            .copy(vedtaksperiodeId = UUID.randomUUID())
+            .let(ForespoerselDto::lagreNotNull)
 
         val (
             forespoersel1,
             forespoersel2,
             forespoersel3,
             forespoersel4
-        ) = listOf(forespoerselId1, forespoerselId2, forespoerselId3, forespoerselId4).map(forespoerselDao::hentForespoersel)
+        ) = listOf(forespoerselId1, forespoerselId2, forespoerselId3, forespoerselId4)
+            .map(forespoerselDao::hentForespoersel)
+            .map { it.shouldNotBeNull() }
 
-        assertEquals(Status.FORKASTET, forespoersel1!!.status)
-        assertEquals(Status.FORKASTET, forespoersel2!!.status)
-        assertEquals(Status.AKTIV, forespoersel3!!.status)
-        assertEquals(Status.AKTIV, forespoersel4!!.status)
+        forespoersel1.status shouldBeEqualComparingTo Status.FORKASTET
+        forespoersel2.status shouldBeEqualComparingTo Status.FORKASTET
+        forespoersel3.status shouldBeEqualComparingTo Status.AKTIV
+        forespoersel4.status shouldBeEqualComparingTo Status.AKTIV
     }
 
-    @Test
-    fun `Henter eneste aktive forespørsel i databasen knyttet til en vedtaksperideId`() {
-        forespoerselDto()
+    test("Henter eneste aktive forespørsel i databasen knyttet til en vedtaksperideId") {
+        mockForespoerselDto()
             .copy(fom = 1.januar, tom = 31.januar)
-            .also(forespoerselDao::lagre)
-        val forespoersel2 = forespoerselDto()
+            .also(ForespoerselDto::lagreNotNull)
+
+        val expectedForespoersel = mockForespoerselDto()
             .copy(fom = 2.januar, tom = 30.januar)
-            .also(forespoerselDao::lagre)
-        forespoerselDto()
+            .also(ForespoerselDto::lagreNotNull)
+
+        mockForespoerselDto()
             .copy(vedtaksperiodeId = UUID.randomUUID())
-            .also(forespoerselDao::lagre)
+            .also(ForespoerselDto::lagreNotNull)
 
-        val aktivForespoersel = forespoerselDao.hentAktivForespoerselFor(vedtaksperiodeId)!!
+        val actualForespoersel = forespoerselDao.hentAktivForespoerselFor(MockUuid.uuid).shouldNotBeNull()
 
-        assertEquals(forespoersel2, aktivForespoersel)
+        actualForespoersel shouldBeEqualToComparingFields expectedForespoersel
     }
 
-    @Test
-    fun `Skal returnere siste aktive forespørsel dersom det er flere, og logge error`() {
-        val forespoerselId1 = forespoerselDto()
+    test("Skal returnere siste aktive forespørsel dersom det er flere, og logge error") {
+        val forespoerselId1 = mockForespoerselDto()
             .copy(fom = 1.januar, tom = 31.januar)
-            .let(forespoerselDao::lagre)
-        val forespoersel2 = forespoerselDto()
+            .let(ForespoerselDto::lagreNotNull)
+
+        val expectedForespoersel = mockForespoerselDto()
             .copy(fom = 2.januar, tom = 30.januar)
-            .also(forespoerselDao::lagre)
+            .also(ForespoerselDto::lagreNotNull)
 
-        oppdaterStatusTilAktiv(forespoerselId1!!)
+        dataSource.oppdaterStatusTilAktiv(forespoerselId1)
 
-        val aktivForespoersel = forespoerselDao.hentAktivForespoerselFor(vedtaksperiodeId)
-        assertEquals(forespoersel2, aktivForespoersel)
+        val actualForespoersel = forespoerselDao.hentAktivForespoerselFor(MockUuid.uuid).shouldNotBeNull()
+
+        actualForespoersel shouldBeEqualToComparingFields expectedForespoersel
     }
+})
 
-    private fun antallForespoersler() = sessionOf(dataSource).use { session ->
-        requireNotNull(
-            session.run(
-                queryOf("SELECT COUNT(1) FROM forespoersel")
-                    .map { it.int(1) }
-                    .asSingle
-            )
+private fun DataSource.antallForespoersler(): Int =
+    "SELECT COUNT(1) FROM forespoersel"
+        .nullableResult(
+            params = emptyMap<String, Nothing>(),
+            dataSource = this
+        ) { int(1) }
+        .shouldNotBeNull()
+
+private fun DataSource.oppdaterStatusTilAktiv(forespoerselId: Long): Boolean =
+    "UPDATE forespoersel SET status = 'AKTIV' WHERE id=:id"
+        .execute(
+            params = mapOf("id" to forespoerselId),
+            dataSource = this
         )
-    }
-
-    private fun oppdaterStatusTilAktiv(forespoerselId: Long) = sessionOf(dataSource).use { session ->
-        requireNotNull(
-            session.run(
-                queryOf("UPDATE forespoersel SET status = 'AKTIV' WHERE id=:id", mapOf("id" to forespoerselId))
-                    .asExecute
-            )
-        )
-    }
-
-    private fun forespoerselDto() = ForespoerselDto(
-        orgnr = ORGNR,
-        fnr = FNR,
-        vedtaksperiodeId = vedtaksperiodeId,
-        fom = fom,
-        tom = tom,
-        forespurtData = mockForespurtDataListe(),
-        forespoerselBesvart = null,
-        status = status,
-        opprettet = timestamp,
-        oppdatert = timestamp
-    )
-}
+        .shouldNotBeNull()
