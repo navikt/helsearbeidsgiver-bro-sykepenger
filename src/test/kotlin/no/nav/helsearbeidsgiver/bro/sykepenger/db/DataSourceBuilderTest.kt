@@ -1,13 +1,12 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
-import org.junit.jupiter.api.Assertions.assertDoesNotThrow
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
+import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.assertions.throwables.shouldThrowExactly
+import io.kotest.core.spec.style.FunSpec
 
-internal class DataSourceBuilderTest {
-    @Test
-    fun `kaster ikke exception når tilkobling konfigureres riktig`() {
-        assertDoesNotThrow {
+class DataSourceBuilderTest : FunSpec({
+    test("kaster ikke exception når tilkobling konfigureres riktig") {
+        shouldNotThrowAny {
             DataSourceBuilder(
                 mapOf(
                     DataSourceConfig.HOST to "foobar",
@@ -20,13 +19,12 @@ internal class DataSourceBuilderTest {
         }
     }
 
-    @Test
-    fun `kaster exception ved manglende konfig`() {
-        assertThrows<IllegalArgumentException> {
+    test("kaster exception ved manglende konfig") {
+        shouldThrowExactly<IllegalArgumentException> {
             DataSourceBuilder(emptyMap())
         }
 
-        assertThrows<IllegalArgumentException> {
+        shouldThrowExactly<IllegalArgumentException> {
             DataSourceBuilder(
                 mapOf(
                     DataSourceConfig.HOST to "foobar"
@@ -34,7 +32,7 @@ internal class DataSourceBuilderTest {
             )
         }
 
-        assertThrows<IllegalArgumentException> {
+        shouldThrowExactly<IllegalArgumentException> {
             DataSourceBuilder(
                 mapOf(
                     DataSourceConfig.HOST to "foobar",
@@ -43,7 +41,7 @@ internal class DataSourceBuilderTest {
             )
         }
 
-        assertThrows<IllegalArgumentException> {
+        shouldThrowExactly<IllegalArgumentException> {
             DataSourceBuilder(
                 mapOf(
                     DataSourceConfig.HOST to "foobar",
@@ -53,7 +51,7 @@ internal class DataSourceBuilderTest {
             )
         }
 
-        assertThrows<IllegalArgumentException> {
+        shouldThrowExactly<IllegalArgumentException> {
             DataSourceBuilder(
                 mapOf(
                     DataSourceConfig.HOST to "foobar",
@@ -64,4 +62,4 @@ internal class DataSourceBuilderTest {
             )
         }
     }
-}
+})
