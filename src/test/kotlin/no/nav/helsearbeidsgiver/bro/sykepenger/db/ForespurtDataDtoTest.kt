@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
-import io.kotest.core.spec.style.StringSpec
+import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.comparables.shouldBeEqualComparingTo
 import kotlinx.serialization.decodeFromString
@@ -10,10 +10,10 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.ForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.removeJsonWhitespace
 
-class ForespurtDataDtoTest : StringSpec({
+class ForespurtDataDtoTest : FunSpec({
     val forespurtDataJson = "json/forespurtDataListe.json".readResource().removeJsonWhitespace()
 
-    "Forespurt data serialiseres korrekt" {
+    test("Forespurt data serialiseres korrekt") {
         val forespurtDataListe = mockForespurtDataListe()
 
         val serialisertJson = Json.encodeToString(forespurtDataListe)
@@ -21,7 +21,7 @@ class ForespurtDataDtoTest : StringSpec({
         serialisertJson shouldBeEqualComparingTo forespurtDataJson
     }
 
-    "Forespurt data deserialiseres korrekt" {
+    test("Forespurt data deserialiseres korrekt") {
         val forespurtDataListe = mockForespurtDataListe()
 
         val deserialisertJson = Json.decodeFromString<List<ForespurtDataDto>>(forespurtDataJson)
