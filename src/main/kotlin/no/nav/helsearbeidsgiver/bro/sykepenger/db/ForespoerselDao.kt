@@ -15,8 +15,8 @@ import java.util.UUID
 import javax.sql.DataSource
 
 class ForespoerselDao(private val dataSource: DataSource) {
-
     private val logger = LoggerFactory.getLogger(this::class.java)
+
     fun lagre(forespoersel: ForespoerselDto): Long? {
         forkastAlleAktiveForespoerslerFor(forespoersel.vedtaksperiodeId)
 
@@ -33,50 +33,65 @@ class ForespoerselDao(private val dataSource: DataSource) {
         )
 
         val jsonFelter = mapOf(
-            "forespurt_data" to Json.encodeToString(forespoersel.forespurtData)
+            "forespurt_data" to forespoersel.forespurtData.let(Json::encodeToString)
         )
-        val kolonnenavn = (felter + jsonFelter).keys.joinToString()
-        val noekler = felter.keys.joinToString { ":$it" } + ", " + jsonFelter.keys.joinToString { ":$it::json" }
-        val query = "INSERT INTO forespoersel($kolonnenavn) VALUES ($noekler)"
 
-        return updateAndReturnGeneratedKey(dataSource, query, felter + jsonFelter)
+        val kolonnenavn = (felter + jsonFelter).keys.joinToString()
+        val noekler = listOf(
+            felter.keys.joinToString { ":$it" },
+            jsonFelter.keys.joinToString { ":$it::json" }
+        ).joinToString()
+
+        return updateAndReturnGeneratedKey(
+            query = "INSERT INTO forespoersel($kolonnenavn) VALUES ($noekler)",
+            params = felter + jsonFelter,
+            dataSource = dataSource
+        )
     }
 
-    private fun forkastAlleAktiveForespoerslerFor(vedtaksperiodeId: UUID) = execute(
-        dataSource = dataSource,
-        query = "UPDATE forespoersel SET status=:nyStatus WHERE vedtaksperiode_id=:vedtaksperiodeId AND status=:gammelStatus",
-        params = mapOf("vedtaksperiodeId" to vedtaksperiodeId, "nyStatus" to Status.FORKASTET.name, "gammelStatus" to Status.AKTIV.name)
-    )
+    private fun forkastAlleAktiveForespoerslerFor(vedtaksperiodeId: UUID): Boolean =
+        execute(
+            query = "UPDATE forespoersel SET status=:nyStatus WHERE vedtaksperiode_id=:vedtaksperiodeId AND status=:gammelStatus",
+            params = mapOf(
+                "vedtaksperiodeId" to vedtaksperiodeId,
+                "nyStatus" to Status.FORKASTET.name,
+                "gammelStatus" to Status.AKTIV.name
+            ),
+            dataSource = dataSource
+        )
 
     fun hentAktivForespoerselFor(vedtaksperiodeId: UUID): ForespoerselDto? {
         val aktiveForespoersler = hentListe(
+            query = "SELECT * FROM forespoersel WHERE vedtaksperiode_id=:vedtaksperiode_id AND status='AKTIV'",
+            params = mapOf("vedtaksperiode_id" to vedtaksperiodeId),
             dataSource = dataSource,
-            query = "SELECT * FROM forespoersel WHERE vedtaksperiode_id=:vedtaksperiode_id AND status='AKTIV' ",
-            params = mapOf("vedtaksperiode_id" to vedtaksperiodeId)
-        ) { row -> row.toForespoerselDto() }
+            transform = Row::toForespoerselDto
+        )
 
         if (aktiveForespoersler.size > 1) logger.error("Fant flere aktive forespørsler på vedtaksperiode: $vedtaksperiodeId")
 
         return aktiveForespoersler.maxByOrNull { it.opprettet }
     }
 
-    fun hentForespoersel(forespoerselId: Long) = hent(
-        dataSource = dataSource,
-        query = "SELECT * FROM forespoersel WHERE id=:id",
-        params = mapOf("id" to forespoerselId)
-    ) { row -> row.toForespoerselDto() }
-
-    private fun Row.toForespoerselDto() = ForespoerselDto(
-        orgnr = string("orgnr"),
-        fnr = string("fnr"),
-        vedtaksperiodeId = uuid("vedtaksperiode_id"),
-        fom = localDate("fom"),
-        tom = localDate("tom"),
-        forespurtData = Json.decodeFromString(string("forespurt_data")),
-        forespoerselBesvart = localDateTimeOrNull("forespoersel_besvart"),
-        status = Status.valueOf(string("status")),
-        opprettet = localDateTime("opprettet"),
-        oppdatert = localDateTime("oppdatert")
-
-    )
+    fun hentForespoersel(forespoerselId: Long): ForespoerselDto? =
+        hent(
+            query = "SELECT * FROM forespoersel WHERE id=:id",
+            params = mapOf("id" to forespoerselId),
+            dataSource = dataSource,
+            transform = Row::toForespoerselDto
+        )
 }
+
+private fun Row.toForespoerselDto(): ForespoerselDto =
+    ForespoerselDto(
+        orgnr = "orgnr".let(::string),
+        fnr = "fnr".let(::string),
+        vedtaksperiodeId = "vedtaksperiode_id".let(::uuid),
+        fom = "fom".let(::localDate),
+        tom = "tom".let(::localDate),
+        forespurtData = "forespurt_data".let(::string).let(Json::decodeFromString),
+        forespoerselBesvart = "forespoersel_besvart".let(::localDateTimeOrNull),
+        status = "status".let(::string).let(Status::valueOf),
+        opprettet = "opprettet".let(::localDateTime),
+        oppdatert = "oppdatert".let(::localDateTime)
+    )
