@@ -6,6 +6,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.januar
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespurtDataListe
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.removeJsonWhitespace
 import java.util.UUID
 
 class ForespoerselSvarTest : FunSpec({

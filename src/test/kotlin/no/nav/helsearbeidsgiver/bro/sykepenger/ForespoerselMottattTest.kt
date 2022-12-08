@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.bro.sykepenger
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.comparables.shouldBeEqualComparingTo
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.removeJsonWhitespace
 import java.util.UUID
 
 class ForespoerselMottattTest : FunSpec({

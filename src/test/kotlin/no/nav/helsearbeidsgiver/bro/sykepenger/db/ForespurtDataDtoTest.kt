@@ -7,8 +7,8 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.helsearbeidsgiver.bro.sykepenger.ForespurtDataDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespurtDataListe
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.removeJsonWhitespace
 
 class ForespurtDataDtoTest : StringSpec({
     val forespurtDataJson = "json/forespurtDataListe.json".readResource().removeJsonWhitespace()

@@ -1,9 +1,10 @@
-package no.nav.helsearbeidsgiver.bro.sykepenger
+package no.nav.helsearbeidsgiver.bro.sykepenger.utils
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helsearbeidsgiver.bro.sykepenger.Key
 
 private val jsonWhitespaceRegex = Regex("""("(?:\\"|[^"])*")|\s""")
 

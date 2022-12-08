@@ -9,6 +9,8 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.MockUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespurtDataListe
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.sendJson
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.tryToJson
 
 class LagreForespoerselRiverTest : FunSpec({
     val testRapid = TestRapid()

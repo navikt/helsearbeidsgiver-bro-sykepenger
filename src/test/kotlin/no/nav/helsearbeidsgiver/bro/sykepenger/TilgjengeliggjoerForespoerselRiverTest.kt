@@ -7,6 +7,8 @@ import io.mockk.verifySequence
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespoerselDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.sendJson
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.tryToJson
 
 class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
     val testRapid = TestRapid()
