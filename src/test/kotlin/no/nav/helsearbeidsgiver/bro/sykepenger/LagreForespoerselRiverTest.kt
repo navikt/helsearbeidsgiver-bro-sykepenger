@@ -6,10 +6,9 @@ import io.mockk.mockk
 import io.mockk.verifySequence
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.MOCK_UUID
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.MockUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespurtDataListe
-import java.util.UUID
 
 class LagreForespoerselRiverTest : FunSpec({
     val testRapid = TestRapid()
@@ -28,7 +27,7 @@ class LagreForespoerselRiverTest : FunSpec({
         val expectedForespoerselMottatt = ForespoerselMottatt(
             orgnr = forespoerselDto.orgnr,
             fnr = forespoerselDto.fnr,
-            vedtaksperiodeId = UUID.fromString(MOCK_UUID)
+            vedtaksperiodeId = MockUuid.uuid
         )
 
         testRapid.sendJson(
@@ -37,7 +36,7 @@ class LagreForespoerselRiverTest : FunSpec({
             Key.TOM to forespoerselDto.tom.toString().tryToJson(),
             Key.ORGANISASJONSNUMMER to forespoerselDto.orgnr.tryToJson(),
             Key.FØDSELSNUMMER to forespoerselDto.fnr.tryToJson(),
-            Key.VEDTAKSPERIODE_ID to MOCK_UUID.tryToJson(),
+            Key.VEDTAKSPERIODE_ID to MockUuid.STRING.tryToJson(),
             Key.FORESPURT_DATA to mockForespurtDataListe().tryToJson()
         )
 
