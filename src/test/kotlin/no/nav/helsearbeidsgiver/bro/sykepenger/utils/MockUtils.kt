@@ -3,6 +3,8 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.utils
 import io.kotest.matchers.nulls.shouldNotBeNull
 import no.nav.helsearbeidsgiver.bro.sykepenger.ArbeidsgiverPeriode
 import no.nav.helsearbeidsgiver.bro.sykepenger.ForespoerselDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.ForespoerselMottatt
+import no.nav.helsearbeidsgiver.bro.sykepenger.ForespoerselSvar
 import no.nav.helsearbeidsgiver.bro.sykepenger.ForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.Forslag
 import no.nav.helsearbeidsgiver.bro.sykepenger.Inntekt
@@ -43,4 +45,21 @@ fun mockForespurtDataListe(): List<ForespurtDataDto> =
         ),
         Refusjon,
         Inntekt
+    )
+
+fun mockForespoerselMottatt(): ForespoerselMottatt =
+    ForespoerselMottatt(
+        orgnr = "123",
+        fnr = "abc",
+        vedtaksperiodeId = MockUuid.uuid
+    )
+
+fun mockForespoerselSvar(): ForespoerselSvar =
+    ForespoerselSvar(
+        orgnr = "123",
+        fnr = "abc",
+        vedtaksperiodeId = MockUuid.uuid,
+        fom = 1.januar,
+        tom = 16.januar,
+        forespurtData = mockForespurtDataListe()
     )
