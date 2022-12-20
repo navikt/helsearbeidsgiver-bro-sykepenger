@@ -14,7 +14,7 @@ class ForespoerselMottattTest : FunSpec({
                 "orgnr": "${forespoerselMottatt.orgnr}",
                 "fnr": "${forespoerselMottatt.fnr}",
                 "vedtaksperiodeId": "${forespoerselMottatt.vedtaksperiodeId}",
-                "eventType": "${forespoerselMottatt.eventType}"
+                "notis": "${forespoerselMottatt.notis}"
             }
         """.removeJsonWhitespace()
 
