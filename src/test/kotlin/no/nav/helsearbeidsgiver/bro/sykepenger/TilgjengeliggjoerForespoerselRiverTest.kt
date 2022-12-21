@@ -25,13 +25,19 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
 
         every { mockForespoerselDao.hentAktivForespoerselFor(any()) } returns forespoersel
 
-        val expectedPublished = ForespoerselSvar(forespoersel)
+        val expectedPublished = ForespoerselSvar(
+            forespoersel = forespoersel,
+            boomerang = mapOf(
+                Pri.Key.BOOMERANG.str to "boomyrangy".toJson()
+            )
+        )
 
         testRapid.sendJson(
             Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(),
             Pri.Key.ORGNR to expectedPublished.orgnr.toJson(),
             Pri.Key.FNR to expectedPublished.fnr.toJson(),
-            Pri.Key.VEDTAKSPERIODE_ID to expectedPublished.vedtaksperiodeId.toJson()
+            Pri.Key.VEDTAKSPERIODE_ID to expectedPublished.vedtaksperiodeId.toJson(),
+            Pri.Key.BOOMERANG to expectedPublished.boomerang.toJson()
         )
 
         verifySequence {

@@ -15,17 +15,19 @@ data class ForespoerselSvar(
     val vedtaksperiodeId: UUID,
     val fom: LocalDate,
     val tom: LocalDate,
-    val forespurtData: List<ForespurtDataDto>
+    val forespurtData: List<ForespurtDataDto>,
+    val boomerang: Map<String, JsonElement>
 ) {
     val løsning = Pri.BehovType.TRENGER_FORESPØRSEL
 
-    constructor(forespoersel: ForespoerselDto) : this(
+    constructor(forespoersel: ForespoerselDto, boomerang: Map<String, JsonElement>) : this(
         orgnr = forespoersel.orgnr,
         fnr = forespoersel.fnr,
         vedtaksperiodeId = forespoersel.vedtaksperiodeId,
         fom = forespoersel.fom,
         tom = forespoersel.tom,
-        forespurtData = forespoersel.forespurtData
+        forespurtData = forespoersel.forespurtData,
+        boomerang = boomerang
     )
 
     fun toJson(): JsonElement =
@@ -36,6 +38,7 @@ data class ForespoerselSvar(
             Pri.Key.VEDTAKSPERIODE_ID to vedtaksperiodeId.toJson(),
             Pri.Key.FOM to fom.toJson(),
             Pri.Key.TOM to tom.toJson(),
-            Pri.Key.FORESPURT_DATA to forespurtData.toJson(Json::encodeToJsonElement)
+            Pri.Key.FORESPURT_DATA to forespurtData.toJson(Json::encodeToJsonElement),
+            Pri.Key.BOOMERANG to boomerang.toJson()
         )
 }

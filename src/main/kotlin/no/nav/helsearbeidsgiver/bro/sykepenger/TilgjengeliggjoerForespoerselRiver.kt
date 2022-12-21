@@ -1,6 +1,8 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -28,7 +30,10 @@ class TilgjengeliggjoerForespoerselRiver(
         River(rapid).apply {
             validate {
                 it.demandValue(Pri.Key.BEHOV.str, Pri.BehovType.TRENGER_FORESPØRSEL.name)
-                it.requireKey(Pri.Key.VEDTAKSPERIODE_ID.str)
+                it.requireKey(
+                    Pri.Key.VEDTAKSPERIODE_ID.str,
+                    Pri.Key.BOOMERANG.str
+                )
             }
         }.register(this)
     }
@@ -38,11 +43,14 @@ class TilgjengeliggjoerForespoerselRiver(
         sikkerlogger.info("Mottok melding på pri-topic med innhold:\n${packet.toJson()}")
 
         val vedtaksperiodeId = packet.value(Pri.Key.VEDTAKSPERIODE_ID).asUuid()
+        val boomerang = packet.value(Pri.Key.BOOMERANG).toString().let { Json.decodeFromString<Map<String, JsonElement>>(it) }
 
         val forespoersel = forespoerselDao.hentAktivForespoerselFor(vedtaksperiodeId)
 
         if (forespoersel != null) {
-            priProducer.send(ForespoerselSvar(forespoersel), ForespoerselSvar::toJson)
+            val forespoerselSvar = ForespoerselSvar(forespoersel, boomerang)
+
+            priProducer.send(forespoerselSvar, ForespoerselSvar::toJson)
         } else {
             // TODO denne casen må fikses, plukkes aldri opp av Simba-løser som venter på svar
             priProducer.send("null", Json::encodeToJsonElement)

@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Forslag
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Inntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
 import java.util.UUID
 
 object MockUuid {
@@ -61,5 +62,8 @@ fun mockForespoerselSvar(): ForespoerselSvar =
         vedtaksperiodeId = MockUuid.uuid,
         fom = 1.januar,
         tom = 16.januar,
-        forespurtData = mockForespurtDataListe()
+        forespurtData = mockForespurtDataListe(),
+        boomerang = mapOf(
+            "boom" to "shakalaka".toJson()
+        )
     )

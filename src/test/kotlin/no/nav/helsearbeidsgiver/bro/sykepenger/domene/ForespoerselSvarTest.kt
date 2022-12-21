@@ -20,7 +20,8 @@ class ForespoerselSvarTest : FunSpec({
                 "${Pri.Key.VEDTAKSPERIODE_ID}": "${forespoerselSvar.vedtaksperiodeId}",
                 "${Pri.Key.FOM}": "${forespoerselSvar.fom}",
                 "${Pri.Key.TOM}": "${forespoerselSvar.tom}",
-                "${Pri.Key.FORESPURT_DATA}": ${forespoerselSvar.forespurtData.let(Json::encodeToString)}
+                "${Pri.Key.FORESPURT_DATA}": ${forespoerselSvar.forespurtData.let(Json::encodeToString)},
+                "${Pri.Key.BOOMERANG}": ${forespoerselSvar.boomerang.let(Json::encodeToString)}
             }
         """.removeJsonWhitespace()
 
