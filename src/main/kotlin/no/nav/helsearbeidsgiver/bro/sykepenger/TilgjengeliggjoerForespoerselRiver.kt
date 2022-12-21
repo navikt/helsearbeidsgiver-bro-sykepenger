@@ -8,13 +8,12 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.TrengerForespoersel
 import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.value
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.asUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.sikkerLogger
 import org.slf4j.LoggerFactory
-import java.util.UUID
 
 /* Tilgjengeliggjør hvilke data spleis forespør fra arbeidsgiver */
 class TilgjengeliggjoerForespoerselRiver(
@@ -29,11 +28,7 @@ class TilgjengeliggjoerForespoerselRiver(
         River(rapid).apply {
             validate {
                 it.demandValue(Pri.Key.BEHOV.str, Pri.BehovType.TRENGER_FORESPØRSEL.name)
-                it.requireKey(
-                    Pri.Key.ORGNR.str,
-                    Pri.Key.FNR.str,
-                    Pri.Key.VEDTAKSPERIODE_ID.str
-                )
+                it.requireKey(Pri.Key.VEDTAKSPERIODE_ID.str)
             }
         }.register(this)
     }
@@ -42,17 +37,14 @@ class TilgjengeliggjoerForespoerselRiver(
         logger.info("Mottok melding på pri-topic av type '${packet.value(Pri.Key.BEHOV).asText()}'.")
         sikkerlogger.info("Mottok melding på pri-topic med innhold:\n${packet.toJson()}")
 
-        val trengerForespoersel = TrengerForespoersel(
-            orgnr = packet.value(Pri.Key.ORGNR).asText(),
-            fnr = packet.value(Pri.Key.FNR).asText(),
-            vedtaksperiodeId = packet.value(Pri.Key.VEDTAKSPERIODE_ID).asText().let(UUID::fromString)
-        )
+        val vedtaksperiodeId = packet.value(Pri.Key.VEDTAKSPERIODE_ID).asUuid()
 
-        val forespoersel = forespoerselDao.hentAktivForespoerselFor(trengerForespoersel.vedtaksperiodeId)
+        val forespoersel = forespoerselDao.hentAktivForespoerselFor(vedtaksperiodeId)
 
         if (forespoersel != null) {
             priProducer.send(ForespoerselSvar(forespoersel), ForespoerselSvar::toJson)
         } else {
+            // TODO denne casen må fikses, plukkes aldri opp av Simba-løser som venter på svar
             priProducer.send("null", Json::encodeToJsonElement)
         }
     }

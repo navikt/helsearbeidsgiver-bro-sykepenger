@@ -13,12 +13,12 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.PriProducer
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.asUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifFalse
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifTrue
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.require
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.sikkerLogger
 import org.slf4j.LoggerFactory
-import java.util.UUID
 
 class LagreForespoerselRiver(
     rapid: RapidsConnection,
@@ -53,7 +53,7 @@ class LagreForespoerselRiver(
         val forespoersel = ForespoerselDto(
             orgnr = packet.value(Key.ORGANISASJONSNUMMER).asText(),
             fnr = packet.value(Key.FØDSELSNUMMER).asText(),
-            vedtaksperiodeId = packet.value(Key.VEDTAKSPERIODE_ID).asText().let(UUID::fromString),
+            vedtaksperiodeId = packet.value(Key.VEDTAKSPERIODE_ID).asUuid(),
             fom = packet.value(Key.FOM).asLocalDate(),
             tom = packet.value(Key.TOM).asLocalDate(),
             forespurtData = packet.value(Key.FORESPURT_DATA).toString().let(Json::decodeFromString),
