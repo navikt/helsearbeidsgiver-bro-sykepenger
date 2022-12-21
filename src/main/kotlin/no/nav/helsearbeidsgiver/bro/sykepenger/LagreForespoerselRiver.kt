@@ -9,11 +9,19 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
+import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.PriProducer
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifFalse
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifTrue
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.require
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.sikkerLogger
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class LagreForespoerselRiver(
-    rapidsConnection: RapidsConnection,
+    rapid: RapidsConnection,
     private val forespoerselDao: ForespoerselDao,
     private val priProducer: PriProducer
 ) : River.PacketListener {
@@ -21,9 +29,9 @@ class LagreForespoerselRiver(
     private val sikkerlogger = sikkerLogger()
 
     init {
-        River(rapidsConnection).apply {
+        River(rapid).apply {
             validate {
-                it.demandValue(Key.TYPE.str, Event.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER)
+                it.demandValue(Key.TYPE.str, SpleisEvent.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER.name)
                 it.require(
                     Key.FOM.str to JsonNode::asLocalDate,
                     Key.TOM.str to JsonNode::asLocalDate
@@ -52,6 +60,7 @@ class LagreForespoerselRiver(
             forespoerselBesvart = null,
             status = Status.AKTIV
         )
+
         sikkerlogger.info("Forespoersel lest: $forespoersel")
 
         forespoerselDao.lagre(forespoersel)
@@ -71,18 +80,7 @@ class LagreForespoerselRiver(
             ),
             ForespoerselMottatt::toJson
         )
-            .let { bleMeldingSendt ->
-                if (bleMeldingSendt) {
-                    logger.info("Sa ifra om mottatt forespørsel til Simba.")
-                } else {
-                    logger.info("Klarte ikke si ifra om mottatt forespørsel til Simba.")
-                }
-            }
-    }
-}
-
-private fun JsonMessage.require(vararg keyParserPairs: Pair<String, (JsonNode) -> Any>) {
-    keyParserPairs.forEach { (key, parser) ->
-        this.require(key, parser)
+            .ifTrue { logger.info("Sa ifra om mottatt forespørsel til Simba.") }
+            .ifFalse { logger.info("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
     }
 }

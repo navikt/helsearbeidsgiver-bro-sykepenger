@@ -1,12 +1,13 @@
 @file:UseSerializers(LocalDateSerializer::class)
 
-package no.nav.helsearbeidsgiver.bro.sykepenger
+package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonClassDiscriminator
+import no.nav.helsearbeidsgiver.bro.sykepenger.LocalDateSerializer
 import java.time.LocalDate
 
 @Serializable

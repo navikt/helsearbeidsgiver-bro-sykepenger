@@ -1,6 +1,7 @@
-package no.nav.helsearbeidsgiver.bro.sykepenger
+package no.nav.helsearbeidsgiver.bro.sykepenger.pritopic
 
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.bro.sykepenger.Env
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -13,10 +14,10 @@ import java.util.Properties
 class PriProducer(
     private val producer: KafkaProducer<String, String> = createProducer()
 ) {
-    private val topic = "helsearbeidsgiver.pri"
+    private val topic = Pri.TOPIC
 
-    fun <T : Any> send(record: T, toJson: T.() -> JsonElement): Boolean =
-        record.toJson()
+    fun <T : Any> send(value: T, toJson: T.() -> JsonElement): Boolean =
+        value.toJson()
             .toString()
             .toRecord()
             .runCatching {

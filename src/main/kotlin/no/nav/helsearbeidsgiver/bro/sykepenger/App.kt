@@ -5,6 +5,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.DataSourceBuilder
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
+import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.PriProducer
 import org.slf4j.LoggerFactory
 
 fun main() {
@@ -17,23 +18,23 @@ fun main() {
     val forespoerselDao = ForespoerselDao(dataSource)
     val priProducer = PriProducer()
 
-    val connection = RapidApplication.create(env)
+    val rapid = RapidApplication.create(env)
 
     LagreForespoerselRiver(
-        rapidsConnection = connection,
+        rapid = rapid,
         forespoerselDao = forespoerselDao,
         priProducer = priProducer
     )
 
     TilgjengeliggjoerForespoerselRiver(
-        rapidsConnection = connection,
+        rapid = rapid,
         forespoerselDao = forespoerselDao,
         priProducer = priProducer
     )
 
-    connection.registerDatasource(dataSourceBuilder, dataSource)
+    rapid.registerDatasource(dataSourceBuilder, dataSource)
 
-    connection.start()
+    rapid.start()
 }
 
 private fun RapidsConnection.registerDatasource(dataSourceBuilder: DataSourceBuilder, dataSource: HikariDataSource) {

@@ -1,5 +1,6 @@
-package no.nav.helsearbeidsgiver.bro.sykepenger
+package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID

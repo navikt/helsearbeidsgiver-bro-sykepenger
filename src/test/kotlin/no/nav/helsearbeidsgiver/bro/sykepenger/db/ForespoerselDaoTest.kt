@@ -4,12 +4,12 @@ import io.kotest.matchers.comparables.shouldBeEqualComparingTo
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
-import no.nav.helsearbeidsgiver.bro.sykepenger.ForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.Status
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.MockUuid
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.januar
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.januar
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.nullableResult
 import java.util.UUID
 import javax.sql.DataSource

@@ -6,9 +6,12 @@ import io.mockk.mockk
 import io.mockk.verifySequence
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.sendJson
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.tryToJson
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
+import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.Pri
+import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.PriProducer
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
 
 class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
     val testRapid = TestRapid()
@@ -19,19 +22,21 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
 
     test("Ved innkommende event, svar ut korrekt ForespoerselSvar") {
         val forespoersel = mockForespoerselDto()
+
         every { mockForespoerselDao.hentAktivForespoerselFor(any()) } returns forespoersel
-        val expected = ForespoerselSvar(forespoersel)
+
+        val expectedPublished = ForespoerselSvar(forespoersel)
 
         testRapid.sendJson(
-            Key.EVENT_TYPE to Event.TRENGER_FORESPOERSEL.tryToJson(),
-            Key.ORGNR to expected.orgnr.tryToJson(),
-            Key.FNR to expected.fnr.tryToJson(),
-            Key.VEDTAKSPERIODE_ID to expected.vedtaksperiodeId.toString().tryToJson()
+            Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(),
+            Pri.Key.ORGNR to expectedPublished.orgnr.toJson(),
+            Pri.Key.FNR to expectedPublished.fnr.toJson(),
+            Pri.Key.VEDTAKSPERIODE_ID to expectedPublished.vedtaksperiodeId.toJson()
         )
 
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselFor(any())
-            mockPriProducer.send(expected, any())
+            mockPriProducer.send(expectedPublished, ForespoerselSvar::toJson)
         }
     }
 })

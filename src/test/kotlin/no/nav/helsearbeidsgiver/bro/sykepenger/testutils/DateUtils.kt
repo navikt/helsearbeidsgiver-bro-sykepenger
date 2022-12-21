@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.bro.sykepenger.utils
+package no.nav.helsearbeidsgiver.bro.sykepenger.testutils
 
 import java.time.LocalDate
 import java.time.Month

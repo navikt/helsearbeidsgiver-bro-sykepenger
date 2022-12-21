@@ -1,15 +1,15 @@
-package no.nav.helsearbeidsgiver.bro.sykepenger.utils
+package no.nav.helsearbeidsgiver.bro.sykepenger.testutils
 
 import io.kotest.matchers.nulls.shouldNotBeNull
-import no.nav.helsearbeidsgiver.bro.sykepenger.ArbeidsgiverPeriode
-import no.nav.helsearbeidsgiver.bro.sykepenger.ForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.ForespoerselMottatt
-import no.nav.helsearbeidsgiver.bro.sykepenger.ForespoerselSvar
-import no.nav.helsearbeidsgiver.bro.sykepenger.ForespurtDataDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.Forslag
-import no.nav.helsearbeidsgiver.bro.sykepenger.Inntekt
-import no.nav.helsearbeidsgiver.bro.sykepenger.Refusjon
-import no.nav.helsearbeidsgiver.bro.sykepenger.Status
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ArbeidsgiverPeriode
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Forslag
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Inntekt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import java.util.UUID
 
 object MockUuid {

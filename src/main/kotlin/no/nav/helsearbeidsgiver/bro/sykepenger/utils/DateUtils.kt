@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.bro.sykepenger
+package no.nav.helsearbeidsgiver.bro.sykepenger.utils
 
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit

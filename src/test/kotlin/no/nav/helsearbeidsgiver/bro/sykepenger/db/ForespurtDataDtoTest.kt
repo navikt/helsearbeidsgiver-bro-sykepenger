@@ -6,9 +6,9 @@ import io.kotest.matchers.comparables.shouldBeEqualComparingTo
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import no.nav.helsearbeidsgiver.bro.sykepenger.ForespurtDataDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mockForespurtDataListe
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespurtDataListe
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.removeJsonWhitespace
 
 class ForespurtDataDtoTest : FunSpec({
     val forespurtDataJson = "json/forespurtDataListe.json".readResource().removeJsonWhitespace()

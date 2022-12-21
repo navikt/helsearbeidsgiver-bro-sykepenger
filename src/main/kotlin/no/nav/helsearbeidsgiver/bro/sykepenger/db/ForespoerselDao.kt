@@ -4,8 +4,8 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotliquery.Row
-import no.nav.helsearbeidsgiver.bro.sykepenger.ForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.Status
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.listResult
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.nullableResult
