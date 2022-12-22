@@ -6,7 +6,8 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Forslag
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagInntekt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Inntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
@@ -34,18 +35,26 @@ fun mockForespurtDataListe(): List<ForespurtDataDto> =
     listOf(
         ArbeidsgiverPeriode(
             forslag = listOf(
-                Forslag(
+                Periode(
                     fom = 1.januar,
                     tom = 10.januar
                 ),
-                Forslag(
+                Periode(
                     fom = 15.januar,
                     tom = 20.januar
                 )
             )
         ),
-        Refusjon,
-        Inntekt
+        Inntekt(
+            forslag = ForslagInntekt(
+                beregningsmåneder = listOf(
+                    oktober(2017),
+                    november(2017),
+                    desember(2017)
+                )
+            )
+        ),
+        Refusjon
     )
 
 fun mockForespoerselMottatt(): ForespoerselMottatt =

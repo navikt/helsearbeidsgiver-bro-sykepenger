@@ -13,9 +13,16 @@
     ]
   },
   {
-    "opplysningstype": "Refusjon"
+    "opplysningstype": "Inntekt",
+    "forslag": {
+      "beregningsmåneder": [
+        "2017-10",
+        "2017-11",
+        "2017-12"
+      ]
+    }
   },
   {
-    "opplysningstype": "Inntekt"
+    "opplysningstype": "Refusjon"
   }
 ]
