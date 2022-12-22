@@ -26,6 +26,10 @@ data class ArbeidsgiverPeriode(val forslag: List<Periode>) : ForespurtDataDto()
 data class Inntekt(val forslag: ForslagInntekt) : ForespurtDataDto()
 
 @Serializable
+@SerialName("FastsattInntekt")
+data class FastsattInntekt(val fastsattInntekt: Double) : ForespurtDataDto()
+
+@Serializable
 @SerialName("Refusjon")
 object Refusjon : ForespurtDataDto()
 

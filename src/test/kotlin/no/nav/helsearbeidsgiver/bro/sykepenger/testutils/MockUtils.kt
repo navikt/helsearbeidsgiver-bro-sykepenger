@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.testutils
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ArbeidsgiverPeriode
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.FastsattInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
@@ -53,6 +54,26 @@ fun mockForespurtDataListe(): List<ForespurtDataDto> =
                     desember(2017)
                 )
             )
+        ),
+        Refusjon
+    )
+
+fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtDataDto> =
+    listOf(
+        ArbeidsgiverPeriode(
+            forslag = listOf(
+                Periode(
+                    fom = 1.januar,
+                    tom = 10.januar
+                ),
+                Periode(
+                    fom = 15.januar,
+                    tom = 20.januar
+                )
+            )
+        ),
+        FastsattInntekt(
+            fastsattInntekt = 31415.92
         ),
         Refusjon
     )

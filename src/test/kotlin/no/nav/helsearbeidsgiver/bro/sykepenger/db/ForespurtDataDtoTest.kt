@@ -1,6 +1,8 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
+import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.data.row
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.comparables.shouldBeEqualComparingTo
 import kotlinx.serialization.decodeFromString
@@ -8,26 +10,37 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespurtDataListe
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespurtDataMedFastsattInntektListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.removeJsonWhitespace
 
 class ForespurtDataDtoTest : FunSpec({
-    val forespurtDataJson = "json/forespurtDataListe.json".readResource().removeJsonWhitespace()
+    listOf(
+        row("forespurtDataListe", ::mockForespurtDataListe),
+        row("forespurtDataMedFastsattInntektListe", ::mockForespurtDataMedFastsattInntektListe)
+    )
+        .forEach { (fileName, mockDataFn) ->
+            val expectedJson = "json/$fileName.json".readResource().removeJsonWhitespace()
 
-    test("Forespurt data serialiseres korrekt") {
-        val forespurtDataListe = mockForespurtDataListe()
+            test("Forespurt data serialiseres korrekt") {
+                val forespurtDataListe = mockDataFn()
 
-        val serialisertJson = Json.encodeToString(forespurtDataListe)
+                val serialisertJson = Json.encodeToString(forespurtDataListe)
 
-        serialisertJson shouldBeEqualComparingTo forespurtDataJson
-    }
+                withClue("Validerer mot '$fileName'") {
+                    serialisertJson shouldBeEqualComparingTo expectedJson
+                }
+            }
 
-    test("Forespurt data deserialiseres korrekt") {
-        val forespurtDataListe = mockForespurtDataListe()
+            test("Forespurt data deserialiseres korrekt") {
+                val forespurtDataListe = mockDataFn()
 
-        val deserialisertJson = Json.decodeFromString<List<ForespurtDataDto>>(forespurtDataJson)
+                val deserialisertJson = Json.decodeFromString<List<ForespurtDataDto>>(expectedJson)
 
-        deserialisertJson shouldContainExactly forespurtDataListe
-    }
+                withClue("Validerer mot '$fileName'") {
+                    deserialisertJson shouldContainExactly forespurtDataListe
+                }
+            }
+        }
 })
 
 private fun String.readResource(): String =
