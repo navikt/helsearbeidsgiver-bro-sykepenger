@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.bro.sykepenger.db
+package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
@@ -8,7 +8,6 @@ import io.kotest.matchers.comparables.shouldBeEqualComparingTo
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespurtDataMedFastsattInntektListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.removeJsonWhitespace
@@ -43,7 +42,6 @@ class ForespurtDataDtoTest : FunSpec({
         }
 })
 
-private fun String.readResource(): String =
-    ClassLoader.getSystemClassLoader()
-        .getResource(this)
-        ?.readText()!!
+private fun String.readResource(): String = ClassLoader.getSystemClassLoader()
+    .getResource(this)
+    ?.readText()!!
