@@ -24,8 +24,6 @@ class ForespoerselDao(private val dataSource: DataSource) {
             "fnr" to forespoersel.fnr,
             "orgnr" to forespoersel.orgnr,
             "vedtaksperiode_id" to forespoersel.vedtaksperiodeId,
-            "fom" to forespoersel.fom,
-            "tom" to forespoersel.tom,
             "forespoersel_besvart" to null,
             "status" to forespoersel.status.name,
             "opprettet" to forespoersel.opprettet,
@@ -33,6 +31,7 @@ class ForespoerselDao(private val dataSource: DataSource) {
         )
 
         val jsonFelter = mapOf(
+            "sykmeldingsperioder" to forespoersel.sykmeldingsperioder.let(Json::encodeToString),
             "forespurt_data" to forespoersel.forespurtData.let(Json::encodeToString)
         )
 
@@ -86,8 +85,7 @@ private fun Row.toForespoerselDto(): ForespoerselDto =
         orgnr = "orgnr".let(::string),
         fnr = "fnr".let(::string),
         vedtaksperiodeId = "vedtaksperiode_id".let(::uuid),
-        fom = "fom".let(::localDate),
-        tom = "tom".let(::localDate),
+        sykmeldingsperioder = "sykmeldingsperioder".let(::string).let(Json::decodeFromString),
         forespurtData = "forespurt_data".let(::string).let(Json::decodeFromString),
         forespoerselBesvart = "forespoersel_besvart".let(::localDateTimeOrNull),
         status = "status".let(::string).let(Status::valueOf),

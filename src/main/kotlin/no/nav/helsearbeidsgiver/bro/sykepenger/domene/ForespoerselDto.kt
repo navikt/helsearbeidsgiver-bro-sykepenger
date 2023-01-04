@@ -1,5 +1,10 @@
+@file:UseSerializers(LocalDateSerializer::class)
+
 package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
+import no.nav.helsearbeidsgiver.bro.sykepenger.LocalDateSerializer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -9,8 +14,7 @@ data class ForespoerselDto(
     val orgnr: String,
     val fnr: String,
     val vedtaksperiodeId: UUID,
-    val fom: LocalDate,
-    val tom: LocalDate,
+    val sykmeldingsperioder: List<Periode>,
     val forespurtData: List<ForespurtDataDto>,
     val forespoerselBesvart: LocalDateTime?,
     val status: Status,
@@ -23,3 +27,9 @@ enum class Status {
     BESVART,
     FORKASTET
 }
+
+@Serializable
+data class Periode(
+    val fom: LocalDate,
+    val tom: LocalDate
+)

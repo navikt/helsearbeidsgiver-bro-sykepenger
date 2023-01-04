@@ -9,6 +9,7 @@ enum class Key(val str: String) {
     ORGANISASJONSNUMMER("organisasjonsnummer"),
     FØDSELSNUMMER("fødselsnummer"),
     VEDTAKSPERIODE_ID("vedtaksperiodeId"),
+    SYKMELDINGSPERIODER("sykmeldingsperioder"),
     FOM("fom"),
     TOM("tom"),
     FORESPURT_DATA("forespurtData");

@@ -40,8 +40,7 @@ class LagreForespoerselRiverTest : FunSpec({
             Key.ORGANISASJONSNUMMER to forespoersel.orgnr.toJson(),
             Key.FØDSELSNUMMER to forespoersel.fnr.toJson(),
             Key.VEDTAKSPERIODE_ID to forespoersel.vedtaksperiodeId.toJson(),
-            Key.FOM to forespoersel.fom.toJson(),
-            Key.TOM to forespoersel.tom.toJson(),
+            Key.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJson(Json::encodeToJsonElement),
             Key.FORESPURT_DATA to mockForespurtDataListe().toJson(Json::encodeToJsonElement)
         )
 

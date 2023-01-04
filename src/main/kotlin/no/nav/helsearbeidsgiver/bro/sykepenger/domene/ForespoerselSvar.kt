@@ -6,15 +6,13 @@ import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.jsonOf
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
-import java.time.LocalDate
 import java.util.UUID
 
 data class ForespoerselSvar(
     val orgnr: String,
     val fnr: String,
     val vedtaksperiodeId: UUID,
-    val fom: LocalDate,
-    val tom: LocalDate,
+    val sykmeldingsperioder: List<Periode>,
     val forespurtData: List<ForespurtDataDto>,
     val boomerang: Map<String, JsonElement>
 ) {
@@ -24,8 +22,7 @@ data class ForespoerselSvar(
         orgnr = forespoersel.orgnr,
         fnr = forespoersel.fnr,
         vedtaksperiodeId = forespoersel.vedtaksperiodeId,
-        fom = forespoersel.fom,
-        tom = forespoersel.tom,
+        sykmeldingsperioder = forespoersel.sykmeldingsperioder,
         forespurtData = forespoersel.forespurtData,
         boomerang = boomerang
     )
@@ -36,8 +33,7 @@ data class ForespoerselSvar(
             Pri.Key.ORGNR to orgnr.toJson(),
             Pri.Key.FNR to fnr.toJson(),
             Pri.Key.VEDTAKSPERIODE_ID to vedtaksperiodeId.toJson(),
-            Pri.Key.FOM to fom.toJson(),
-            Pri.Key.TOM to tom.toJson(),
+            Pri.Key.SYKMELDINGSPERIODER to sykmeldingsperioder.toJson(Json::encodeToJsonElement),
             Pri.Key.FORESPURT_DATA to forespurtData.toJson(Json::encodeToJsonElement),
             Pri.Key.BOOMERANG to boomerang.toJson()
         )

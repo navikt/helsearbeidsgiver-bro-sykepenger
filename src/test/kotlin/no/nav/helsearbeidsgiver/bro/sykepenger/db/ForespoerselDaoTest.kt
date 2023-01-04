@@ -5,6 +5,7 @@ import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.januar
@@ -58,11 +59,11 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
     test("Henter eneste aktive forespørsel i databasen knyttet til en vedtaksperideId") {
         mockForespoerselDto()
-            .copy(fom = 1.januar, tom = 31.januar)
+            .copy(sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)))
             .also(ForespoerselDto::lagreNotNull)
 
         val expectedForespoersel = mockForespoerselDto()
-            .copy(fom = 2.januar, tom = 30.januar)
+            .copy(sykmeldingsperioder = listOf(Periode(2.januar, 30.januar)))
             .also(ForespoerselDto::lagreNotNull)
 
         mockForespoerselDto()
@@ -76,11 +77,11 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
     test("Skal returnere siste aktive forespørsel dersom det er flere, og logge error") {
         val forespoerselId1 = mockForespoerselDto()
-            .copy(fom = 1.januar, tom = 31.januar)
+            .copy(sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)))
             .let(ForespoerselDto::lagreNotNull)
 
         val expectedForespoersel = mockForespoerselDto()
-            .copy(fom = 2.januar, tom = 30.januar)
+            .copy(sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)))
             .also(ForespoerselDto::lagreNotNull)
 
         dataSource.oppdaterStatusTilAktiv(forespoerselId1)

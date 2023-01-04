@@ -16,7 +16,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.asUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifFalse
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifTrue
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.require
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.sikkerLogger
 import org.slf4j.LoggerFactory
 
@@ -32,10 +31,10 @@ class LagreForespoerselRiver(
         River(rapid).apply {
             validate {
                 it.demandValue(Key.TYPE.str, SpleisEvent.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER.name)
-                it.require(
-                    Key.FOM.str to JsonNode::asLocalDate,
-                    Key.TOM.str to JsonNode::asLocalDate
-                )
+                it.requireArray(Key.SYKMELDINGSPERIODER.str) {
+                    require(Key.FOM.str, JsonNode::asLocalDate)
+                    require(Key.TOM.str, JsonNode::asLocalDate)
+                }
                 it.requireKey(
                     Key.ORGANISASJONSNUMMER.str,
                     Key.FØDSELSNUMMER.str,
@@ -54,8 +53,7 @@ class LagreForespoerselRiver(
             orgnr = packet.value(Key.ORGANISASJONSNUMMER).asText(),
             fnr = packet.value(Key.FØDSELSNUMMER).asText(),
             vedtaksperiodeId = packet.value(Key.VEDTAKSPERIODE_ID).asUuid(),
-            fom = packet.value(Key.FOM).asLocalDate(),
-            tom = packet.value(Key.TOM).asLocalDate(),
+            sykmeldingsperioder = packet.value(Key.SYKMELDINGSPERIODER).toString().let(Json::decodeFromString),
             forespurtData = packet.value(Key.FORESPURT_DATA).toString().let(Json::decodeFromString),
             forespoerselBesvart = null,
             status = Status.AKTIV

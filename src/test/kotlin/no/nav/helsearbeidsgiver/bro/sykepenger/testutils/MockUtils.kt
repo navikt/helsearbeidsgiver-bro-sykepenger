@@ -25,8 +25,10 @@ fun mockForespoerselDto(): ForespoerselDto =
         orgnr = "12345678901",
         fnr = "123456789",
         vedtaksperiodeId = MockUuid.uuid,
-        fom = 1.januar,
-        tom = 16.januar,
+        sykmeldingsperioder = listOf(
+            Periode(1.januar, 10.januar),
+            Periode(15.januar, 20.januar)
+        ),
         forespurtData = mockForespurtDataListe(),
         forespoerselBesvart = null,
         status = Status.AKTIV
@@ -90,8 +92,7 @@ fun mockForespoerselSvar(): ForespoerselSvar =
         orgnr = "123",
         fnr = "abc",
         vedtaksperiodeId = MockUuid.uuid,
-        fom = 1.januar,
-        tom = 16.januar,
+        sykmeldingsperioder = listOf(Periode(1.januar, 16.januar)),
         forespurtData = mockForespurtDataListe(),
         boomerang = mapOf(
             "boom" to "shakalaka".toJson()

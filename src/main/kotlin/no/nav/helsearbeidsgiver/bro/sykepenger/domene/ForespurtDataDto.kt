@@ -1,4 +1,4 @@
-@file:UseSerializers(LocalDateSerializer::class, YearMonthSerializer::class)
+@file:UseSerializers(YearMonthSerializer::class)
 
 package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 
@@ -7,9 +7,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonClassDiscriminator
-import no.nav.helsearbeidsgiver.bro.sykepenger.LocalDateSerializer
 import no.nav.helsearbeidsgiver.bro.sykepenger.YearMonthSerializer
-import java.time.LocalDate
 import java.time.YearMonth
 
 @Serializable
@@ -32,12 +30,6 @@ data class FastsattInntekt(val fastsattInntekt: Double) : ForespurtDataDto()
 @Serializable
 @SerialName("Refusjon")
 object Refusjon : ForespurtDataDto()
-
-@Serializable
-data class Periode(
-    val fom: LocalDate,
-    val tom: LocalDate
-)
 
 @Serializable
 data class ForslagInntekt(
