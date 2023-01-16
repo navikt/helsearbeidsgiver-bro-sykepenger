@@ -12,13 +12,12 @@ fun main() {
     val broLogger = LoggerFactory.getLogger("BroLogger")
     broLogger.info("Hello bro!")
 
-    val env = System.getenv()
-    val dataSourceBuilder = DataSourceBuilder(env)
+    val dataSourceBuilder = DataSourceBuilder()
     val dataSource by lazy { dataSourceBuilder.getDataSource() }
     val forespoerselDao = ForespoerselDao(dataSource)
     val priProducer = PriProducer()
 
-    val rapid = RapidApplication.create(env)
+    val rapid = RapidApplication.create(System.getenv())
 
     LagreForespoerselRiver(
         rapid = rapid,
