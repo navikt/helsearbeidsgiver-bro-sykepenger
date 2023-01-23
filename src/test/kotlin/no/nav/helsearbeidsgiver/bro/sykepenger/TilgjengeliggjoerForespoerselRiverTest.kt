@@ -36,7 +36,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
             Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(),
             Pri.Key.ORGNR to expectedPublished.orgnr.toJson(),
             Pri.Key.FNR to expectedPublished.fnr.toJson(),
-            Pri.Key.VEDTAKSPERIODE_ID to expectedPublished.vedtaksperiodeId.toJson(),
+            Pri.Key.FORESPOERSEL_ID to expectedPublished.forespoerselId.toJson(),
             Pri.Key.BOOMERANG to expectedPublished.boomerang.toJson()
         )
 

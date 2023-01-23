@@ -30,9 +30,9 @@ class LagreForespoerselRiverTest : FunSpec({
         val forespoersel = mockForespoerselDto()
 
         val expectedPublished = ForespoerselMottatt(
+            forespoerselId = forespoersel.forespoerselId,
             orgnr = forespoersel.orgnr,
-            fnr = forespoersel.fnr,
-            vedtaksperiodeId = forespoersel.vedtaksperiodeId
+            fnr = forespoersel.fnr
         )
 
         testRapid.sendJson(
@@ -47,11 +47,16 @@ class LagreForespoerselRiverTest : FunSpec({
         verifySequence {
             mockForespoerselDao.lagre(
                 withArg {
-                    it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)
+                    it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::forespoerselId, forespoersel::oppdatert, forespoersel::opprettet)
                 }
             )
 
-            mockPriProducer.send(expectedPublished, ForespoerselMottatt::toJson)
+            mockPriProducer.send(
+                withArg {
+                    it.shouldBeEqualToIgnoringFields(expectedPublished, expectedPublished::forespoerselId)
+                },
+                ForespoerselMottatt::toJson
+            )
         }
     }
 })

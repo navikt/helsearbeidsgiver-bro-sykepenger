@@ -17,7 +17,7 @@ class ForespoerselSvarTest : FunSpec({
                 "${Pri.Key.LØSNING}": "${forespoerselSvar.løsning}",
                 "${Pri.Key.ORGNR}": "${forespoerselSvar.orgnr}",
                 "${Pri.Key.FNR}": "${forespoerselSvar.fnr}",
-                "${Pri.Key.VEDTAKSPERIODE_ID}": "${forespoerselSvar.vedtaksperiodeId}",
+                "${Pri.Key.FORESPOERSEL_ID}": "${forespoerselSvar.forespoerselId}",
                 "${Pri.Key.SYKMELDINGSPERIODER}": ${forespoerselSvar.sykmeldingsperioder.let(Json::encodeToString)},
                 "${Pri.Key.FORESPURT_DATA}": ${forespoerselSvar.forespurtData.let(Json::encodeToString)},
                 "${Pri.Key.BOOMERANG}": ${forespoerselSvar.boomerang.let(Json::encodeToString)}

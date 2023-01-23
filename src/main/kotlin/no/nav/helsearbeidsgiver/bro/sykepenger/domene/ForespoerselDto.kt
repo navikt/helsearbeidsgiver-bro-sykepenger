@@ -11,6 +11,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 data class ForespoerselDto(
+    val forespoerselId: UUID,
     val orgnr: String,
     val fnr: String,
     val vedtaksperiodeId: UUID,

@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
+import io.ktor.server.plugins.NotFoundException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -21,6 +22,7 @@ class ForespoerselDao(private val dataSource: DataSource) {
         forkastAlleAktiveForespoerslerFor(forespoersel.vedtaksperiodeId)
 
         val felter = mapOf(
+            "forespoersel_id" to forespoersel.forespoerselId,
             "fnr" to forespoersel.fnr,
             "orgnr" to forespoersel.orgnr,
             "vedtaksperiode_id" to forespoersel.vedtaksperiodeId,
@@ -59,29 +61,36 @@ class ForespoerselDao(private val dataSource: DataSource) {
                 dataSource = dataSource
             )
 
-    fun hentAktivForespoerselFor(vedtaksperiodeId: UUID): ForespoerselDto? =
-        "SELECT * FROM forespoersel WHERE vedtaksperiode_id=:vedtaksperiode_id AND status='AKTIV'"
+    fun hentAktivForespoerselFor(forespoerselId: UUID): ForespoerselDto? {
+        val vedtaksperiodeId = hentVedtaksperiodeId(forespoerselId)
+            ?: throw NotFoundException("Fant ikke forespørsel for forespoerselId: $forespoerselId")
+
+        return "SELECT * FROM forespoersel WHERE vedtaksperiode_id=:vedtaksperiode_id AND status='AKTIV'"
             .listResult(
                 params = mapOf("vedtaksperiode_id" to vedtaksperiodeId),
                 dataSource = dataSource,
                 transform = Row::toForespoerselDto
             )
             .also {
-                if (it.size > 1) logger.error("Fant flere aktive forespørsler på vedtaksperiode: $vedtaksperiodeId")
+                if (it.size > 1) logger.error("Fant flere aktive forespørsler for vedtaksperiode: $vedtaksperiodeId")
             }
             .maxByOrNull { it.opprettet }
+    }
 
-    fun hentForespoersel(forespoerselId: Long): ForespoerselDto? =
-        "SELECT * FROM forespoersel WHERE id=:id"
+    private fun hentVedtaksperiodeId(forespoerselId: UUID): UUID? =
+        "SELECT vedtaksperiode_id FROM forespoersel WHERE forespoersel_id=:forespoersel_id"
             .nullableResult(
-                params = mapOf("id" to forespoerselId),
+                params = mapOf("forespoersel_id" to forespoerselId),
                 dataSource = dataSource,
-                transform = Row::toForespoerselDto
+                transform = Row::toUUID
             )
 }
 
-private fun Row.toForespoerselDto(): ForespoerselDto =
+private fun Row.toUUID(): UUID = "vedtaksperiode_id".let(::uuid)
+
+fun Row.toForespoerselDto(): ForespoerselDto =
     ForespoerselDto(
+        forespoerselId = "forespoersel_id".let(::uuid),
         orgnr = "orgnr".let(::string),
         fnr = "fnr".let(::string),
         vedtaksperiodeId = "vedtaksperiode_id".let(::uuid),

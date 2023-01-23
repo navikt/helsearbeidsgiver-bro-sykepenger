@@ -1,9 +1,12 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
+import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.comparables.shouldBeEqualComparingTo
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.ktor.server.plugins.NotFoundException
+import kotliquery.Row
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
@@ -24,21 +27,21 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
     test("Lagre forespørsel i databasen") {
         val forespoersel = mockForespoerselDto()
 
-        val forespoerselId = forespoersel.lagreNotNull()
-        val lagretForespoersel = forespoerselDao.hentForespoersel(forespoerselId).shouldNotBeNull()
+        val id = forespoersel.lagreNotNull()
+        val lagretForespoersel = dataSource.hentForespoersel(id).shouldNotBeNull()
 
         dataSource.antallForespoersler() shouldBeExactly 1
         lagretForespoersel shouldBeEqualToComparingFields forespoersel
     }
 
     test("Forkaster alle aktive forespørsler knyttet til en vedtaksperiodeId når ny forespørsel med lik vedtaksperiodeId mottas") {
-        val (forespoerselId1, forespoerselId2) = List(2) {
+        val (id1, id2) = List(2) {
             mockForespoerselDto().lagreNotNull()
         }
-        dataSource.oppdaterStatusTilAktiv(forespoerselId1)
+        dataSource.oppdaterStatusTilAktiv(id1)
 
-        val forespoerselId3 = mockForespoerselDto().lagreNotNull()
-        val forespoerselId4 = mockForespoerselDto()
+        val id3 = mockForespoerselDto().lagreNotNull()
+        val id4 = mockForespoerselDto()
             .copy(vedtaksperiodeId = UUID.randomUUID())
             .let(ForespoerselDto::lagreNotNull)
 
@@ -47,8 +50,8 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             forespoersel2,
             forespoersel3,
             forespoersel4
-        ) = listOf(forespoerselId1, forespoerselId2, forespoerselId3, forespoerselId4)
-            .map(forespoerselDao::hentForespoersel)
+        ) = listOf(id1, id2, id3, id4)
+            .map(dataSource::hentForespoersel)
             .map { it.shouldNotBeNull() }
 
         forespoersel1.status shouldBeEqualComparingTo Status.FORKASTET
@@ -57,7 +60,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         forespoersel4.status shouldBeEqualComparingTo Status.AKTIV
     }
 
-    test("Henter eneste aktive forespørsel i databasen knyttet til en vedtaksperideId") {
+    test("Henter eneste aktive forespørsel i databasen knyttet til en forespoerselId") {
         mockForespoerselDto()
             .copy(sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)))
             .also(ForespoerselDto::lagreNotNull)
@@ -70,13 +73,13 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             .copy(vedtaksperiodeId = UUID.randomUUID())
             .also(ForespoerselDto::lagreNotNull)
 
-        val actualForespoersel = forespoerselDao.hentAktivForespoerselFor(MockUuid.uuid).shouldNotBeNull()
+        val actualForespoersel = forespoerselDao.hentAktivForespoerselFor(MockUuid.forespoerselId).shouldNotBeNull()
 
         actualForespoersel shouldBeEqualToComparingFields expectedForespoersel
     }
 
     test("Skal returnere siste aktive forespørsel dersom det er flere, og logge error") {
-        val forespoerselId1 = mockForespoerselDto()
+        val id1 = mockForespoerselDto()
             .copy(sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)))
             .let(ForespoerselDto::lagreNotNull)
 
@@ -84,13 +87,27 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             .copy(sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)))
             .also(ForespoerselDto::lagreNotNull)
 
-        dataSource.oppdaterStatusTilAktiv(forespoerselId1)
+        dataSource.oppdaterStatusTilAktiv(id1)
 
-        val actualForespoersel = forespoerselDao.hentAktivForespoerselFor(MockUuid.uuid).shouldNotBeNull()
+        val actualForespoersel = forespoerselDao.hentAktivForespoerselFor(MockUuid.forespoerselId).shouldNotBeNull()
 
         actualForespoersel shouldBeEqualToComparingFields expectedForespoersel
     }
+
+    test("Tryner hvis vi prøver å hente en forespørsel som ikke finnes") {
+        shouldThrowExactly<NotFoundException> {
+            forespoerselDao.hentAktivForespoerselFor(MockUuid.forespoerselId)
+        }
+    }
 })
+
+private fun DataSource.hentForespoersel(id: Long): ForespoerselDto? =
+    "SELECT * FROM forespoersel WHERE id=:id"
+        .nullableResult(
+            params = mapOf("id" to id),
+            dataSource = this,
+            transform = Row::toForespoerselDto
+        )
 
 private fun DataSource.antallForespoersler(): Int =
     "SELECT COUNT(1) FROM forespoersel"

@@ -31,7 +31,7 @@ class TilgjengeliggjoerForespoerselRiver(
             validate {
                 it.demandValue(Pri.Key.BEHOV.str, Pri.BehovType.TRENGER_FORESPØRSEL.name)
                 it.requireKey(
-                    Pri.Key.VEDTAKSPERIODE_ID.str,
+                    Pri.Key.FORESPOERSEL_ID.str,
                     Pri.Key.BOOMERANG.str
                 )
             }
@@ -42,10 +42,10 @@ class TilgjengeliggjoerForespoerselRiver(
         logger.info("Mottok melding på pri-topic av type '${packet.value(Pri.Key.BEHOV).asText()}'.")
         sikkerlogger.info("Mottok melding på pri-topic med innhold:\n${packet.toJson()}")
 
-        val vedtaksperiodeId = packet.value(Pri.Key.VEDTAKSPERIODE_ID).asUuid()
+        val forespoerselId = packet.value(Pri.Key.FORESPOERSEL_ID).asUuid()
         val boomerang = packet.value(Pri.Key.BOOMERANG).toString().let { Json.decodeFromString<Map<String, JsonElement>>(it) }
 
-        val forespoersel = forespoerselDao.hentAktivForespoerselFor(vedtaksperiodeId)
+        val forespoersel = forespoerselDao.hentAktivForespoerselFor(forespoerselId)
 
         if (forespoersel != null) {
             val forespoerselSvar = ForespoerselSvar(forespoersel, boomerang)

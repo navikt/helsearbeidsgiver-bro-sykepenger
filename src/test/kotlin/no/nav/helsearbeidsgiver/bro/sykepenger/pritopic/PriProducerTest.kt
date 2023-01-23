@@ -57,9 +57,9 @@ class PriProducerTest : FunSpec({
 
 private fun mockForespoerselMottatt(): ForespoerselMottatt =
     ForespoerselMottatt(
+        forespoerselId = UUID.randomUUID(),
         orgnr = "123",
-        fnr = "abc",
-        vedtaksperiodeId = UUID.randomUUID()
+        fnr = "abc"
     )
 
 private fun mockRecordMetadata(): RecordMetadata =

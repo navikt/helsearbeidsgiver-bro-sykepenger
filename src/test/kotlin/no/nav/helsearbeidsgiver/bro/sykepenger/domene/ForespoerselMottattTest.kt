@@ -15,7 +15,7 @@ class ForespoerselMottattTest : FunSpec({
                 "${Pri.Key.NOTIS}": "${forespoerselMottatt.notis}",
                 "${Pri.Key.ORGNR}": "${forespoerselMottatt.orgnr}",
                 "${Pri.Key.FNR}": "${forespoerselMottatt.fnr}",
-                "${Pri.Key.VEDTAKSPERIODE_ID}": "${forespoerselMottatt.vedtaksperiodeId}"
+                "${Pri.Key.FORESPOERSEL_ID}": "${forespoerselMottatt.forespoerselId}"
             }
         """.removeJsonWhitespace()
 

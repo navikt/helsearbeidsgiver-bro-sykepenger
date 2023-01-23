@@ -18,6 +18,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifFalse
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifTrue
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.sikkerLogger
 import org.slf4j.LoggerFactory
+import java.util.UUID
 
 class LagreForespoerselRiver(
     rapid: RapidsConnection,
@@ -50,6 +51,7 @@ class LagreForespoerselRiver(
         sikkerlogger.info("Mottok melding med innhold:\n${packet.toJson()}")
 
         val forespoersel = ForespoerselDto(
+            forespoerselId = UUID.randomUUID(),
             orgnr = packet.value(Key.ORGANISASJONSNUMMER).asText(),
             fnr = packet.value(Key.FØDSELSNUMMER).asText(),
             vedtaksperiodeId = packet.value(Key.VEDTAKSPERIODE_ID).asUuid(),
@@ -72,9 +74,9 @@ class LagreForespoerselRiver(
 
         priProducer.send(
             ForespoerselMottatt(
+                forespoerselId = forespoersel.forespoerselId,
                 orgnr = forespoersel.orgnr,
-                fnr = forespoersel.fnr,
-                vedtaksperiodeId = forespoersel.vedtaksperiodeId
+                fnr = forespoersel.fnr
             ),
             ForespoerselMottatt::toJson
         )

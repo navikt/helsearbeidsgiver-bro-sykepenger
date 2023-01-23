@@ -7,9 +7,9 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
 import java.util.UUID
 
 data class ForespoerselMottatt(
+    val forespoerselId: UUID,
     val orgnr: String,
-    val fnr: String,
-    val vedtaksperiodeId: UUID
+    val fnr: String
 ) {
     val notis = Pri.NotisType.FORESPØRSEL_MOTTATT
 
@@ -18,6 +18,6 @@ data class ForespoerselMottatt(
             Pri.Key.NOTIS to notis.toJson(),
             Pri.Key.ORGNR to orgnr.toJson(),
             Pri.Key.FNR to fnr.toJson(),
-            Pri.Key.VEDTAKSPERIODE_ID to vedtaksperiodeId.toJson()
+            Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson()
         )
 }

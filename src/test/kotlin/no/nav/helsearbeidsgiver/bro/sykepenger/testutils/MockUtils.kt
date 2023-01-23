@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.testutils
 
-import io.kotest.matchers.nulls.shouldNotBeNull
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ArbeidsgiverPeriode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.FastsattInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
@@ -16,15 +15,16 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
 import java.util.UUID
 
 object MockUuid {
-    const val STRING = "01234567-abcd-0123-abcd-012345678901"
-    val uuid = STRING.let(UUID::fromString).shouldNotBeNull()
+    val vedtaksperiodeId = UUID.fromString("01234567-abcd-0123-abcd-012345678901")
+    val forespoerselId = UUID.fromString("98765654-abcd-0123-abcd-012345678901")
 }
 
 fun mockForespoerselDto(): ForespoerselDto =
     ForespoerselDto(
+        forespoerselId = MockUuid.forespoerselId,
         orgnr = "12345678901",
         fnr = "123456789",
-        vedtaksperiodeId = MockUuid.uuid,
+        vedtaksperiodeId = MockUuid.vedtaksperiodeId,
         sykmeldingsperioder = listOf(
             Periode(1.januar, 10.januar),
             Periode(15.januar, 20.januar)
@@ -82,16 +82,16 @@ fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtDataDto> =
 
 fun mockForespoerselMottatt(): ForespoerselMottatt =
     ForespoerselMottatt(
+        forespoerselId = MockUuid.forespoerselId,
         orgnr = "123",
-        fnr = "abc",
-        vedtaksperiodeId = MockUuid.uuid
+        fnr = "abc"
     )
 
 fun mockForespoerselSvar(): ForespoerselSvar =
     ForespoerselSvar(
+        forespoerselId = MockUuid.vedtaksperiodeId,
         orgnr = "123",
         fnr = "abc",
-        vedtaksperiodeId = MockUuid.uuid,
         sykmeldingsperioder = listOf(Periode(1.januar, 16.januar)),
         forespurtData = mockForespurtDataListe(),
         boomerang = mapOf(
