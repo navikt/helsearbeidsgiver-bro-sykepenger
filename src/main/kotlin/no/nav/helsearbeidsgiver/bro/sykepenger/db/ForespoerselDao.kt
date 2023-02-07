@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
-import io.ktor.server.plugins.NotFoundException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -61,21 +60,20 @@ class ForespoerselDao(private val dataSource: DataSource) {
                 dataSource = dataSource
             )
 
-    fun hentAktivForespoerselFor(forespoerselId: UUID): ForespoerselDto? {
-        val vedtaksperiodeId = hentVedtaksperiodeId(forespoerselId)
-            ?: throw NotFoundException("Fant ikke forespørsel for forespoerselId: $forespoerselId")
-
-        return "SELECT * FROM forespoersel WHERE vedtaksperiode_id=:vedtaksperiode_id AND status='AKTIV'"
-            .listResult(
-                params = mapOf("vedtaksperiode_id" to vedtaksperiodeId),
-                dataSource = dataSource,
-                transform = Row::toForespoerselDto
-            )
-            .also {
-                if (it.size > 1) logger.error("Fant flere aktive forespørsler for vedtaksperiode: $vedtaksperiodeId")
+    fun hentAktivForespoerselFor(forespoerselId: UUID): ForespoerselDto? =
+        hentVedtaksperiodeId(forespoerselId)
+            ?.let { vedtaksperiodeId ->
+                "SELECT * FROM forespoersel WHERE vedtaksperiode_id=:vedtaksperiode_id AND status='AKTIV'"
+                    .listResult(
+                        params = mapOf("vedtaksperiode_id" to vedtaksperiodeId),
+                        dataSource = dataSource,
+                        transform = Row::toForespoerselDto
+                    )
+                    .also {
+                        if (it.size > 1) logger.error("Fant flere aktive forespørsler for vedtaksperiode: $vedtaksperiodeId")
+                    }
             }
-            .maxByOrNull { it.opprettet }
-    }
+            ?.maxByOrNull { it.opprettet }
 
     private fun hentVedtaksperiodeId(forespoerselId: UUID): UUID? =
         "SELECT vedtaksperiode_id FROM forespoersel WHERE forespoersel_id=:forespoersel_id"

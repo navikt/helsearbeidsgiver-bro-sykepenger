@@ -1,11 +1,10 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
-import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.comparables.shouldBeEqualComparingTo
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.ktor.server.plugins.NotFoundException
 import kotliquery.Row
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
@@ -38,7 +37,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         val (id1, id2) = List(2) {
             mockForespoerselDto().lagreNotNull()
         }
-        dataSource.oppdaterStatusTilAktiv(id1)
+        dataSource.oppdaterStatus(id1, Status.AKTIV)
 
         val id3 = mockForespoerselDto().lagreNotNull()
         val id4 = mockForespoerselDto()
@@ -87,17 +86,39 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             .copy(sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)))
             .also(ForespoerselDto::lagreNotNull)
 
-        dataSource.oppdaterStatusTilAktiv(id1)
+        dataSource.oppdaterStatus(id1, Status.AKTIV)
 
         val actualForespoersel = forespoerselDao.hentAktivForespoerselFor(MockUuid.forespoerselId).shouldNotBeNull()
 
         actualForespoersel shouldBeEqualToComparingFields expectedForespoersel
     }
 
-    test("Tryner hvis vi prøver å hente en forespørsel som ikke finnes") {
-        shouldThrowExactly<NotFoundException> {
-            forespoerselDao.hentAktivForespoerselFor(MockUuid.forespoerselId)
-        }
+    test("Skal returnere 'null' dersom ingen matchende forespørsler finnes") {
+        mockForespoerselDto()
+            .copy(forespoerselId = UUID.randomUUID())
+            .lagreNotNull()
+
+        dataSource.antallForespoersler() shouldBeExactly 1
+
+        forespoerselDao.hentAktivForespoerselFor(MockUuid.forespoerselId)
+            .shouldBeNull()
+    }
+
+    test("Skal returnere 'null' dersom ingen av forespørslene er aktive") {
+        mockForespoerselDto()
+            .copy(sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)))
+            .let(ForespoerselDto::lagreNotNull)
+
+        val id = mockForespoerselDto()
+            .copy(sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)))
+            .let(ForespoerselDto::lagreNotNull)
+
+        dataSource.oppdaterStatus(id, Status.BESVART)
+
+        dataSource.antallForespoersler() shouldBeExactly 2
+
+        forespoerselDao.hentAktivForespoerselFor(MockUuid.forespoerselId)
+            .shouldBeNull()
     }
 })
 
@@ -117,10 +138,13 @@ private fun DataSource.antallForespoersler(): Int =
         ) { int(1) }
         .shouldNotBeNull()
 
-private fun DataSource.oppdaterStatusTilAktiv(forespoerselId: Long): Boolean =
-    "UPDATE forespoersel SET status = 'AKTIV' WHERE id=:id"
+private fun DataSource.oppdaterStatus(forespoerselId: Long, status: Status): Boolean =
+    "UPDATE forespoersel SET status=:status WHERE id=:id"
         .execute(
-            params = mapOf("id" to forespoerselId),
+            params = mapOf(
+                "id" to forespoerselId,
+                "status" to status.name
+            ),
             dataSource = this
         )
         .shouldNotBeNull()

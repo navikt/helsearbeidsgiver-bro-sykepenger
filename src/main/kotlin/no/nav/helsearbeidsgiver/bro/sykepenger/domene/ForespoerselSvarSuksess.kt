@@ -9,6 +9,28 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
 import java.util.UUID
 
 data class ForespoerselSvar(
+    val resultat: ForespoerselSvarSuksess? = null,
+    val feil: ForespoerselSvarFeil? = null
+) {
+    fun toJson(): JsonElement = listOf(
+        Pri.Key.RESULTAT to resultat?.toJson(),
+        Pri.Key.FEIL to feil?.toJson()
+    )
+        .mapNotNull { (key, value) -> if (value != null) key to value else null }
+        .toTypedArray()
+        .let(::jsonOf)
+}
+
+enum class ForespoerselSvarFeil(val feilmelding: String) {
+    FORESPOERSEL_IKKE_FUNNET("Fant ikke forespørsel i databasen for gitte forespørselId.");
+
+    fun toJson(): JsonElement = jsonOf(
+        Pri.Key.FEILKODE to name.toJson(),
+        Pri.Key.FEILMELDING to feilmelding.toJson()
+    )
+}
+
+data class ForespoerselSvarSuksess(
     val forespoerselId: UUID,
     val orgnr: String,
     val fnr: String,

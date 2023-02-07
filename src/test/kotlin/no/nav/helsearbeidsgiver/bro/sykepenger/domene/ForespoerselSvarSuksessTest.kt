@@ -5,12 +5,12 @@ import io.kotest.matchers.comparables.shouldBeEqualComparingTo
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.Pri
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselSvar
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselSvarSuksess
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.removeJsonWhitespace
 
-class ForespoerselSvarTest : FunSpec({
+class ForespoerselSvarSuksessTest : FunSpec({
     test("data serialiseres korrekt") {
-        val forespoerselSvar = mockForespoerselSvar()
+        val forespoerselSvar = mockForespoerselSvarSuksess()
 
         val expectedJson = """
             {

@@ -4,7 +4,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ArbeidsgiverPeriode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.FastsattInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvarSuksess
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Inntekt
@@ -87,8 +87,8 @@ fun mockForespoerselMottatt(): ForespoerselMottatt =
         fnr = "abc"
     )
 
-fun mockForespoerselSvar(): ForespoerselSvar =
-    ForespoerselSvar(
+fun mockForespoerselSvarSuksess(): ForespoerselSvarSuksess =
+    ForespoerselSvarSuksess(
         forespoerselId = MockUuid.vedtaksperiodeId,
         orgnr = "123",
         fnr = "abc",

@@ -15,7 +15,11 @@ object Pri {
         FNR("fnr"),
         FORESPOERSEL_ID("forespoerselId"),
         SYKMELDINGSPERIODER("sykmeldingsperioder"),
-        FORESPURT_DATA("forespurtData");
+        FORESPURT_DATA("forespurtData"),
+        FEILKODE("feilkode"),
+        FEILMELDING("feilmelding"),
+        RESULTAT("resultat"),
+        FEIL("feil");
 
         override fun toString(): String =
             str

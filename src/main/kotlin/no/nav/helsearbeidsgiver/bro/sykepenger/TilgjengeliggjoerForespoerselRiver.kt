@@ -3,13 +3,15 @@ package no.nav.helsearbeidsgiver.bro.sykepenger
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
+import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvarFeil
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvarSuksess
 import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.value
@@ -47,13 +49,23 @@ class TilgjengeliggjoerForespoerselRiver(
 
         val forespoersel = forespoerselDao.hentAktivForespoerselFor(forespoerselId)
 
-        if (forespoersel != null) {
-            val forespoerselSvar = ForespoerselSvar(forespoersel, boomerang)
-
-            priProducer.send(forespoerselSvar, ForespoerselSvar::toJson)
+        val forespoerselSvar = if (forespoersel != null) {
+            ForespoerselSvar(
+                resultat = ForespoerselSvarSuksess(forespoersel, boomerang)
+            )
         } else {
-            // TODO denne casen må fikses, plukkes aldri opp av Simba-løser som venter på svar
-            priProducer.send("null", Json::encodeToJsonElement)
+            ForespoerselSvar(
+                feil = ForespoerselSvarFeil.FORESPOERSEL_IKKE_FUNNET
+            )
+        }
+
+        priProducer.send(forespoerselSvar, ForespoerselSvar::toJson)
+    }
+
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        "Innkommende melding har feil.".let {
+            logger.info("$it Se sikker logg for mer info.")
+            sikkerlogger.info("$it Detaljer:\n${problems.toExtendedReport()}")
         }
     }
 }
