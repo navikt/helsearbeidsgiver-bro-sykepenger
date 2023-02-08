@@ -91,5 +91,5 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvarSuksess =
         orgnr = "123",
         fnr = "abc",
         sykmeldingsperioder = listOf(Periode(1.januar, 16.januar)),
-        forespurtData = mockForespurtDataListe(),
+        forespurtData = mockForespurtDataListe()
     )

@@ -30,7 +30,7 @@ enum class ForespoerselSvarFeil(val feilmelding: String) {
 
     fun toJson(): JsonElement = jsonOf(
         Pri.Key.FEILKODE to name.toJson(),
-        Pri.Key.FEILMELDING to feilmelding.toJson(),
+        Pri.Key.FEILMELDING to feilmelding.toJson()
     )
 }
 
@@ -38,7 +38,7 @@ data class ForespoerselSvarSuksess(
     val orgnr: String,
     val fnr: String,
     val sykmeldingsperioder: List<Periode>,
-    val forespurtData: List<ForespurtDataDto>,
+    val forespurtData: List<ForespurtDataDto>
 ) {
     val løsning = Pri.BehovType.TRENGER_FORESPØRSEL
 
@@ -46,7 +46,7 @@ data class ForespoerselSvarSuksess(
         orgnr = forespoersel.orgnr,
         fnr = forespoersel.fnr,
         sykmeldingsperioder = forespoersel.sykmeldingsperioder,
-        forespurtData = forespoersel.forespurtData,
+        forespurtData = forespoersel.forespurtData
     )
 
     fun toJson(): JsonElement =
@@ -55,6 +55,6 @@ data class ForespoerselSvarSuksess(
             Pri.Key.ORGNR to orgnr.toJson(),
             Pri.Key.FNR to fnr.toJson(),
             Pri.Key.SYKMELDINGSPERIODER to sykmeldingsperioder.toJson(Json::encodeToJsonElement),
-            Pri.Key.FORESPURT_DATA to forespurtData.toJson(Json::encodeToJsonElement),
+            Pri.Key.FORESPURT_DATA to forespurtData.toJson(Json::encodeToJsonElement)
         )
 }
