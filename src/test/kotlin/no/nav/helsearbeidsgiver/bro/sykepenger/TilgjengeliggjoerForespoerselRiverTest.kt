@@ -23,7 +23,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
 
     TilgjengeliggjoerForespoerselRiver(testRapid, mockForespoerselDao, mockPriProducer)
 
-    beforeTest {
+    beforeEach {
         clearAllMocks()
     }
 

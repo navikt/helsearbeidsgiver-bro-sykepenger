@@ -12,7 +12,7 @@ import javax.sql.DataSource
 abstract class AbstractDatabaseFunSpec(body: FunSpec.(DataSource) -> Unit) : FunSpec({
     val dataSource = customDataSource()
 
-    beforeTest {
+    beforeEach {
         "SELECT truncate_tables()".execute(
             params = emptyMap<String, Nothing>(),
             dataSource = dataSource
