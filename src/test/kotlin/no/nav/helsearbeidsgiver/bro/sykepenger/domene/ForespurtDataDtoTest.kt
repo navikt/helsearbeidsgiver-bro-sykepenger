@@ -4,7 +4,7 @@ import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.data.row
 import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.comparables.shouldBeEqualComparingTo
+import io.kotest.matchers.shouldBe
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -26,7 +26,7 @@ class ForespurtDataDtoTest : FunSpec({
                 val serialisertJson = Json.encodeToString(forespurtDataListe)
 
                 withClue("Validerer mot '$fileName'") {
-                    serialisertJson shouldBeEqualComparingTo expectedJson
+                    serialisertJson shouldBe expectedJson
                 }
             }
 

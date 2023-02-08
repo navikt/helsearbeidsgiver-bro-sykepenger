@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.comparables.shouldBeEqualComparingTo
+import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.removeJsonWhitespace
@@ -21,6 +21,6 @@ class ForespoerselMottattTest : FunSpec({
 
         val actualJson = forespoerselMottatt.toJson().toString()
 
-        actualJson shouldBeEqualComparingTo expectedJson
+        actualJson shouldBe expectedJson
     }
 })

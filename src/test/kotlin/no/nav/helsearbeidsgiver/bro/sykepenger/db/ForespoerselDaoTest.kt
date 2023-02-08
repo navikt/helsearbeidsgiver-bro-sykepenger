@@ -1,10 +1,10 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
-import io.kotest.matchers.comparables.shouldBeEqualComparingTo
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import kotliquery.Row
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
@@ -53,10 +53,10 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             .map(dataSource::hentForespoersel)
             .map { it.shouldNotBeNull() }
 
-        forespoersel1.status shouldBeEqualComparingTo Status.FORKASTET
-        forespoersel2.status shouldBeEqualComparingTo Status.FORKASTET
-        forespoersel3.status shouldBeEqualComparingTo Status.AKTIV
-        forespoersel4.status shouldBeEqualComparingTo Status.AKTIV
+        forespoersel1.status shouldBe Status.FORKASTET
+        forespoersel2.status shouldBe Status.FORKASTET
+        forespoersel3.status shouldBe Status.AKTIV
+        forespoersel4.status shouldBe Status.AKTIV
     }
 
     test("Henter eneste aktive forespørsel i databasen knyttet til en forespoerselId") {
