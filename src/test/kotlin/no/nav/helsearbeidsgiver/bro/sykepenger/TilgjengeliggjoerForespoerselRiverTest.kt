@@ -33,19 +33,22 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         every { mockForespoerselDao.hentAktivForespoerselFor(any()) } returns forespoersel
 
         val expectedResultat = ForespoerselSvarSuksess(
-            forespoersel = forespoersel,
+            forespoersel = forespoersel
+        )
+        val expectedPublished = ForespoerselSvar(
+            forespoerselId = forespoersel.forespoerselId,
+            resultat = expectedResultat,
             boomerang = mapOf(
                 Pri.Key.BOOMERANG.str to "boomyrangy".toJson()
             )
         )
-        val expectedPublished = ForespoerselSvar(resultat = expectedResultat)
 
         testRapid.sendJson(
             Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(),
             Pri.Key.ORGNR to expectedResultat.orgnr.toJson(),
             Pri.Key.FNR to expectedResultat.fnr.toJson(),
-            Pri.Key.FORESPOERSEL_ID to expectedResultat.forespoerselId.toJson(),
-            Pri.Key.BOOMERANG to expectedResultat.boomerang.toJson()
+            Pri.Key.FORESPOERSEL_ID to expectedPublished.forespoerselId.toJson(),
+            Pri.Key.BOOMERANG to expectedPublished.boomerang.toJson()
         )
 
         verifySequence {
@@ -58,16 +61,20 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         every { mockForespoerselDao.hentAktivForespoerselFor(any()) } returns null
 
         val forespoersel = mockForespoerselDto()
-        val expectedPublished = ForespoerselSvar(feil = ForespoerselSvarFeil.FORESPOERSEL_IKKE_FUNNET)
+        val expectedPublished = ForespoerselSvar(
+            forespoerselId = forespoersel.forespoerselId,
+            feil = ForespoerselSvarFeil.FORESPOERSEL_IKKE_FUNNET,
+            boomerang = mapOf(
+                Pri.Key.BOOMERANG.str to "boomyrangy".toJson()
+            )
+        )
 
         testRapid.sendJson(
             Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(),
             Pri.Key.ORGNR to forespoersel.orgnr.toJson(),
             Pri.Key.FNR to forespoersel.fnr.toJson(),
             Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
-            Pri.Key.BOOMERANG to mapOf(
-                Pri.Key.BOOMERANG.str to "boomyrangy".toJson()
-            ).toJson()
+            Pri.Key.BOOMERANG to expectedPublished.boomerang.toJson()
         )
 
         verifySequence {

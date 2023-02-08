@@ -51,11 +51,15 @@ class TilgjengeliggjoerForespoerselRiver(
 
         val forespoerselSvar = if (forespoersel != null) {
             ForespoerselSvar(
-                resultat = ForespoerselSvarSuksess(forespoersel, boomerang)
+                forespoerselId = forespoerselId,
+                resultat = ForespoerselSvarSuksess(forespoersel),
+                boomerang = boomerang
             )
         } else {
             ForespoerselSvar(
-                feil = ForespoerselSvarFeil.FORESPOERSEL_IKKE_FUNNET
+                forespoerselId = forespoerselId,
+                feil = ForespoerselSvarFeil.FORESPOERSEL_IKKE_FUNNET,
+                boomerang = boomerang
             )
         }
 
