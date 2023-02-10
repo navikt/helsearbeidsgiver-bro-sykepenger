@@ -4,18 +4,21 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ArbeidsgiverPeriode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.FastsattInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvarSuksess
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Inntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
+import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.Pri
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
 import java.util.UUID
 
 object MockUuid {
-    val vedtaksperiodeId = UUID.fromString("01234567-abcd-0123-abcd-012345678901")
-    val forespoerselId = UUID.fromString("98765654-abcd-0123-abcd-012345678901")
+    val vedtaksperiodeId: UUID = "01234567-abcd-0123-abcd-012345678901".let(UUID::fromString)
+    val forespoerselId: UUID = "98765654-abcd-0123-abcd-012345678901".let(UUID::fromString)
 }
 
 fun mockForespoerselDto(): ForespoerselDto =
@@ -81,15 +84,23 @@ fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtDataDto> =
 
 fun mockForespoerselMottatt(): ForespoerselMottatt =
     ForespoerselMottatt(
-        forespoerselId = MockUuid.forespoerselId,
+        forespoerselId = randomUuid(),
         orgnr = "123",
         fnr = "abc"
     )
 
-fun mockForespoerselSvarSuksess(): ForespoerselSvarSuksess =
-    ForespoerselSvarSuksess(
+fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
+    ForespoerselSvar.Suksess(
         orgnr = "123",
         fnr = "abc",
         sykmeldingsperioder = listOf(Periode(1.januar, 16.januar)),
         forespurtData = mockForespurtDataListe()
+    )
+
+fun ForespoerselMottatt.toKeyMap() =
+    mapOf(
+        Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(),
+        Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+        Pri.Key.ORGNR to orgnr.toJson(),
+        Pri.Key.FNR to fnr.toJson()
     )

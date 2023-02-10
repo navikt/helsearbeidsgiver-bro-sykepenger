@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.bro.sykepenger
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
@@ -10,13 +11,12 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvarFeil
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvarSuksess
 import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.value
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.asUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.sikkerLogger
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
 import org.slf4j.LoggerFactory
 
 /* Tilgjengeliggjør hvilke data spleis forespør fra arbeidsgiver */
@@ -31,7 +31,8 @@ class TilgjengeliggjoerForespoerselRiver(
     init {
         River(rapid).apply {
             validate {
-                it.demandValue(Pri.Key.BEHOV.str, Pri.BehovType.TRENGER_FORESPØRSEL.name)
+                it.demandValue(Pri.Key.BEHOV.str, ForespoerselSvar.behovType.name)
+                it.rejectKey(Pri.Key.LØSNING.str)
                 it.requireKey(
                     Pri.Key.FORESPOERSEL_ID.str,
                     Pri.Key.BOOMERANG.str
@@ -52,18 +53,21 @@ class TilgjengeliggjoerForespoerselRiver(
         val forespoerselSvar = if (forespoersel != null) {
             ForespoerselSvar(
                 forespoerselId = forespoerselId,
-                resultat = ForespoerselSvarSuksess(forespoersel),
+                resultat = ForespoerselSvar.Suksess(forespoersel),
                 boomerang = boomerang
             )
         } else {
             ForespoerselSvar(
                 forespoerselId = forespoerselId,
-                feil = ForespoerselSvarFeil.FORESPOERSEL_IKKE_FUNNET,
+                feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET,
                 boomerang = boomerang
             )
         }
 
-        priProducer.send(forespoerselSvar, ForespoerselSvar::toJson)
+        priProducer.send(
+            Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(),
+            Pri.Key.LØSNING to forespoerselSvar.let(Json::encodeToJsonElement)
+        )
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {

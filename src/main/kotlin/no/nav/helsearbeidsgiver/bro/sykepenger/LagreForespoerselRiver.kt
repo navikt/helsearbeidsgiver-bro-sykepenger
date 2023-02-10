@@ -12,13 +12,15 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
+import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.asUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifFalse
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifTrue
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.sikkerLogger
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
 import org.slf4j.LoggerFactory
-import java.util.UUID
 
 class LagreForespoerselRiver(
     rapid: RapidsConnection,
@@ -51,7 +53,7 @@ class LagreForespoerselRiver(
         sikkerlogger.info("Mottok melding med innhold:\n${packet.toJson()}")
 
         val forespoersel = ForespoerselDto(
-            forespoerselId = UUID.randomUUID(),
+            forespoerselId = randomUuid(),
             orgnr = packet.value(Key.ORGANISASJONSNUMMER).asText(),
             fnr = packet.value(Key.FØDSELSNUMMER).asText(),
             vedtaksperiodeId = packet.value(Key.VEDTAKSPERIODE_ID).asUuid(),
@@ -73,12 +75,10 @@ class LagreForespoerselRiver(
             }
 
         priProducer.send(
-            ForespoerselMottatt(
-                forespoerselId = forespoersel.forespoerselId,
-                orgnr = forespoersel.orgnr,
-                fnr = forespoersel.fnr
-            ),
-            ForespoerselMottatt::toJson
+            Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(),
+            Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
+            Pri.Key.ORGNR to forespoersel.orgnr.toJson(),
+            Pri.Key.FNR to forespoersel.fnr.toJson()
         )
             .ifTrue { logger.info("Sa ifra om mottatt forespørsel til Simba.") }
             .ifFalse { logger.info("Klarte ikke si ifra om mottatt forespørsel til Simba.") }

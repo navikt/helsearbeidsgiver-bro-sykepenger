@@ -13,13 +13,7 @@ object Pri {
         BOOMERANG("boomerang"),
         ORGNR("orgnr"),
         FNR("fnr"),
-        FORESPOERSEL_ID("forespoerselId"),
-        SYKMELDINGSPERIODER("sykmeldingsperioder"),
-        FORESPURT_DATA("forespurtData"),
-        FEILKODE("feilkode"),
-        FEILMELDING("feilmelding"),
-        RESULTAT("resultat"),
-        FEIL("feil");
+        FORESPOERSEL_ID("forespoerselId");
 
         override fun toString(): String =
             str

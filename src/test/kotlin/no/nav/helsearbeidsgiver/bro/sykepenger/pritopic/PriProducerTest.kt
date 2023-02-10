@@ -7,12 +7,13 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifySequence
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselMottatt
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.toKeyMap
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.errors.TimeoutException
-import java.util.UUID
 
 class PriProducerTest : FunSpec({
     val mockProducer = mockk<KafkaProducer<String, String>>()
@@ -30,13 +31,18 @@ class PriProducerTest : FunSpec({
 
         val forespoerselMottatt = mockForespoerselMottatt()
 
-        val bleMeldingSendt = priProducer.send(forespoerselMottatt, ForespoerselMottatt::toJson)
+        val bleMeldingSendt = priProducer.send(
+            *forespoerselMottatt.toKeyMap().toList().toTypedArray()
+        )
 
         bleMeldingSendt.shouldBeTrue()
 
         val expected = ProducerRecord<String, String>(
             "helsearbeidsgiver.pri",
-            forespoerselMottatt.toJson().toString()
+            forespoerselMottatt.toKeyMap()
+                .keysAsString()
+                .toJson()
+                .toString()
         )
 
         verifySequence { mockProducer.send(expected) }
@@ -47,20 +53,15 @@ class PriProducerTest : FunSpec({
 
         val forespoerselMottatt = mockForespoerselMottatt()
 
-        val bleMeldingSendt = priProducer.send(forespoerselMottatt, ForespoerselMottatt::toJson)
+        val bleMeldingSendt = priProducer.send(
+            *forespoerselMottatt.toKeyMap().toList().toTypedArray()
+        )
 
         bleMeldingSendt.shouldBeFalse()
 
         verifySequence { mockProducer.send(any()) }
     }
 })
-
-private fun mockForespoerselMottatt(): ForespoerselMottatt =
-    ForespoerselMottatt(
-        forespoerselId = UUID.randomUUID(),
-        orgnr = "123",
-        fnr = "abc"
-    )
 
 private fun mockRecordMetadata(): RecordMetadata =
     RecordMetadata(null, 0, 0, 0, 0, 0)

@@ -2,7 +2,9 @@ package no.nav.helsearbeidsgiver.bro.sykepenger
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.verifySequence
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -13,6 +15,8 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.toKeyMap
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
 
 class LagreForespoerselRiverTest : FunSpec({
@@ -35,27 +39,28 @@ class LagreForespoerselRiverTest : FunSpec({
             fnr = forespoersel.fnr
         )
 
-        testRapid.sendJson(
-            Key.TYPE to SpleisEvent.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER.toJson(),
-            Key.ORGANISASJONSNUMMER to forespoersel.orgnr.toJson(),
-            Key.FØDSELSNUMMER to forespoersel.fnr.toJson(),
-            Key.VEDTAKSPERIODE_ID to forespoersel.vedtaksperiodeId.toJson(),
-            Key.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJson(Json::encodeToJsonElement),
-            Key.FORESPURT_DATA to mockForespurtDataListe().toJson(Json::encodeToJsonElement)
-        )
+        mockkStatic(::randomUuid) {
+            every { randomUuid() } returns forespoersel.forespoerselId
+
+            testRapid.sendJson(
+                Key.TYPE to SpleisEvent.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER.toJson(),
+                Key.ORGANISASJONSNUMMER to forespoersel.orgnr.toJson(),
+                Key.FØDSELSNUMMER to forespoersel.fnr.toJson(),
+                Key.VEDTAKSPERIODE_ID to forespoersel.vedtaksperiodeId.toJson(),
+                Key.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJson(Json::encodeToJsonElement),
+                Key.FORESPURT_DATA to mockForespurtDataListe().toJson(Json::encodeToJsonElement)
+            )
+        }
 
         verifySequence {
             mockForespoerselDao.lagre(
                 withArg {
-                    it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::forespoerselId, forespoersel::oppdatert, forespoersel::opprettet)
+                    it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)
                 }
             )
 
             mockPriProducer.send(
-                withArg {
-                    it.shouldBeEqualToIgnoringFields(expectedPublished, expectedPublished::forespoerselId)
-                },
-                ForespoerselMottatt::toJson
+                *expectedPublished.toKeyMap().toList().toTypedArray()
             )
         }
     }
