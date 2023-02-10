@@ -6,14 +6,14 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselSvarSuksess
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
-import java.util.UUID
 
 class ForespoerselSvarTest : FunSpec({
     test("ForespoerselSvar med suksess serialiseres korrekt") {
         val forespoerselSvarSuksess = mockForespoerselSvarSuksess()
         val forespoerselSvar = ForespoerselSvar(
-            forespoerselId = UUID.randomUUID(),
+            forespoerselId = randomUuid(),
             resultat = forespoerselSvarSuksess,
             boomerang = mapOf(
                 "boom" to "shakalaka".toJson()
@@ -42,7 +42,7 @@ class ForespoerselSvarTest : FunSpec({
 
     test("ForespoerselSvar med feil serialiseres korrekt") {
         val forespoerselSvar = ForespoerselSvar(
-            forespoerselId = UUID.randomUUID(),
+            forespoerselId = randomUuid(),
             feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET,
             boomerang = mapOf(
                 "boom" to "shakalaka".toJson()
