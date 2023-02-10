@@ -23,7 +23,7 @@ object MockUuid {
 
 fun mockForespoerselDto(): ForespoerselDto =
     ForespoerselDto(
-        forespoerselId = MockUuid.forespoerselId,
+        forespoerselId = randomUuid(),
         orgnr = "12345678901",
         fnr = "123456789",
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,

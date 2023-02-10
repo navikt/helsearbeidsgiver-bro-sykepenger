@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.januar
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.nullableResult
-import java.util.UUID
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import javax.sql.DataSource
 
 class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
@@ -41,7 +41,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
         val id3 = mockForespoerselDto().lagreNotNull()
         val id4 = mockForespoerselDto()
-            .copy(vedtaksperiodeId = UUID.randomUUID())
+            .copy(vedtaksperiodeId = randomUuid())
             .let(ForespoerselDto::lagreNotNull)
 
         val (
@@ -60,42 +60,49 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
     }
 
     test("Henter eneste aktive forespørsel i databasen knyttet til en forespoerselId") {
-        mockForespoerselDto()
+        val forkastetForespoersel = mockForespoerselDto()
             .copy(sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)))
             .also(ForespoerselDto::lagreNotNull)
 
-        val expectedForespoersel = mockForespoerselDto()
+        val aktivForespoersel = mockForespoerselDto()
             .copy(sykmeldingsperioder = listOf(Periode(2.januar, 30.januar)))
             .also(ForespoerselDto::lagreNotNull)
 
+        // Skal ikke bli plukket opp pga. annerledes vedtaksperiode-ID
         mockForespoerselDto()
-            .copy(vedtaksperiodeId = UUID.randomUUID())
+            .copy(vedtaksperiodeId = randomUuid())
             .also(ForespoerselDto::lagreNotNull)
 
-        val actualForespoersel = forespoerselDao.hentAktivForespoerselFor(MockUuid.forespoerselId).shouldNotBeNull()
+        val actualForespoersel = forespoerselDao.hentAktivForespoerselFor(forkastetForespoersel.forespoerselId).shouldNotBeNull()
 
-        actualForespoersel shouldBeEqualToComparingFields expectedForespoersel
+        actualForespoersel shouldBeEqualToComparingFields aktivForespoersel
     }
 
-    test("Skal returnere siste aktive forespørsel dersom det er flere, og logge error") {
-        val id1 = mockForespoerselDto()
+    test("Skal returnere siste aktive forespørsel dersom det er flere (skal ikke skje)") {
+        val gammelForespoersel = mockForespoerselDto()
             .copy(sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)))
-            .let(ForespoerselDto::lagreNotNull)
 
-        val expectedForespoersel = mockForespoerselDto()
-            .copy(sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)))
+        val gammelForespoerselId = gammelForespoersel.let(ForespoerselDto::lagreNotNull)
+
+        val nyForespoersel = mockForespoerselDto()
+            .copy(sykmeldingsperioder = listOf(Periode(2.januar, 30.januar)))
             .also(ForespoerselDto::lagreNotNull)
 
-        dataSource.oppdaterStatus(id1, Status.AKTIV)
+        // Skal ikke bli plukket opp pga. annerledes vedtaksperiode-ID
+        mockForespoerselDto()
+            .copy(vedtaksperiodeId = randomUuid())
+            .also(ForespoerselDto::lagreNotNull)
 
-        val actualForespoersel = forespoerselDao.hentAktivForespoerselFor(MockUuid.forespoerselId).shouldNotBeNull()
+        dataSource.oppdaterStatus(gammelForespoerselId, Status.AKTIV)
 
-        actualForespoersel shouldBeEqualToComparingFields expectedForespoersel
+        val actualForespoersel = forespoerselDao.hentAktivForespoerselFor(gammelForespoersel.forespoerselId).shouldNotBeNull()
+
+        actualForespoersel shouldBeEqualToComparingFields nyForespoersel
     }
 
     test("Skal returnere 'null' dersom ingen matchende forespørsler finnes") {
         mockForespoerselDto()
-            .copy(forespoerselId = UUID.randomUUID())
+            .copy(forespoerselId = randomUuid())
             .lagreNotNull()
 
         dataSource.antallForespoersler() shouldBeExactly 1
