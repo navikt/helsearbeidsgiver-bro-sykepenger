@@ -93,10 +93,11 @@ private fun List<ForespurtDataDto>.hardcodedJson(): String =
                     "fastsattInntekt": ${it.fastsattInntekt}
                 }
                 """
-            Refusjon ->
+            is Refusjon ->
                 """
                 {
-                    "opplysningstype": "Refusjon"
+                    "opplysningstype": "Refusjon", 
+                    "forslag": [${it.forslag.joinToString(transform = ForslagRefusjon::hardcodedJson)}]
                 }
                 """
         }
@@ -107,5 +108,14 @@ private fun Periode.hardcodedJson(): String =
     {
         "fom": "$fom",
         "tom": "$tom"
+    }
+    """
+
+private fun ForslagRefusjon.hardcodedJson(): String =
+    """
+    {
+        "fom": "$fom",
+        "tom": "$tom",
+        "beløp": "$beløp"
     }
     """

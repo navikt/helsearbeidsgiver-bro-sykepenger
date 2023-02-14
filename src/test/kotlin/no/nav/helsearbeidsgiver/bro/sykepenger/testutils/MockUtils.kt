@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagInntekt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Inntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
@@ -61,7 +62,7 @@ fun mockForespurtDataListe(): List<ForespurtDataDto> =
                 )
             )
         ),
-        Refusjon
+        Refusjon(forslag = emptyList())
     )
 
 fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtDataDto> =
@@ -81,7 +82,11 @@ fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtDataDto> =
         FastsattInntekt(
             fastsattInntekt = 31415.92
         ),
-        Refusjon
+        Refusjon(
+            listOf(
+                ForslagRefusjon(1.januar, null, 31415.92)
+            )
+        )
     )
 
 fun mockForespoerselMottatt(): ForespoerselMottatt =
