@@ -1,5 +1,7 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.testutils
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ArbeidsgiverPeriode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.FastsattInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
@@ -96,6 +98,9 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
         sykmeldingsperioder = listOf(Periode(1.januar, 16.januar)),
         forespurtData = mockForespurtDataListe()
     )
+
+fun mockJsonElement(): JsonElement =
+    Json.parseToJsonElement("""{"aTestKey":"aTestValue"}""")
 
 fun ForespoerselMottatt.toKeyMap() =
     mapOf(

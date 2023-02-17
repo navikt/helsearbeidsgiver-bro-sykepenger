@@ -1,8 +1,6 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -46,7 +44,7 @@ class TilgjengeliggjoerForespoerselRiver(
         sikkerlogger.info("Mottok melding på pri-topic med innhold:\n${packet.toJson()}")
 
         val forespoerselId = packet.value(Pri.Key.FORESPOERSEL_ID).asUuid()
-        val boomerang = packet.value(Pri.Key.BOOMERANG).toString().let { Json.decodeFromString<Map<String, JsonElement>>(it) }
+        val boomerang = packet.value(Pri.Key.BOOMERANG).toString().let(Json::parseToJsonElement)
 
         val forespoersel = forespoerselDao.hentAktivForespoerselFor(forespoerselId)
 

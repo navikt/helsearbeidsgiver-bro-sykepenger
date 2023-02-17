@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockJsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
 
@@ -35,15 +36,13 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         val expectedPublished = ForespoerselSvar(
             forespoerselId = forespoersel.forespoerselId,
             resultat = ForespoerselSvar.Suksess(forespoersel),
-            boomerang = mapOf(
-                Pri.Key.BOOMERANG.str to "boomyrangy".toJson()
-            )
+            boomerang = mockJsonElement()
         )
 
         testRapid.sendJson(
             Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(),
             Pri.Key.FORESPOERSEL_ID to expectedPublished.forespoerselId.toJson(),
-            Pri.Key.BOOMERANG to expectedPublished.boomerang.toJson()
+            Pri.Key.BOOMERANG to expectedPublished.boomerang
         )
 
         verifySequence {
@@ -62,15 +61,13 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         val expectedPublished = ForespoerselSvar(
             forespoerselId = forespoersel.forespoerselId,
             feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET,
-            boomerang = mapOf(
-                Pri.Key.BOOMERANG.str to "boomyrangy".toJson()
-            )
+            boomerang = mockJsonElement()
         )
 
         testRapid.sendJson(
             Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(),
             Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
-            Pri.Key.BOOMERANG to expectedPublished.boomerang.toJson()
+            Pri.Key.BOOMERANG to expectedPublished.boomerang
         )
 
         verifySequence {

@@ -18,6 +18,7 @@ class ForespoerselSvarTest : FunSpec({
             boomerang = mapOf(
                 "boom" to "shakalaka".toJson()
             )
+                .toJson()
         )
 
         val expectedJson = """
@@ -47,6 +48,7 @@ class ForespoerselSvarTest : FunSpec({
             boomerang = mapOf(
                 "boom" to "shakalaka".toJson()
             )
+                .toJson()
         )
 
         val expectedJson = """
