@@ -5,13 +5,11 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifySequence
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.Pri
-import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.PriProducer
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockJsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
@@ -40,7 +38,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         )
 
         testRapid.sendJson(
-            Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(),
+            Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
             Pri.Key.FORESPOERSEL_ID to expectedPublished.forespoerselId.toJson(),
             Pri.Key.BOOMERANG to expectedPublished.boomerang
         )
@@ -48,8 +46,8 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselFor(any())
             mockPriProducer.send(
-                Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(),
-                Pri.Key.LØSNING to expectedPublished.let(Json::encodeToJsonElement)
+                Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
+                Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer())
             )
         }
     }
@@ -65,7 +63,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         )
 
         testRapid.sendJson(
-            Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(),
+            Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
             Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
             Pri.Key.BOOMERANG to expectedPublished.boomerang
         )
@@ -73,8 +71,8 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselFor(any())
             mockPriProducer.send(
-                Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(),
-                Pri.Key.LØSNING to expectedPublished.let(Json::encodeToJsonElement)
+                Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
+                Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer())
             )
         }
     }

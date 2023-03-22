@@ -5,12 +5,13 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.data.row
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespurtDataMedFastsattInntektListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.fromJson
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.list
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.parseJson
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJsonStr
 
 class ForespurtDataDtoTest : FunSpec({
     listOf(
@@ -23,7 +24,7 @@ class ForespurtDataDtoTest : FunSpec({
             test("Forespurt data serialiseres korrekt") {
                 val forespurtDataListe = mockDataFn()
 
-                val serialisertJson = Json.encodeToString(forespurtDataListe)
+                val serialisertJson = forespurtDataListe.toJsonStr(ForespurtDataDto.serializer().list())
 
                 withClue("Validerer mot '$fileName'") {
                     serialisertJson shouldBe expectedJson
@@ -33,7 +34,7 @@ class ForespurtDataDtoTest : FunSpec({
             test("Forespurt data deserialiseres korrekt") {
                 val forespurtDataListe = mockDataFn()
 
-                val deserialisertJson = Json.decodeFromString<List<ForespurtDataDto>>(expectedJson)
+                val deserialisertJson = expectedJson.parseJson().fromJson(ForespurtDataDto.serializer().list())
 
                 withClue("Validerer mot '$fileName'") {
                     deserialisertJson shouldContainExactly forespurtDataListe

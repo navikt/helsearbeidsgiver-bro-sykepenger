@@ -6,16 +6,18 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.verifySequence
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToJsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
-import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.PriProducer
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.toKeyMap
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.list
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
 
@@ -43,12 +45,12 @@ class LagreForespoerselRiverTest : FunSpec({
             every { randomUuid() } returns forespoersel.forespoerselId
 
             testRapid.sendJson(
-                Key.TYPE to SpleisEvent.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER.toJson(),
-                Key.ORGANISASJONSNUMMER to forespoersel.orgnr.toJson(),
-                Key.FØDSELSNUMMER to forespoersel.fnr.toJson(),
-                Key.VEDTAKSPERIODE_ID to forespoersel.vedtaksperiodeId.toJson(),
-                Key.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJson(Json::encodeToJsonElement),
-                Key.FORESPURT_DATA to mockForespurtDataListe().toJson(Json::encodeToJsonElement)
+                Spleis.Key.TYPE to Spleis.Event.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER.toJson(Spleis.Event.serializer()),
+                Spleis.Key.ORGANISASJONSNUMMER to forespoersel.orgnr.toJson(),
+                Spleis.Key.FØDSELSNUMMER to forespoersel.fnr.toJson(),
+                Spleis.Key.VEDTAKSPERIODE_ID to forespoersel.vedtaksperiodeId.toJson(),
+                Spleis.Key.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJson(Periode.serializer().list()),
+                Spleis.Key.FORESPURT_DATA to mockForespurtDataListe().toJson(ForespurtDataDto.serializer().list())
             )
         }
 

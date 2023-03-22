@@ -2,11 +2,10 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.Pri
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJsonStr
 
 class ForespoerselMottattTest : FunSpec({
     test("data serialiseres korrekt") {
@@ -20,7 +19,7 @@ class ForespoerselMottattTest : FunSpec({
             }
         """.removeJsonWhitespace()
 
-        val actualJson = forespoerselMottatt.let(Json::encodeToString)
+        val actualJson = forespoerselMottatt.toJsonStr(ForespoerselMottatt.serializer())
 
         actualJson shouldBe expectedJson
     }

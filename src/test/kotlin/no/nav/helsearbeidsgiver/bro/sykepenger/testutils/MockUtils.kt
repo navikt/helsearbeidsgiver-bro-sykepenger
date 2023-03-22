@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.testutils
 
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ArbeidsgiverPeriode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.FastsattInntekt
@@ -14,7 +13,8 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Inntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
-import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.Pri
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.parseJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
 import java.util.UUID
@@ -105,11 +105,11 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
     )
 
 fun mockJsonElement(): JsonElement =
-    Json.parseToJsonElement("""{"aTestKey":"aTestValue"}""")
+    """{"aTestKey":"aTestValue"}""".parseJson()
 
 fun ForespoerselMottatt.toKeyMap() =
     mapOf(
-        Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(),
+        Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(Pri.NotisType.serializer()),
         Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         Pri.Key.ORGNR to orgnr.toJson(),
         Pri.Key.FNR to fnr.toJson()

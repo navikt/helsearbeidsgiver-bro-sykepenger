@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
@@ -9,10 +8,13 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.Pri
-import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.PriProducer
-import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.value
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.asUuid
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.UuidSerializer
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.fromJson
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.rejectKeys
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.requireKeys
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.sikkerLogger
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
 import org.slf4j.LoggerFactory
@@ -29,42 +31,36 @@ class TilgjengeliggjoerForespoerselRiver(
     init {
         River(rapid).apply {
             validate {
-                it.demandValue(Pri.Key.BEHOV.str, ForespoerselSvar.behovType.name)
-                it.rejectKey(Pri.Key.LØSNING.str)
-                it.requireKey(
-                    Pri.Key.FORESPOERSEL_ID.str,
-                    Pri.Key.BOOMERANG.str
+                it.demandValues(Pri.Key.BEHOV to ForespoerselSvar.behovType.name)
+                it.rejectKeys(Pri.Key.LØSNING)
+                it.requireKeys(
+                    Pri.Key.FORESPOERSEL_ID,
+                    Pri.Key.BOOMERANG
                 )
             }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Mottok melding på pri-topic av type '${packet.value(Pri.Key.BEHOV).asText()}'.")
+        logger.info("Mottok melding på pri-topic av type '${Pri.Key.BEHOV.fra(packet).fromJson(String.serializer())}'.")
         sikkerlogger.info("Mottok melding på pri-topic med innhold:\n${packet.toJson()}")
 
-        val forespoerselId = packet.value(Pri.Key.FORESPOERSEL_ID).asUuid()
-        val boomerang = packet.value(Pri.Key.BOOMERANG).toString().let(Json::parseToJsonElement)
-
-        val forespoersel = forespoerselDao.hentAktivForespoerselFor(forespoerselId)
-
-        val forespoerselSvar = if (forespoersel != null) {
-            ForespoerselSvar(
-                forespoerselId = forespoerselId,
-                resultat = ForespoerselSvar.Suksess(forespoersel),
-                boomerang = boomerang
-            )
-        } else {
-            ForespoerselSvar(
-                forespoerselId = forespoerselId,
-                feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET,
-                boomerang = boomerang
-            )
-        }
+        val forespoerselSvar = ForespoerselSvar(
+            forespoerselId = Pri.Key.FORESPOERSEL_ID.fra(packet).fromJson(UuidSerializer),
+            boomerang = Pri.Key.BOOMERANG.fra(packet)
+        )
+            .let {
+                val forespoersel = forespoerselDao.hentAktivForespoerselFor(it.forespoerselId)
+                if (forespoersel != null) {
+                    it.copy(resultat = ForespoerselSvar.Suksess(forespoersel))
+                } else {
+                    it.copy(feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET)
+                }
+            }
 
         priProducer.send(
-            Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(),
-            Pri.Key.LØSNING to forespoerselSvar.let(Json::encodeToJsonElement)
+            Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
+            Pri.Key.LØSNING to forespoerselSvar.toJson(ForespoerselSvar.serializer())
         )
     }
 

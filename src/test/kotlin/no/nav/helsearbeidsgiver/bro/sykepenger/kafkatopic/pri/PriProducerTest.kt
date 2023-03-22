@@ -1,4 +1,4 @@
-package no.nav.helsearbeidsgiver.bro.sykepenger.pritopic
+package no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.booleans.shouldBeFalse
@@ -7,6 +7,7 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifySequence
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.keysAsString
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.toKeyMap
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson

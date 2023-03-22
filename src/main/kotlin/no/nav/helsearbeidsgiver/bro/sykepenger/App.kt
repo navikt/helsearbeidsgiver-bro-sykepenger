@@ -5,7 +5,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.DataSourceBuilder
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
-import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.PriProducer
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import org.slf4j.LoggerFactory
 
 fun main() {

@@ -1,23 +1,29 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
-import com.fasterxml.jackson.databind.JsonNode
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
-import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.Pri
-import no.nav.helsearbeidsgiver.bro.sykepenger.pritopic.PriProducer
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.asUuid
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.LocalDateSerializer
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.UuidSerializer
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.fromJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifFalse
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifTrue
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.list
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.require
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.requireKeys
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.sikkerLogger
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
 import org.slf4j.LoggerFactory
@@ -32,33 +38,35 @@ class LagreForespoerselRiver(
 
     init {
         River(rapid).apply {
-            validate {
-                it.demandValue(Key.TYPE.str, SpleisEvent.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER.name)
-                it.requireArray(Key.SYKMELDINGSPERIODER.str) {
-                    require(Key.FOM.str, JsonNode::asLocalDate)
-                    require(Key.TOM.str, JsonNode::asLocalDate)
+            validate { msg ->
+                msg.demandValues(Spleis.Key.TYPE to Spleis.Event.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER.name)
+                msg.requireArray(Spleis.Key.SYKMELDINGSPERIODER.verdi) {
+                    require(
+                        Spleis.Key.FOM to { it.fromJson(LocalDateSerializer) },
+                        Spleis.Key.TOM to { it.fromJson(LocalDateSerializer) }
+                    )
                 }
-                it.requireKey(
-                    Key.ORGANISASJONSNUMMER.str,
-                    Key.FØDSELSNUMMER.str,
-                    Key.VEDTAKSPERIODE_ID.str,
-                    Key.FORESPURT_DATA.str
+                msg.requireKeys(
+                    Spleis.Key.ORGANISASJONSNUMMER,
+                    Spleis.Key.FØDSELSNUMMER,
+                    Spleis.Key.VEDTAKSPERIODE_ID,
+                    Spleis.Key.FORESPURT_DATA
                 )
             }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Mottok melding av type '${packet.value(Key.TYPE).asText()}'")
+        logger.info("Mottok melding av type '${Spleis.Key.TYPE.fra(packet).fromJson(String.serializer())}'")
         sikkerlogger.info("Mottok melding med innhold:\n${packet.toJson()}")
 
         val forespoersel = ForespoerselDto(
             forespoerselId = randomUuid(),
-            orgnr = packet.value(Key.ORGANISASJONSNUMMER).asText(),
-            fnr = packet.value(Key.FØDSELSNUMMER).asText(),
-            vedtaksperiodeId = packet.value(Key.VEDTAKSPERIODE_ID).asUuid(),
-            sykmeldingsperioder = packet.value(Key.SYKMELDINGSPERIODER).toString().let(Json::decodeFromString),
-            forespurtData = packet.value(Key.FORESPURT_DATA).toString().let(Json::decodeFromString),
+            orgnr = Spleis.Key.ORGANISASJONSNUMMER.fra(packet).fromJson(String.serializer()),
+            fnr = Spleis.Key.FØDSELSNUMMER.fra(packet).fromJson(String.serializer()),
+            vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.fra(packet).fromJson(UuidSerializer),
+            sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.fra(packet).fromJson(Periode.serializer().list()),
+            forespurtData = Spleis.Key.FORESPURT_DATA.fra(packet).fromJson(ForespurtDataDto.serializer().list()),
             forespoerselBesvart = null,
             status = Status.AKTIV
         )
@@ -75,7 +83,7 @@ class LagreForespoerselRiver(
             }
 
         priProducer.send(
-            Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(),
+            Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(Pri.NotisType.serializer()),
             Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
             Pri.Key.ORGNR to forespoersel.orgnr.toJson(),
             Pri.Key.FNR to forespoersel.fnr.toJson()

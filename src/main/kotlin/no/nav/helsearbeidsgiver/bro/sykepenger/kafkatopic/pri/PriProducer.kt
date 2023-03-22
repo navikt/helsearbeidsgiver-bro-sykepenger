@@ -1,7 +1,8 @@
-package no.nav.helsearbeidsgiver.bro.sykepenger.pritopic
+package no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri
 
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.Env
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.keysAsString
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.KafkaProducer

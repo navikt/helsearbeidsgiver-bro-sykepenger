@@ -1,14 +1,17 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import kotliquery.Row
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.fromJson
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.list
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.listResult
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.nullableResult
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.parseJson
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJsonStr
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.updateAndReturnGeneratedKey
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -32,8 +35,8 @@ class ForespoerselDao(private val dataSource: DataSource) {
         )
 
         val jsonFelter = mapOf(
-            "sykmeldingsperioder" to forespoersel.sykmeldingsperioder.let(Json::encodeToString),
-            "forespurt_data" to forespoersel.forespurtData.let(Json::encodeToString)
+            "sykmeldingsperioder" to forespoersel.sykmeldingsperioder.toJsonStr(Periode.serializer().list()),
+            "forespurt_data" to forespoersel.forespurtData.toJsonStr(ForespurtDataDto.serializer().list())
         )
 
         val kolonnenavn = (felter + jsonFelter).keys.joinToString()
@@ -92,8 +95,8 @@ fun Row.toForespoerselDto(): ForespoerselDto =
         orgnr = "orgnr".let(::string),
         fnr = "fnr".let(::string),
         vedtaksperiodeId = "vedtaksperiode_id".let(::uuid),
-        sykmeldingsperioder = "sykmeldingsperioder".let(::string).let(Json::decodeFromString),
-        forespurtData = "forespurt_data".let(::string).let(Json::decodeFromString),
+        sykmeldingsperioder = "sykmeldingsperioder".let(::string).parseJson().fromJson(Periode.serializer().list()),
+        forespurtData = "forespurt_data".let(::string).parseJson().fromJson(ForespurtDataDto.serializer().list()),
         forespoerselBesvart = "forespoersel_besvart".let(::localDateTimeOrNull),
         status = "status".let(::string).let(Status::valueOf),
         opprettet = "opprettet".let(::localDateTime),
