@@ -1,4 +1,0 @@
-root=true
-
-[**.kt]
-ktlint_disabled_rules=filename
