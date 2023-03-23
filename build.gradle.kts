@@ -90,6 +90,7 @@ dependencies {
     runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
 
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+    testImplementation("io.kotest:kotest-framework-datatest:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersPostgresqlVersion")

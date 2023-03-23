@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.testutils
 
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.bro.sykepenger.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ArbeidsgiverPeriode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.FastsattInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
@@ -27,7 +28,7 @@ object MockUuid {
 fun mockForespoerselDto(): ForespoerselDto =
     ForespoerselDto(
         forespoerselId = randomUuid(),
-        orgnr = "12345678901",
+        orgnr = "123456789".let(::Orgnr),
         fnr = "123456789",
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
         sykmeldingsperioder = listOf(
@@ -92,13 +93,13 @@ fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtDataDto> =
 fun mockForespoerselMottatt(): ForespoerselMottatt =
     ForespoerselMottatt(
         forespoerselId = randomUuid(),
-        orgnr = "123",
+        orgnr = "287429436".let(::Orgnr),
         fnr = "abc"
     )
 
 fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
     ForespoerselSvar.Suksess(
-        orgnr = "123",
+        orgnr = "569046822".let(::Orgnr),
         fnr = "abc",
         sykmeldingsperioder = listOf(Periode(1.januar, 16.januar)),
         forespurtData = mockForespurtDataListe()
@@ -111,6 +112,6 @@ fun ForespoerselMottatt.toKeyMap() =
     mapOf(
         Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(Pri.NotisType.serializer()),
         Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-        Pri.Key.ORGNR to orgnr.toJson(),
+        Pri.Key.ORGNR to orgnr.toJson(Orgnr.serializer()),
         Pri.Key.FNR to fnr.toJson()
     )

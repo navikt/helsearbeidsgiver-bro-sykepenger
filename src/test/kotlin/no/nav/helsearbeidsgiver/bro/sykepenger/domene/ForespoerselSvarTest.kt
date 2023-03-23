@@ -1,70 +1,107 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 
+import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselSvarSuksess
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.fromJson
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.parseJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJsonStr
 
 class ForespoerselSvarTest : FunSpec({
-    test("ForespoerselSvar med suksess serialiseres korrekt") {
-        val forespoerselSvarSuksess = mockForespoerselSvarSuksess()
-        val forespoerselSvar = ForespoerselSvar(
-            forespoerselId = randomUuid(),
-            resultat = forespoerselSvarSuksess,
-            boomerang = mapOf(
-                "boom" to "shakalaka".toJson()
-            )
-                .toJson()
+    withData(
+        mapOf<String, ForespoerselSvar.() -> ForespoerselSvar>(
+            "ForespoerselSvar med suksess serialiseres korrekt" to ForespoerselSvar::medSuksess,
+            "ForespoerselSvar med feil serialiseres korrekt" to ForespoerselSvar::medFeil
         )
+    ) { medSuksessEllerFeil ->
+        val forespoerselSvar = mockForespoerselSvarUtenSuksessEllerFeil()
+            .medSuksessEllerFeil()
 
-        val expectedJson = """
-            {
-                "forespoerselId": "${forespoerselSvar.forespoerselId}",
-                "resultat": {
-                    "orgnr": "${forespoerselSvarSuksess.orgnr}",
-                    "fnr": "${forespoerselSvarSuksess.fnr}",
-                    "sykmeldingsperioder": [${forespoerselSvarSuksess.sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
-                    "forespurtData": ${forespoerselSvarSuksess.forespurtData.hardcodedJson()}
-                },
-                "boomerang": {
-                    "boom": "shakalaka"
-                }
-            }
-        """.removeJsonWhitespace()
+        val expectedJson = forespoerselSvar.hardcodedJson()
 
         val actualJson = forespoerselSvar.toJsonStr(ForespoerselSvar.serializer())
 
         actualJson shouldBe expectedJson
     }
 
-    test("ForespoerselSvar med feil serialiseres korrekt") {
-        val forespoerselSvar = ForespoerselSvar(
-            forespoerselId = randomUuid(),
-            feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET,
-            boomerang = mapOf(
-                "boom" to "shakalaka".toJson()
-            )
-                .toJson()
+    withData(
+        mapOf<String, ForespoerselSvar.() -> ForespoerselSvar>(
+            "ForespoerselSvar med suksess deserialiseres korrekt" to ForespoerselSvar::medSuksess,
+            "ForespoerselSvar med feil deserialiseres korrekt" to ForespoerselSvar::medFeil
         )
+    ) { medSuksessEllerFeil ->
+        val expectedInstance = mockForespoerselSvarUtenSuksessEllerFeil()
+            .medSuksessEllerFeil()
 
-        val expectedJson = """
-            {
-                "forespoerselId": "${forespoerselSvar.forespoerselId}",
-                "feil": "${forespoerselSvar.feil}",
-                "boomerang": {
-                    "boom": "shakalaka"
-                }
-            }
-        """.removeJsonWhitespace()
+        val expectedJson = expectedInstance.hardcodedJson()
 
-        val actualJson = forespoerselSvar.toJsonStr(ForespoerselSvar.serializer())
+        val actualInstance = shouldNotThrowAny {
+            expectedJson.parseJson().fromJson(ForespoerselSvar.serializer())
+        }
 
-        actualJson shouldBe expectedJson
+        actualInstance shouldBe expectedInstance
     }
 })
+
+private fun mockForespoerselSvarUtenSuksessEllerFeil(): ForespoerselSvar =
+    ForespoerselSvar(
+        forespoerselId = randomUuid(),
+        boomerang = mapOf(
+            "boom" to "shakalaka".toJson()
+        )
+            .toJson()
+    )
+
+private fun ForespoerselSvar.medSuksess(): ForespoerselSvar =
+    copy(resultat = mockForespoerselSvarSuksess())
+
+private fun ForespoerselSvar.medFeil(): ForespoerselSvar =
+    copy(feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET)
+
+private fun ForespoerselSvar.hardcodedJson(): String =
+    """
+    {
+        "forespoerselId": "$forespoerselId",
+        ${resultat.hardcodedJsonFieldOrEmpty()}
+        ${feil.hardcodedJsonFieldOrEmpty()}
+        "boomerang": {
+            "boom": "shakalaka"
+        }
+    }
+    """.removeJsonWhitespace()
+
+private fun ForespoerselSvar.Suksess?.hardcodedJsonFieldOrEmpty(): String =
+    this?.let {
+        """
+            "resultat": ${it.hardcodedJson()},
+        """
+    }
+        ?.removeJsonWhitespace()
+        .orEmpty()
+
+private fun ForespoerselSvar.Feil?.hardcodedJsonFieldOrEmpty(): String =
+    this?.let {
+        """
+            "feil": "$it",
+        """
+    }
+        ?.removeJsonWhitespace()
+        .orEmpty()
+
+private fun ForespoerselSvar.Suksess.hardcodedJson(): String =
+    """
+    {
+        "orgnr": "${orgnr.verdi}",
+        "fnr": "$fnr",
+        "sykmeldingsperioder": [${sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
+        "forespurtData": ${forespurtData.hardcodedJson()}
+    }
+    """.removeJsonWhitespace()
 
 private fun List<ForespurtDataDto>.hardcodedJson(): String =
     joinToString(prefix = "[", postfix = "]") {

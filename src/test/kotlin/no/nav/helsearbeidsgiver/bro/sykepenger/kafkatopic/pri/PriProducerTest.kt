@@ -39,7 +39,7 @@ class PriProducerTest : FunSpec({
         bleMeldingSendt.shouldBeTrue()
 
         val expected = ProducerRecord<String, String>(
-            "helsearbeidsgiver.pri",
+            Pri.TOPIC,
             forespoerselMottatt.toKeyMap()
                 .keysAsString()
                 .toJson()

@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
 import kotliquery.Row
+import no.nav.helsearbeidsgiver.bro.sykepenger.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
@@ -26,7 +27,7 @@ class ForespoerselDao(private val dataSource: DataSource) {
         val felter = mapOf(
             "forespoersel_id" to forespoersel.forespoerselId,
             "fnr" to forespoersel.fnr,
-            "orgnr" to forespoersel.orgnr,
+            "orgnr" to forespoersel.orgnr.verdi,
             "vedtaksperiode_id" to forespoersel.vedtaksperiodeId,
             "forespoersel_besvart" to null,
             "status" to forespoersel.status.name,
@@ -92,7 +93,7 @@ private fun Row.toUUID(): UUID = "vedtaksperiode_id".let(::uuid)
 fun Row.toForespoerselDto(): ForespoerselDto =
     ForespoerselDto(
         forespoerselId = "forespoersel_id".let(::uuid),
-        orgnr = "orgnr".let(::string),
+        orgnr = "orgnr".let(::string).let(::Orgnr),
         fnr = "fnr".let(::string),
         vedtaksperiodeId = "vedtaksperiode_id".let(::uuid),
         sykmeldingsperioder = "sykmeldingsperioder".let(::string).parseJson().fromJson(Periode.serializer().list()),

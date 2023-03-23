@@ -5,6 +5,7 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonElement
+import no.nav.helsearbeidsgiver.bro.sykepenger.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.UuidSerializer
 import java.util.UUID
@@ -22,7 +23,7 @@ data class ForespoerselSvar(
 
     @Serializable
     data class Suksess(
-        val orgnr: String,
+        val orgnr: Orgnr,
         val fnr: String,
         val sykmeldingsperioder: List<Periode>,
         val forespurtData: List<ForespurtDataDto>

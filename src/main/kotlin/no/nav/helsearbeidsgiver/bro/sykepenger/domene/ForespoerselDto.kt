@@ -4,6 +4,7 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
+import no.nav.helsearbeidsgiver.bro.sykepenger.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.LocalDateSerializer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import java.time.LocalDate
@@ -12,7 +13,7 @@ import java.util.UUID
 
 data class ForespoerselDto(
     val forespoerselId: UUID,
-    val orgnr: String,
+    val orgnr: Orgnr,
     val fnr: String,
     val vedtaksperiodeId: UUID,
     val sykmeldingsperioder: List<Periode>,

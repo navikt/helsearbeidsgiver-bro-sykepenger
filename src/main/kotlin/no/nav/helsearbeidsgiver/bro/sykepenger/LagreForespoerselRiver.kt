@@ -62,7 +62,7 @@ class LagreForespoerselRiver(
 
         val forespoersel = ForespoerselDto(
             forespoerselId = randomUuid(),
-            orgnr = Spleis.Key.ORGANISASJONSNUMMER.fra(packet).fromJson(String.serializer()),
+            orgnr = Spleis.Key.ORGANISASJONSNUMMER.fra(packet).fromJson(Orgnr.serializer()),
             fnr = Spleis.Key.FØDSELSNUMMER.fra(packet).fromJson(String.serializer()),
             vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.fra(packet).fromJson(UuidSerializer),
             sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.fra(packet).fromJson(Periode.serializer().list()),
@@ -85,7 +85,7 @@ class LagreForespoerselRiver(
         priProducer.send(
             Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(Pri.NotisType.serializer()),
             Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
-            Pri.Key.ORGNR to forespoersel.orgnr.toJson(),
+            Pri.Key.ORGNR to forespoersel.orgnr.toJson(Orgnr.serializer()),
             Pri.Key.FNR to forespoersel.fnr.toJson()
         )
             .ifTrue { logger.info("Sa ifra om mottatt forespørsel til Simba.") }
