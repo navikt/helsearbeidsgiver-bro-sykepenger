@@ -57,11 +57,6 @@ repositories {
     mavenCentral()
     google()
     maven("https://packages.confluent.io/maven/")
-    maven("https://jitpack.io") {
-        content {
-            excludeGroup("no.nav.helsearbeidsgiver")
-        }
-    }
     maven {
         credentials {
             username = "x-access-token"
