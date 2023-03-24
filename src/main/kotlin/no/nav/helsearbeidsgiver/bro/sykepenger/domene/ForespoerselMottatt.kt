@@ -4,7 +4,6 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import no.nav.helsearbeidsgiver.bro.sykepenger.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.UuidSerializer
 import java.util.UUID

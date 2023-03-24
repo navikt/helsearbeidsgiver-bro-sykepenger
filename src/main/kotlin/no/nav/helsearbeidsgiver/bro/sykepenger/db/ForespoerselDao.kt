@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
 import kotliquery.Row
-import no.nav.helsearbeidsgiver.bro.sykepenger.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute

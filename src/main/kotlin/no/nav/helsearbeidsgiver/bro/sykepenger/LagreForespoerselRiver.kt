@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
@@ -73,22 +74,29 @@ class LagreForespoerselRiver(
 
         sikkerlogger.info("Forespoersel lest: $forespoersel")
 
-        forespoerselDao.lagre(forespoersel)
-            .let { id ->
-                if (id != null) {
-                    logger.info("Forespørsel lagret med id=$id.")
-                } else {
-                    logger.info("Forespørsel ble ikke lagret.")
+        if (forespoersel.orgnr in Env.AllowList.organisasjoner) {
+            forespoerselDao.lagre(forespoersel)
+                .let { id ->
+                    if (id != null) {
+                        logger.info("Forespørsel lagret med id=$id.")
+                    } else {
+                        logger.info("Forespørsel ble ikke lagret.")
+                    }
                 }
-            }
 
-        priProducer.send(
-            Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(Pri.NotisType.serializer()),
-            Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
-            Pri.Key.ORGNR to forespoersel.orgnr.toJson(Orgnr.serializer()),
-            Pri.Key.FNR to forespoersel.fnr.toJson()
-        )
-            .ifTrue { logger.info("Sa ifra om mottatt forespørsel til Simba.") }
-            .ifFalse { logger.info("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
+            priProducer.send(
+                Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(Pri.NotisType.serializer()),
+                Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
+                Pri.Key.ORGNR to forespoersel.orgnr.toJson(Orgnr.serializer()),
+                Pri.Key.FNR to forespoersel.fnr.toJson()
+            )
+                .ifTrue { logger.info("Sa ifra om mottatt forespørsel til Simba.") }
+                .ifFalse { logger.info("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
+        } else {
+            "Ignorerer mottatt forespørsel om inntektsmelding siden den gjelder organisasjon uten tillatelse til pilot.".let {
+                logger.info(it)
+                sikkerlogger.info("$it orgnr=${forespoersel.orgnr}")
+            }
+        }
     }
 }

@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.testutils
 
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.bro.sykepenger.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ArbeidsgiverPeriode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.FastsattInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
@@ -11,6 +10,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Inntekt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
