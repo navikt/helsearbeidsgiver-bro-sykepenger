@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 
 import kotlinx.serialization.Serializable
 
+private val whitespaceRgx = Regex("\\s")
 private val orgnrRgx = Regex("\\d{9}")
 
 @Serializable
@@ -21,7 +22,8 @@ fun String.parseKommaSeparertOrgnrListe(): List<Orgnr> {
     val (
         gyldigeOrgnr,
         ugyldigeOrgnr
-    ) = split(",")
+    ) = replace(whitespaceRgx, "")
+        .split(",")
         .partition(String::erGyldigOrgnr)
 
     if (ugyldigeOrgnr.isNotEmpty()) {

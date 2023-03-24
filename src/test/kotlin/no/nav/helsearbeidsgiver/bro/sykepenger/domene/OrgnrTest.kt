@@ -59,6 +59,16 @@ class OrgnrTest : FunSpec({
         )
     }
 
+    test("Streng med gyldige orgnr og whitespace parses korrekt") {
+        val organisasjoner = "  42983 4723,4942\n34909, 761702603\n ".parseKommaSeparertOrgnrListe()
+
+        organisasjoner.shouldContainExactly(
+            "429834723".let(::Orgnr),
+            "494234909".let(::Orgnr),
+            "761702603".let(::Orgnr)
+        )
+    }
+
     context("Streng med ugyldige orgnr gir exception med detaljer") {
         withData(
             nameFn = { (input, _) -> input },
