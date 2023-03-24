@@ -10,6 +10,9 @@ value class Orgnr(val verdi: String) {
     init {
         require(verdi.erGyldigOrgnr())
     }
+
+    override fun toString(): String =
+        verdi
 }
 
 fun String.parseKommaSeparertOrgnrListe(): List<Orgnr> {
