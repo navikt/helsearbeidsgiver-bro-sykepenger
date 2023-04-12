@@ -10,17 +10,13 @@ spec:
   image: {{image}}
   port: 8080
   liveness:
-    path: /is-alive
+    path: isalive
     initialDelay: 10
     timeout: 2
-    periodSeconds: 30
-    failureThreshold: 10
   readiness:
-    path: /is-ready
+    path: isready
     initialDelay: 10
     timeout: 2
-    periodSeconds: 5
-    failureThreshold: 10
   prometheus:
     enabled: true
   replicas:
@@ -39,9 +35,16 @@ spec:
     application:
       enabled: true
   envFrom:
+    - secret: simba-pilot-tillatte-organisasjoner
   env:
     - name: GCP_PRJ_ID
       value: helsearbeidsgiver-prod-8a1c
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: helsearbeidsgiver-bro-sykepenger-v1
+    - name: KAFKA_RAPID_TOPIC
+      value: tbd.arbeidsgiveropplysninger
+    - name: KAFKA_EXTRA_TOPIC
+      value: helsearbeidsgiver.pri
   kafka:
     pool: nav-prod
   gcp:
