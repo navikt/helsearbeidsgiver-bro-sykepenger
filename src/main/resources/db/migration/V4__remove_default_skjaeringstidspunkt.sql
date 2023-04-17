@@ -1,0 +1,1 @@
+ALTER TABLE forespoersel ALTER COLUMN skjaeringstidspunkt DROP DEFAULT;
