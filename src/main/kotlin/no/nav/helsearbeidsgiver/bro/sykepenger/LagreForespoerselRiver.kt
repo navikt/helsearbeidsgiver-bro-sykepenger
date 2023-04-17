@@ -51,6 +51,7 @@ class LagreForespoerselRiver(
                     Spleis.Key.ORGANISASJONSNUMMER,
                     Spleis.Key.FØDSELSNUMMER,
                     Spleis.Key.VEDTAKSPERIODE_ID,
+                    Spleis.Key.SKJÆRINGSTIDSPUNKT,
                     Spleis.Key.FORESPURT_DATA
                 )
             }
@@ -66,6 +67,7 @@ class LagreForespoerselRiver(
             orgnr = Spleis.Key.ORGANISASJONSNUMMER.fra(packet).fromJson(Orgnr.serializer()),
             fnr = Spleis.Key.FØDSELSNUMMER.fra(packet).fromJson(String.serializer()),
             vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.fra(packet).fromJson(UuidSerializer),
+            skjaeringstidspunkt = Spleis.Key.SKJÆRINGSTIDSPUNKT.fra(packet).fromJson(LocalDateSerializer),
             sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.fra(packet).fromJson(Periode.serializer().list()),
             forespurtData = Spleis.Key.FORESPURT_DATA.fra(packet).fromJson(ForespurtDataDto.serializer().list()),
             forespoerselBesvart = null,

@@ -31,6 +31,7 @@ fun mockForespoerselDto(): ForespoerselDto =
         orgnr = "123456789".let(::Orgnr),
         fnr = "123456789",
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
+        skjaeringstidspunkt = 15.januar,
         sykmeldingsperioder = listOf(
             Periode(1.januar, 10.januar),
             Periode(15.januar, 20.januar)
