@@ -2,45 +2,46 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.utils
 
 import kotliquery.Query
 import kotliquery.Row
+import kotliquery.Session
 import kotliquery.action.QueryAction
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import javax.sql.DataSource
 
-fun String.updateAndReturnGeneratedKey(params: Map<String, Any?>, dataSource: DataSource): Long? =
-    runQuery(params, dataSource, returnGeneratedKey = true) {
+fun String.updateAndReturnGeneratedKey(params: Map<String, Any?>, session: Session): Long? =
+    runQuery(params, session) {
         asUpdateAndReturnGeneratedKey
     }
 
-fun String.execute(params: Map<String, Any>, dataSource: DataSource): Boolean =
-    runQuery(params, dataSource) {
+fun String.execute(params: Map<String, Any>, session: Session): Boolean =
+    runQuery(params, session) {
         asExecute
     }
 
 fun <T : Any> String.listResult(params: Map<String, Any>, dataSource: DataSource, transform: Row.() -> T): List<T> =
     runQuery(params, dataSource) {
-        map { transform(it) }
-            .asList
+        map(transform).asList
     }
 
 fun <T : Any> String.nullableResult(params: Map<String, Any>, dataSource: DataSource, transform: Row.() -> T): T? =
     runQuery(params, dataSource) {
-        map { transform(it) }
-            .asSingle
+        map(transform).asSingle
     }
 
 private fun <T> String.runQuery(
     params: Map<String, *>,
     dataSource: DataSource,
-    returnGeneratedKey: Boolean = false,
     transform: Query.() -> QueryAction<T>
 ): T =
-    sessionOf(
-        dataSource = dataSource,
-        returnGeneratedKey = returnGeneratedKey
-    )
-        .use { session ->
-            queryOf(this, params)
-                .transform()
-                .runWithSession(session)
-        }
+    sessionOf(dataSource).use {
+        runQuery(params, it, transform)
+    }
+
+private fun <T> String.runQuery(
+    params: Map<String, *>,
+    session: Session,
+    transform: Query.() -> QueryAction<T>
+): T =
+    queryOf(this, params)
+        .transform()
+        .runWithSession(session)

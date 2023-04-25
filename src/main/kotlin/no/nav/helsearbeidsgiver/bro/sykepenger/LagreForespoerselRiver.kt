@@ -82,7 +82,7 @@ class LagreForespoerselRiver(
                     if (id != null) {
                         logger.info("Forespørsel lagret med id=$id.")
                     } else {
-                        logger.info("Forespørsel ble ikke lagret.")
+                        logger.error("Forespørsel ble ikke lagret.")
                     }
                 }
 
@@ -93,7 +93,7 @@ class LagreForespoerselRiver(
                 Pri.Key.FNR to forespoersel.fnr.toJson()
             )
                 .ifTrue { logger.info("Sa ifra om mottatt forespørsel til Simba.") }
-                .ifFalse { logger.info("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
+                .ifFalse { logger.error("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
         } else {
             "Ignorerer mottatt forespørsel om inntektsmelding siden den gjelder organisasjon uten tillatelse til pilot.".let {
                 logger.info(it)

@@ -1,6 +1,8 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
 import kotliquery.Row
+import kotliquery.TransactionalSession
+import kotliquery.sessionOf
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
@@ -22,8 +24,6 @@ class ForespoerselDao(private val dataSource: DataSource) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     fun lagre(forespoersel: ForespoerselDto): Long? {
-        forkastAlleAktiveForespoerslerFor(forespoersel.vedtaksperiodeId)
-
         val felter = mapOf(
             "forespoersel_id" to forespoersel.forespoerselId,
             "fnr" to forespoersel.fnr,
@@ -47,14 +47,23 @@ class ForespoerselDao(private val dataSource: DataSource) {
             jsonFelter.keys.joinToString { ":$it::json" }
         ).joinToString()
 
-        return "INSERT INTO forespoersel($kolonnenavn) VALUES ($noekler)"
-            .updateAndReturnGeneratedKey(
-                params = felter + jsonFelter,
-                dataSource = dataSource
-            )
+        return sessionOf(
+            dataSource = dataSource,
+            returnGeneratedKey = true
+        ).use { session ->
+            session.transaction {
+                forkastAlleAktiveForespoerslerFor(forespoersel.vedtaksperiodeId, it)
+
+                "INSERT INTO forespoersel($kolonnenavn) VALUES ($noekler)"
+                    .updateAndReturnGeneratedKey(
+                        params = felter + jsonFelter,
+                        session = it
+                    )
+            }
+        }
     }
 
-    private fun forkastAlleAktiveForespoerslerFor(vedtaksperiodeId: UUID): Boolean =
+    private fun forkastAlleAktiveForespoerslerFor(vedtaksperiodeId: UUID, session: TransactionalSession): Boolean =
         "UPDATE forespoersel SET status=:nyStatus WHERE vedtaksperiode_id=:vedtaksperiodeId AND status=:gammelStatus"
             .execute(
                 params = mapOf(
@@ -62,7 +71,7 @@ class ForespoerselDao(private val dataSource: DataSource) {
                     "nyStatus" to Status.FORKASTET.name,
                     "gammelStatus" to Status.AKTIV.name
                 ),
-                dataSource = dataSource
+                session = session
             )
 
     fun hentAktivForespoerselFor(forespoerselId: UUID): ForespoerselDto? =

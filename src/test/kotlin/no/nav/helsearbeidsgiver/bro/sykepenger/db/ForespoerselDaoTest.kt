@@ -1,11 +1,13 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
+import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotliquery.Row
+import kotliquery.sessionOf
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
@@ -15,6 +17,8 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.nullableResult
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
+import org.postgresql.util.PSQLException
+import java.time.LocalDateTime
 import javax.sql.DataSource
 
 class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
@@ -127,6 +131,33 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         forespoerselDao.hentAktivForespoerselFor(MockUuid.forespoerselId)
             .shouldBeNull()
     }
+
+    test("Ruller tilbake forkasting av aktive forespørsler når lagring av ny forespørsel feiler") {
+        val (id1, id2) = List(2) {
+            mockForespoerselDto().lagreNotNull()
+        }
+
+        shouldThrowExactly<PSQLException> {
+            mockForespoerselDto()
+                // Er lavere enn hva databasen takler, krasjer lagringen
+                .copy(opprettet = LocalDateTime.MIN)
+                .lagreNotNull()
+        }
+
+        val (
+            forespoersel1,
+            forespoersel2
+        ) = listOf(id1, id2)
+            .map(dataSource::hentForespoersel)
+            .map { it.shouldNotBeNull() }
+
+        forespoersel1.status shouldBe Status.FORKASTET
+        forespoersel2.status shouldBe Status.AKTIV
+
+        val id3 = id2 + 1
+
+        dataSource.hentForespoersel(id3).shouldBeNull()
+    }
 })
 
 private fun DataSource.hentForespoersel(id: Long): ForespoerselDto? =
@@ -146,12 +177,14 @@ private fun DataSource.antallForespoersler(): Int =
         .shouldNotBeNull()
 
 private fun DataSource.oppdaterStatus(forespoerselId: Long, status: Status): Boolean =
-    "UPDATE forespoersel SET status=:status WHERE id=:id"
-        .execute(
-            params = mapOf(
-                "id" to forespoerselId,
-                "status" to status.name
-            ),
-            dataSource = this
-        )
-        .shouldNotBeNull()
+    sessionOf(this).use {
+        "UPDATE forespoersel SET status=:status WHERE id=:id"
+            .execute(
+                params = mapOf(
+                    "id" to forespoerselId,
+                    "status" to status.name
+                ),
+                session = it
+            )
+            .shouldNotBeNull()
+    }

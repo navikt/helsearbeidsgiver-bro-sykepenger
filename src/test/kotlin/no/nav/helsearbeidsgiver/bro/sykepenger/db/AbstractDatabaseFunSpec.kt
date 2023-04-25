@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.db
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.spec.style.FunSpec
+import kotliquery.sessionOf
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
 import org.flywaydb.core.Flyway
 import org.intellij.lang.annotations.Language
@@ -13,10 +14,12 @@ abstract class AbstractDatabaseFunSpec(body: FunSpec.(DataSource) -> Unit) : Fun
     val dataSource = customDataSource()
 
     beforeEach {
-        "SELECT truncate_tables()".execute(
-            params = emptyMap<String, Nothing>(),
-            dataSource = dataSource
-        )
+        sessionOf(dataSource).use {
+            "SELECT truncate_tables()".execute(
+                params = emptyMap<String, Nothing>(),
+                session = it
+            )
+        }
     }
 
     body(dataSource)
@@ -77,8 +80,10 @@ private fun DataSource.createTruncateFunction() {
             $$ LANGUAGE plpgsql;
         """
 
-    query.execute(
-        params = emptyMap<String, Nothing>(),
-        dataSource = this
-    )
+    sessionOf(this).use {
+        query.execute(
+            params = emptyMap<String, Nothing>(),
+            session = it
+        )
+    }
 }
