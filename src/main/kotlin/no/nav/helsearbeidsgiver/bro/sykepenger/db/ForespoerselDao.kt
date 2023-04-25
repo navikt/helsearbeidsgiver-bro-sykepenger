@@ -25,20 +25,20 @@ class ForespoerselDao(private val dataSource: DataSource) {
 
     fun lagre(forespoersel: ForespoerselDto): Long? {
         val felter = mapOf(
-            "forespoersel_id" to forespoersel.forespoerselId,
-            "fnr" to forespoersel.fnr,
-            "orgnr" to forespoersel.orgnr.verdi,
-            "vedtaksperiode_id" to forespoersel.vedtaksperiodeId,
-            "skjaeringstidspunkt" to forespoersel.skjaeringstidspunkt,
-            "forespoersel_besvart" to null,
-            "status" to forespoersel.status.name,
-            "opprettet" to forespoersel.opprettet,
-            "oppdatert" to forespoersel.oppdatert
+            Db.FORESPOERSEL_ID to forespoersel.forespoerselId,
+            Db.ORGNR to forespoersel.orgnr.verdi,
+            Db.FNR to forespoersel.fnr,
+            Db.VEDTAKSPERIODE_ID to forespoersel.vedtaksperiodeId,
+            Db.SKJAERINGSTIDSPUNKT to forespoersel.skjaeringstidspunkt,
+            Db.FORESPOERSEL_BESVART to null,
+            Db.STATUS to forespoersel.status.name,
+            Db.OPPRETTET to forespoersel.opprettet,
+            Db.OPPDATERT to forespoersel.oppdatert
         )
 
         val jsonFelter = mapOf(
-            "sykmeldingsperioder" to forespoersel.sykmeldingsperioder.toJsonStr(Periode.serializer().list()),
-            "forespurt_data" to forespoersel.forespurtData.toJsonStr(ForespurtDataDto.serializer().list())
+            Db.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJsonStr(Periode.serializer().list()),
+            Db.FORESPURT_DATA to forespoersel.forespurtData.toJsonStr(ForespurtDataDto.serializer().list())
         )
 
         val kolonnenavn = (felter + jsonFelter).keys.joinToString()
@@ -64,7 +64,7 @@ class ForespoerselDao(private val dataSource: DataSource) {
     }
 
     private fun forkastAlleAktiveForespoerslerFor(vedtaksperiodeId: UUID, session: TransactionalSession): Boolean =
-        "UPDATE forespoersel SET status=:nyStatus WHERE vedtaksperiode_id=:vedtaksperiodeId AND status=:gammelStatus"
+        "UPDATE forespoersel SET ${Db.STATUS}=:nyStatus WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS}=:gammelStatus"
             .execute(
                 params = mapOf(
                     "vedtaksperiodeId" to vedtaksperiodeId,
@@ -77,9 +77,9 @@ class ForespoerselDao(private val dataSource: DataSource) {
     fun hentAktivForespoerselFor(forespoerselId: UUID): ForespoerselDto? =
         hentVedtaksperiodeId(forespoerselId)
             ?.let { vedtaksperiodeId ->
-                "SELECT * FROM forespoersel WHERE vedtaksperiode_id=:vedtaksperiode_id AND status='AKTIV'"
+                "SELECT * FROM forespoersel WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS}='AKTIV'"
                     .listResult(
-                        params = mapOf("vedtaksperiode_id" to vedtaksperiodeId),
+                        params = mapOf("vedtaksperiodeId" to vedtaksperiodeId),
                         dataSource = dataSource,
                         transform = Row::toForespoerselDto
                     )
@@ -90,27 +90,25 @@ class ForespoerselDao(private val dataSource: DataSource) {
             ?.maxByOrNull { it.opprettet }
 
     private fun hentVedtaksperiodeId(forespoerselId: UUID): UUID? =
-        "SELECT vedtaksperiode_id FROM forespoersel WHERE forespoersel_id=:forespoersel_id"
+        "SELECT ${Db.VEDTAKSPERIODE_ID} FROM forespoersel WHERE ${Db.FORESPOERSEL_ID}=:forespoerselId"
             .nullableResult(
-                params = mapOf("forespoersel_id" to forespoerselId),
+                params = mapOf("forespoerselId" to forespoerselId),
                 dataSource = dataSource,
-                transform = Row::toUUID
+                transform = { Db.VEDTAKSPERIODE_ID.let(::uuid) }
             )
 }
 
-private fun Row.toUUID(): UUID = "vedtaksperiode_id".let(::uuid)
-
 fun Row.toForespoerselDto(): ForespoerselDto =
     ForespoerselDto(
-        forespoerselId = "forespoersel_id".let(::uuid),
-        orgnr = "orgnr".let(::string).let(::Orgnr),
-        fnr = "fnr".let(::string),
-        vedtaksperiodeId = "vedtaksperiode_id".let(::uuid),
-        skjaeringstidspunkt = "skjaeringstidspunkt".let(::localDate),
-        sykmeldingsperioder = "sykmeldingsperioder".let(::string).parseJson().fromJson(Periode.serializer().list()),
-        forespurtData = "forespurt_data".let(::string).parseJson().fromJson(ForespurtDataDto.serializer().list()),
-        forespoerselBesvart = "forespoersel_besvart".let(::localDateTimeOrNull),
-        status = "status".let(::string).let(Status::valueOf),
-        opprettet = "opprettet".let(::localDateTime),
-        oppdatert = "oppdatert".let(::localDateTime)
+        forespoerselId = Db.FORESPOERSEL_ID.let(::uuid),
+        orgnr = Db.ORGNR.let(::string).let(::Orgnr),
+        fnr = Db.FNR.let(::string),
+        vedtaksperiodeId = Db.VEDTAKSPERIODE_ID.let(::uuid),
+        skjaeringstidspunkt = Db.SKJAERINGSTIDSPUNKT.let(::localDate),
+        sykmeldingsperioder = Db.SYKMELDINGSPERIODER.let(::string).parseJson().fromJson(Periode.serializer().list()),
+        forespurtData = Db.FORESPURT_DATA.let(::string).parseJson().fromJson(ForespurtDataDto.serializer().list()),
+        forespoerselBesvart = Db.FORESPOERSEL_BESVART.let(::localDateTimeOrNull),
+        status = Db.STATUS.let(::string).let(Status::valueOf),
+        opprettet = Db.OPPRETTET.let(::localDateTime),
+        oppdatert = Db.OPPDATERT.let(::localDateTime)
     )
