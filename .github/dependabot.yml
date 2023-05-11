@@ -1,0 +1,29 @@
+version: 2
+
+registries:
+  rr:
+    type: maven-repository
+    url: https://maven.pkg.github.com/navikt/rapids-and-rivers
+    username: x-access-token
+    password: ${{ secrets.READER_TOKEN }}
+
+updates:
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: daily
+      # Sett 15:15 for testing
+      time: 15:15
+#      time: 06:00
+      timezone: Europe/Oslo
+    registries:
+      - rr
+    pull-request-branch-name:
+      separator: "-"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: 06:00
