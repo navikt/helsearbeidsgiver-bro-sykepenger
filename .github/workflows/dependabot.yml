@@ -1,0 +1,28 @@
+name: Monitor dependencies with Dependabot
+
+on:
+  schedule:
+    # Hver mandag, onsdag og fredag kl. 04:00
+    - cron: '0 4 * * 1,3,5'
+    # Hver time kl. XX:30, kun midlertidig for testing
+    - cron: '30 * * * *'
+  push:
+    branches:
+      - main
+    paths:
+      - gradle.properties
+      - build.gradle.kts
+      - settings.gradle.kts
+
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    permissions:
+      # The Dependency Submission API requires write permission
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run snapshot action
+        uses: mikepenz/gradle-dependency-submission@v1
+        env:
+          ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
