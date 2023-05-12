@@ -4,8 +4,6 @@ on:
   schedule:
     # Hver mandag, onsdag og fredag kl. 04:00
     - cron: '0 4 * * 1,3,5'
-    # Hver time kl. XX:30, kun midlertidig for testing
-    - cron: '30 * * * *'
   push:
     branches:
       - main
