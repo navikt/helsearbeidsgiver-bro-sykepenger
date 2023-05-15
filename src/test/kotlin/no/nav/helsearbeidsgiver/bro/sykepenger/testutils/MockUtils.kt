@@ -43,18 +43,7 @@ fun mockForespoerselDto(): ForespoerselDto =
 
 fun mockForespurtDataListe(): List<ForespurtDataDto> =
     listOf(
-        ArbeidsgiverPeriode(
-            forslag = listOf(
-                Periode(
-                    fom = 1.januar,
-                    tom = 10.januar
-                ),
-                Periode(
-                    fom = 15.januar,
-                    tom = 20.januar
-                )
-            )
-        ),
+        ArbeidsgiverPeriode,
         Inntekt(
             forslag = ForslagInntekt(
                 beregningsmåneder = listOf(
@@ -64,23 +53,16 @@ fun mockForespurtDataListe(): List<ForespurtDataDto> =
                 )
             )
         ),
-        Refusjon(forslag = emptyList())
+        Refusjon(
+            forslag = listOf(
+                ForslagRefusjon(17.mai, null, 13.37)
+            )
+        )
     )
 
 fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtDataDto> =
     listOf(
-        ArbeidsgiverPeriode(
-            forslag = listOf(
-                Periode(
-                    fom = 1.januar,
-                    tom = 10.januar
-                ),
-                Periode(
-                    fom = 15.januar,
-                    tom = 20.januar
-                )
-            )
-        ),
+        ArbeidsgiverPeriode,
         FastsattInntekt(
             fastsattInntekt = 31415.92
         ),

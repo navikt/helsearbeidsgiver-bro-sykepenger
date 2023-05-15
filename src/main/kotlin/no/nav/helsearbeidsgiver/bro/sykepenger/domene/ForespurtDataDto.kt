@@ -19,7 +19,7 @@ sealed class ForespurtDataDto
 
 @Serializable
 @SerialName("Arbeidsgiverperiode")
-data class ArbeidsgiverPeriode(val forslag: List<Periode>) : ForespurtDataDto()
+object ArbeidsgiverPeriode : ForespurtDataDto()
 
 @Serializable
 @SerialName("Inntekt")

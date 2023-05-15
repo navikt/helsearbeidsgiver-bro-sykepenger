@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.bro.sykepenger
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
+import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
@@ -99,6 +100,13 @@ class LagreForespoerselRiver(
                 logger.info(it)
                 sikkerlogger.info("$it orgnr=${forespoersel.orgnr}")
             }
+        }
+    }
+
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        "Innkommende melding har feil.".let {
+            logger.info("$it Se sikker logg for mer info.")
+            sikkerlogger.info("$it Detaljer:\n${problems.toExtendedReport()}")
         }
     }
 }
