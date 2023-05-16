@@ -17,9 +17,10 @@ data class ForespoerselDto(
     val vedtaksperiodeId: UUID,
     val skjaeringstidspunkt: LocalDate,
     val sykmeldingsperioder: List<Periode>,
-    val forespurtData: List<ForespurtDataDto>,
+    val forespurtData: List<ForespurtDataDto>?,
     val forespoerselBesvart: LocalDateTime?,
     val status: Status,
+    val type: Type,
     val opprettet: LocalDateTime = LocalDateTime.now().truncMillis(),
     val oppdatert: LocalDateTime = LocalDateTime.now().truncMillis()
 )
@@ -28,6 +29,12 @@ enum class Status {
     AKTIV,
     BESVART,
     FORKASTET
+}
+
+enum class Type {
+    KOMPLETT,
+    BEGRENSET,
+    POTENSIELL
 }
 
 @Serializable

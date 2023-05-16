@@ -8,6 +8,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.fromJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.list
@@ -32,13 +33,14 @@ class ForespoerselDao(private val dataSource: DataSource) {
             Db.SKJAERINGSTIDSPUNKT to forespoersel.skjaeringstidspunkt,
             Db.FORESPOERSEL_BESVART to null,
             Db.STATUS to forespoersel.status.name,
+            Db.TYPE to forespoersel.type.name,
             Db.OPPRETTET to forespoersel.opprettet,
             Db.OPPDATERT to forespoersel.oppdatert
         )
 
         val jsonFelter = mapOf(
             Db.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJsonStr(Periode.serializer().list()),
-            Db.FORESPURT_DATA to forespoersel.forespurtData.toJsonStr(ForespurtDataDto.serializer().list())
+            Db.FORESPURT_DATA to forespoersel.forespurtData?.toJsonStr(ForespurtDataDto.serializer().list())
         )
 
         val kolonnenavn = (felter + jsonFelter).keys.joinToString()
@@ -106,9 +108,10 @@ fun Row.toForespoerselDto(): ForespoerselDto =
         vedtaksperiodeId = Db.VEDTAKSPERIODE_ID.let(::uuid),
         skjaeringstidspunkt = Db.SKJAERINGSTIDSPUNKT.let(::localDate),
         sykmeldingsperioder = Db.SYKMELDINGSPERIODER.let(::string).parseJson().fromJson(Periode.serializer().list()),
-        forespurtData = Db.FORESPURT_DATA.let(::string).parseJson().fromJson(ForespurtDataDto.serializer().list()),
+        forespurtData = Db.FORESPURT_DATA.let(::stringOrNull)?.parseJson()?.fromJson(ForespurtDataDto.serializer().list()),
         forespoerselBesvart = Db.FORESPOERSEL_BESVART.let(::localDateTimeOrNull),
         status = Db.STATUS.let(::string).let(Status::valueOf),
+        type = Db.TYPE.let(::string).let(Type::valueOf),
         opprettet = Db.OPPRETTET.let(::localDateTime),
         oppdatert = Db.OPPDATERT.let(::localDateTime)
     )

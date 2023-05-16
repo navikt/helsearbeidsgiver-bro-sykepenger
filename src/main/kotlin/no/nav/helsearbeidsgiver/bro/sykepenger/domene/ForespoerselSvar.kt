@@ -25,7 +25,7 @@ data class ForespoerselSvar(
         val orgnr: Orgnr,
         val fnr: String,
         val sykmeldingsperioder: List<Periode>,
-        val forespurtData: List<ForespurtDataDto>
+        val forespurtData: List<ForespurtDataDto>?
     ) {
         constructor(forespoersel: ForespoerselDto) : this(
             orgnr = forespoersel.orgnr,

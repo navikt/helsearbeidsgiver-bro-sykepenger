@@ -11,8 +11,10 @@ private val jsonWhitespaceRegex = Regex("""("(?:\\"|[^"])*")|\s""")
 fun String.removeJsonWhitespace(): String =
     replace(jsonWhitespaceRegex, "$1")
 
-fun TestRapid.sendJson(vararg keyValuePairs: Pair<Key, JsonElement>) {
+fun TestRapid.sendJson(vararg keyValuePairs: Pair<Key, JsonElement?>) {
     keyValuePairs.toMap()
+        .mapNotNull { (key, value) -> value?.let { key to it } }
+        .toMap()
         .keysAsString()
         .toJson()
         .toString()

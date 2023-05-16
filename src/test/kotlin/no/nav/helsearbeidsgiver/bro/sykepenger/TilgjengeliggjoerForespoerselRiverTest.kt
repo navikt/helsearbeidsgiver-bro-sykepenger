@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselUtenForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockJsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
@@ -28,6 +29,32 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
 
     test("Ved innkommende event, svar ut korrekt ForespoerselSvar") {
         val forespoersel = mockForespoerselDto()
+
+        every { mockForespoerselDao.hentAktivForespoerselFor(any()) } returns forespoersel
+
+        val expectedPublished = ForespoerselSvar(
+            forespoerselId = forespoersel.forespoerselId,
+            resultat = ForespoerselSvar.Suksess(forespoersel),
+            boomerang = mockJsonElement()
+        )
+
+        testRapid.sendJson(
+            Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
+            Pri.Key.FORESPOERSEL_ID to expectedPublished.forespoerselId.toJson(),
+            Pri.Key.BOOMERANG to expectedPublished.boomerang
+        )
+
+        verifySequence {
+            mockForespoerselDao.hentAktivForespoerselFor(any())
+            mockPriProducer.send(
+                Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
+                Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer())
+            )
+        }
+    }
+
+    test("Ved innkommende event, svar ut korrekt ForespoerselSvar uten forespurt data") {
+        val forespoersel = mockForespoerselUtenForespurtDataDto()
 
         every { mockForespoerselDao.hentAktivForespoerselFor(any()) } returns forespoersel
 

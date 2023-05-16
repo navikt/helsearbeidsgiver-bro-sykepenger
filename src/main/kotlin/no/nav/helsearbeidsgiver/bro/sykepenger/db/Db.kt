@@ -10,6 +10,7 @@ object Db {
     const val FORESPURT_DATA = "forespurt_data"
     const val FORESPOERSEL_BESVART = "forespoersel_besvart"
     const val STATUS = "status"
+    const val TYPE = "type"
     const val OPPRETTET = "opprettet"
     const val OPPDATERT = "oppdatert"
 }

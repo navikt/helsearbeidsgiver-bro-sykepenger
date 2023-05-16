@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.parseJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
@@ -38,6 +39,24 @@ fun mockForespoerselDto(): ForespoerselDto =
         ),
         forespurtData = mockForespurtDataListe(),
         forespoerselBesvart = null,
+        type = Type.KOMPLETT,
+        status = Status.AKTIV
+    )
+
+fun mockForespoerselUtenForespurtDataDto(): ForespoerselDto =
+    ForespoerselDto(
+        forespoerselId = randomUuid(),
+        orgnr = "123456789".let(::Orgnr),
+        fnr = "123456789",
+        vedtaksperiodeId = MockUuid.vedtaksperiodeId,
+        skjaeringstidspunkt = 15.januar,
+        sykmeldingsperioder = listOf(
+            Periode(1.januar, 10.januar),
+            Periode(15.januar, 20.januar)
+        ),
+        forespurtData = null,
+        forespoerselBesvart = null,
+        type = Type.KOMPLETT,
         status = Status.AKTIV
     )
 
