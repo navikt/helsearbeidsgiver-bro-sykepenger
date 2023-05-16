@@ -28,6 +28,7 @@ object Spleis {
 
     @Serializable
     enum class Event {
-        TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER
+        TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER,
+        TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER_BEGRENSET
     }
 }

@@ -32,7 +32,7 @@ import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 import java.util.UUID
 
-class LagreForespoerselRiver(
+class LagreKomplettForespoerselRiver(
     rapid: RapidsConnection,
     private val forespoerselDao: ForespoerselDao,
     private val priProducer: PriProducer

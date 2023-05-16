@@ -29,7 +29,8 @@ object MockUuid {
 
 fun mockForespoerselDto(
     skjæringstidspunkt: LocalDate? = 15.januar,
-    forespurtData: List<ForespurtDataDto>? = mockForespurtDataListe()
+    forespurtData: List<ForespurtDataDto>? = mockForespurtDataListe(),
+    type: Type
 ): ForespoerselDto =
     ForespoerselDto(
         forespoerselId = randomUuid(),
@@ -43,7 +44,7 @@ fun mockForespoerselDto(
         ),
         forespurtData = forespurtData,
         forespoerselBesvart = null,
-        type = Type.KOMPLETT,
+        type = type,
         status = Status.AKTIV
     )
 

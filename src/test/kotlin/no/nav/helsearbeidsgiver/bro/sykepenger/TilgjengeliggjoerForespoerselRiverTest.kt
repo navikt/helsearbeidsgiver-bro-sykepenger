@@ -8,6 +8,7 @@ import io.mockk.verifySequence
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
@@ -27,7 +28,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
     }
 
     test("Ved innkommende event, svar ut korrekt ForespoerselSvar") {
-        val forespoersel = mockForespoerselDto()
+        val forespoersel = mockForespoerselDto(type = Type.KOMPLETT)
 
         every { mockForespoerselDao.hentAktivForespoerselFor(any()) } returns forespoersel
 
@@ -52,8 +53,8 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         }
     }
 
-    test("Ved innkommende event, svar ut korrekt ForespoerselSvar uten forespurt data") {
-        val forespoersel = mockForespoerselDto(forespurtData = null)
+    test("Ved innkommende event, svar ut korrekt ForespoerselSvar uten forespurt data eller skjæringstidspunkt") {
+        val forespoersel = mockForespoerselDto(forespurtData = null, skjæringstidspunkt = null, type = Type.BEGRENSET)
 
         every { mockForespoerselDao.hentAktivForespoerselFor(any()) } returns forespoersel
 
@@ -81,7 +82,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
     test("Når forespørsel ikke finnes skal det sendes ForespoerselSvar med error") {
         every { mockForespoerselDao.hentAktivForespoerselFor(any()) } returns null
 
-        val forespoersel = mockForespoerselDto()
+        val forespoersel = mockForespoerselDto(type = Type.KOMPLETT)
         val expectedPublished = ForespoerselSvar(
             forespoerselId = forespoersel.forespoerselId,
             feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET,

@@ -23,7 +23,7 @@ fun main() {
 
     val rapid = RapidApplication.create(System.getenv())
 
-    LagreForespoerselRiver(
+    LagreKomplettForespoerselRiver(
         rapid = rapid,
         forespoerselDao = forespoerselDao,
         priProducer = priProducer
