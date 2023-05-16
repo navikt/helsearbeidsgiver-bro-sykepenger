@@ -21,7 +21,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselUtenForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.toKeyMap
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
@@ -45,7 +44,7 @@ class LagreForespoerselRiverTest : FunSpec({
             Spleis.Key.ORGANISASJONSNUMMER to forespoersel.orgnr.toJson(Orgnr.serializer()),
             Spleis.Key.FØDSELSNUMMER to forespoersel.fnr.toJson(),
             Spleis.Key.VEDTAKSPERIODE_ID to forespoersel.vedtaksperiodeId.toJson(),
-            Spleis.Key.SKJÆRINGSTIDSPUNKT to forespoersel.skjaeringstidspunkt.toJson(),
+            Spleis.Key.SKJÆRINGSTIDSPUNKT to forespoersel.skjaeringstidspunkt?.toJson(),
             Spleis.Key.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJson(Periode.serializer().list()),
             Spleis.Key.FORESPURT_DATA to forespoersel.forespurtData?.toJson(ForespurtDataDto.serializer().list())
         )
@@ -108,7 +107,7 @@ class LagreForespoerselRiverTest : FunSpec({
     }
 
     test("Filtrer ut innkommende forespørsel som ikke har forespurt data") {
-        val forespoersel = mockForespoerselUtenForespurtDataDto()
+        val forespoersel = mockForespoerselDto(forespurtData = null)
 
         mockkObject(Env) {
             every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns forespoersel.orgnr.verdi

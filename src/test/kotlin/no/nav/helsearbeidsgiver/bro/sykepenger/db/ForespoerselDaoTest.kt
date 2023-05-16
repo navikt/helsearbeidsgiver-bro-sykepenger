@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.januar
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselUtenForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.nullableResult
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
@@ -161,7 +160,17 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
     }
 
     test("Lagre forespørsel uten forespurt data i databasen") {
-        val forespoersel = mockForespoerselUtenForespurtDataDto()
+        val forespoersel = mockForespoerselDto(forespurtData = null)
+
+        val id = forespoersel.lagreNotNull()
+        val lagretForespoersel = dataSource.hentForespoersel(id).shouldNotBeNull()
+
+        dataSource.antallForespoersler() shouldBeExactly 1
+        lagretForespoersel shouldBeEqualToComparingFields forespoersel
+    }
+
+    test("Lagre forespørsel uten skjæringstidspunkt i databasen") {
+        val forespoersel = mockForespoerselDto(skjæringstidspunkt = null)
 
         val id = forespoersel.lagreNotNull()
         val lagretForespoersel = dataSource.hentForespoersel(id).shouldNotBeNull()
