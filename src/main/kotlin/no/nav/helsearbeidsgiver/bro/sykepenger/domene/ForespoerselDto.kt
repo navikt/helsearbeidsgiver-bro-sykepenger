@@ -4,8 +4,8 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.LocalDateSerializer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID

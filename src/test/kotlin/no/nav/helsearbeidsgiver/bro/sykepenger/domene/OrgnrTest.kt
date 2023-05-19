@@ -8,9 +8,9 @@ import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.fromJson
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.parseJson
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJsonStr
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 
 class OrgnrTest : FunSpec({
     test("data serialiseres korrekt") {

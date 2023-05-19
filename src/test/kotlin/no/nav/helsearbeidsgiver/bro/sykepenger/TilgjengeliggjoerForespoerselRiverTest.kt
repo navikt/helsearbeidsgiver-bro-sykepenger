@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselUtenForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockJsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 
 class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
     val testRapid = TestRapid()

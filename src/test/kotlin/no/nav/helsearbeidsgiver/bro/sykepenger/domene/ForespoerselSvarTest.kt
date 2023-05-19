@@ -5,12 +5,12 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselSvarSuksess
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.removeJsonWhitespace
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.fromJson
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.parseJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJsonStr
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 
 class ForespoerselSvarTest : FunSpec({
     withData(

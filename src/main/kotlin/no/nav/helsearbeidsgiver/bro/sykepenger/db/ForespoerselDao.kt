@@ -10,19 +10,19 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.fromJson
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.list
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.listResult
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.nullableResult
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.parseJson
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJsonStr
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.updateAndReturnGeneratedKey
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.log.logger
 import java.util.UUID
 import javax.sql.DataSource
 
 class ForespoerselDao(private val dataSource: DataSource) {
-    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val logger = logger()
 
     fun lagre(forespoersel: ForespoerselDto): Long? {
         val felter = mapOf(

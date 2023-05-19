@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import java.util.UUID
 
 @Serializable

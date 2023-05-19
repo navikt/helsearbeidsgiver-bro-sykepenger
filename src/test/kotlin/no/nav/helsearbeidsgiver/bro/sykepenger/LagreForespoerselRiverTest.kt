@@ -24,9 +24,9 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselUtenForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.toKeyMap
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.list
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import no.nav.helsearbeidsgiver.utils.json.toJson
 
 class LagreForespoerselRiverTest : FunSpec({
     val testRapid = TestRapid()

@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.bro.sykepenger
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
+import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
@@ -16,27 +17,27 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.LocalDateSerializer
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.UuidSerializer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.fromJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifFalse
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifTrue
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.list
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.require
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.requireKeys
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.sikkerLogger
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class LagreForespoerselRiver(
     rapid: RapidsConnection,
     private val forespoerselDao: ForespoerselDao,
     private val priProducer: PriProducer
 ) : River.PacketListener {
-    private val logger = LoggerFactory.getLogger(this::class.java)
-    private val sikkerlogger = sikkerLogger()
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     init {
         River(rapid).apply {
@@ -61,7 +62,7 @@ class LagreForespoerselRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info("Mottok melding av type '${Spleis.Key.TYPE.fra(packet).fromJson(String.serializer())}'")
-        sikkerlogger.info("Mottok melding med innhold:\n${packet.toJson()}")
+        sikkerLogger.info("Mottok melding med innhold:\n${packet.toJson()}")
 
         val forespoersel = ForespoerselDto(
             forespoerselId = randomUuid(),
@@ -76,7 +77,7 @@ class LagreForespoerselRiver(
             type = Type.KOMPLETT
         )
 
-        sikkerlogger.info("Forespoersel lest: $forespoersel")
+        sikkerLogger.info("Forespoersel lest: $forespoersel")
 
         if (forespoersel.orgnr in Env.AllowList.organisasjoner) {
             forespoerselDao.lagre(forespoersel)
@@ -99,8 +100,15 @@ class LagreForespoerselRiver(
         } else {
             "Ignorerer mottatt forespørsel om inntektsmelding siden den gjelder organisasjon uten tillatelse til pilot.".let {
                 logger.info(it)
-                sikkerlogger.info("$it orgnr=${forespoersel.orgnr}")
+                sikkerLogger.info("$it orgnr=${forespoersel.orgnr}")
             }
+        }
+    }
+
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        "Innkommende melding har feil.".let {
+            logger.info("$it Se sikker logg for mer info.")
+            sikkerLogger.info("$it Detaljer:\n${problems.toExtendedReport()}")
         }
     }
 }

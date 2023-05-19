@@ -70,7 +70,7 @@ dependencies {
     val flywayCoreVersion: String by project
     val hikariVersion: String by project
     val kotestVersion: String by project
-    val kotlinSerializationVersion: String by project
+    val kotlinxSerializationVersion: String by project
     val kotliqueryVersion: String by project
     val logbackVersion: String by project
     val mockkVersion: String by project
@@ -78,12 +78,14 @@ dependencies {
     val rapidsAndRiversVersion: String by project
     val slf4jVersion: String by project
     val testcontainersPostgresqlVersion: String by project
+    val utilsVersion: String by project
 
     implementation("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
+    implementation("no.nav.helsearbeidsgiver:utils:$utilsVersion")
     implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
 

@@ -10,7 +10,7 @@ import io.mockk.verifySequence
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.keysAsString
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.toKeyMap
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata

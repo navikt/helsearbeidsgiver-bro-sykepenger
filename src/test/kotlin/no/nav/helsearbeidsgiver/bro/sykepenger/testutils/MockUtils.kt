@@ -16,9 +16,9 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.parseJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
 object MockUuid {
