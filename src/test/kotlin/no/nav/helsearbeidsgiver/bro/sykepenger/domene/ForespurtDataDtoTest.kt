@@ -7,11 +7,11 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespurtDataMedFastsattInntektListe
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.removeJsonWhitespace
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.fromJson
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.list
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.parseJson
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJsonStr
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 
 class ForespurtDataDtoTest : FunSpec({
     listOf(

@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import java.util.UUID
 
 @Serializable
@@ -25,7 +25,7 @@ data class ForespoerselSvar(
         val orgnr: Orgnr,
         val fnr: String,
         val sykmeldingsperioder: List<Periode>,
-        val forespurtData: List<ForespurtDataDto>
+        val forespurtData: List<ForespurtDataDto>?
     ) {
         constructor(forespoersel: ForespoerselDto) : this(
             orgnr = forespoersel.orgnr,

@@ -13,30 +13,31 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.LocalDateSerializer
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.UuidSerializer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.fromJson
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifFalse
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifTrue
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.list
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.require
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.requireKeys
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.sikkerLogger
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
+import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 
 class LagreForespoerselRiver(
     rapid: RapidsConnection,
     private val forespoerselDao: ForespoerselDao,
     private val priProducer: PriProducer
 ) : River.PacketListener {
-    private val logger = LoggerFactory.getLogger(this::class.java)
-    private val sikkerlogger = sikkerLogger()
+    private val logger = logger()
+    private val sikkerLogger = sikkerLogger()
 
     init {
         River(rapid).apply {
@@ -61,7 +62,7 @@ class LagreForespoerselRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info("Mottok melding av type '${Spleis.Key.TYPE.fra(packet).fromJson(String.serializer())}'")
-        sikkerlogger.info("Mottok melding med innhold:\n${packet.toJson()}")
+        sikkerLogger.info("Mottok melding med innhold:\n${packet.toJson()}")
 
         val forespoersel = ForespoerselDto(
             forespoerselId = randomUuid(),
@@ -72,10 +73,11 @@ class LagreForespoerselRiver(
             sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.fra(packet).fromJson(Periode.serializer().list()),
             forespurtData = Spleis.Key.FORESPURT_DATA.fra(packet).fromJson(ForespurtDataDto.serializer().list()),
             forespoerselBesvart = null,
-            status = Status.AKTIV
+            status = Status.AKTIV,
+            type = Type.KOMPLETT
         )
 
-        sikkerlogger.info("Forespoersel lest: $forespoersel")
+        sikkerLogger.info("Forespoersel lest: $forespoersel")
 
         if (forespoersel.orgnr in Env.AllowList.organisasjoner) {
             forespoerselDao.lagre(forespoersel)
@@ -98,7 +100,7 @@ class LagreForespoerselRiver(
         } else {
             "Ignorerer mottatt forespørsel om inntektsmelding siden den gjelder organisasjon uten tillatelse til pilot.".let {
                 logger.info(it)
-                sikkerlogger.info("$it orgnr=${forespoersel.orgnr}")
+                sikkerLogger.info("$it orgnr=${forespoersel.orgnr}")
             }
         }
     }
@@ -106,7 +108,7 @@ class LagreForespoerselRiver(
     override fun onError(problems: MessageProblems, context: MessageContext) {
         "Innkommende melding har feil.".let {
             logger.info("$it Se sikker logg for mer info.")
-            sikkerlogger.info("$it Detaljer:\n${problems.toExtendedReport()}")
+            sikkerLogger.info("$it Detaljer:\n${problems.toExtendedReport()}")
         }
     }
 }

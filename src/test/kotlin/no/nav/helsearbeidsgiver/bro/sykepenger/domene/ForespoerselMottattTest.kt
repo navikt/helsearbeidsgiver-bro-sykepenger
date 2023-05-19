@@ -5,10 +5,10 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselMottatt
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.removeJsonWhitespace
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.fromJson
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.parseJson
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJsonStr
+import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 
 class ForespoerselMottattTest : FunSpec({
     test("data serialiseres korrekt") {

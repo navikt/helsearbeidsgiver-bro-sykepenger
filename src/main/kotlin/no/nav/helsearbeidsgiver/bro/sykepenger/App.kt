@@ -6,10 +6,10 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.DataSourceBuilder
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
-import org.slf4j.LoggerFactory
+import no.nav.helsearbeidsgiver.utils.log.logger
 
 fun main() {
-    val broLogger = LoggerFactory.getLogger("BroLogger")
+    val broLogger = "BroLogger".logger()
     broLogger.info("Hello bro!")
 
     if (Env.AllowList.organisasjoner.isEmpty()) {
