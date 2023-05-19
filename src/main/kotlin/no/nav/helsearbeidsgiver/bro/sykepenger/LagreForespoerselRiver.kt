@@ -18,8 +18,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifFalse
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifTrue
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.require
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.requireKeys
@@ -30,6 +28,8 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
+import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 
 class LagreForespoerselRiver(
     rapid: RapidsConnection,

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.Key
+import no.nav.helsearbeidsgiver.utils.pipe.mapFirst
 
 fun JsonMessage.demandValues(vararg keyAndValuePairs: Pair<Key, String>) {
     keyAndValuePairs.map { it.mapFirst(Key::verdi) }
@@ -37,9 +38,3 @@ private fun JsonMessage.validate(
         }
     }
 }
-
-private fun <A, B, X> Pair<A, B>.mapFirst(mapFn: (A) -> X): Pair<X, B> =
-    Pair(
-        first = mapFn(first),
-        second = second
-    )
