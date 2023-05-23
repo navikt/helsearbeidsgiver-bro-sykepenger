@@ -2,40 +2,33 @@ package no.nav.helsearbeidsgiver.bro.sykepenger
 
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
-import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.LocalDateSerializer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.UuidSerializer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.fromJson
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifFalse
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.ifTrue
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.list
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.require
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.requireKeys
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.sikkerLogger
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJson
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 class LagreBegrensetForespoerselRiver(
     rapid: RapidsConnection,
-    private val forespoerselDao: ForespoerselDao,
-    private val priProducer: PriProducer
-) : River.PacketListener {
-    private val logger = LoggerFactory.getLogger(this::class.java)
-    private val sikkerlogger = sikkerLogger()
+    forespoerselDao: ForespoerselDao,
+    priProducer: PriProducer
+) : LagreForespoerselRiver(forespoerselDao, priProducer) {
+    override val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     init {
         River(rapid).apply {
@@ -56,48 +49,16 @@ class LagreBegrensetForespoerselRiver(
         }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Mottok melding av type '${Spleis.Key.TYPE.fra(packet).fromJson(String.serializer())}'")
-        sikkerlogger.info("Mottok melding med innhold:\n${packet.toJson()}")
-
-        val forespoersel = ForespoerselDto(
-            forespoerselId = randomUuid(),
-            orgnr = Spleis.Key.ORGANISASJONSNUMMER.fra(packet).fromJson(Orgnr.serializer()),
-            fnr = Spleis.Key.FØDSELSNUMMER.fra(packet).fromJson(String.serializer()),
-            vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.fra(packet).fromJson(UuidSerializer),
-            skjaeringstidspunkt = null,
-            sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.fra(packet).fromJson(Periode.serializer().list()),
-            forespurtData = null,
-            forespoerselBesvart = null,
-            status = Status.AKTIV,
-            type = Type.BEGRENSET
-        )
-
-        sikkerlogger.info("Forespoersel lest: $forespoersel")
-
-        if (forespoersel.orgnr in Env.AllowList.organisasjoner) {
-            forespoerselDao.lagre(forespoersel)
-                .let { id ->
-                    if (id != null) {
-                        logger.info("Forespørsel lagret med id=$id.")
-                    } else {
-                        logger.error("Forespørsel ble ikke lagret.")
-                    }
-                }
-
-            priProducer.send(
-                Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(Pri.NotisType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
-                Pri.Key.ORGNR to forespoersel.orgnr.toJson(Orgnr.serializer()),
-                Pri.Key.FNR to forespoersel.fnr.toJson()
-            )
-                .ifTrue { logger.info("Sa ifra om mottatt forespørsel til Simba.") }
-                .ifFalse { logger.error("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
-        } else {
-            "Ignorerer mottatt forespørsel om inntektsmelding siden den gjelder organisasjon uten tillatelse til pilot.".let {
-                logger.info(it)
-                sikkerlogger.info("$it orgnr=${forespoersel.orgnr}")
-            }
-        }
-    }
+    override fun lesForespoersel(packet: JsonMessage): ForespoerselDto = ForespoerselDto(
+        forespoerselId = randomUuid(),
+        orgnr = Spleis.Key.ORGANISASJONSNUMMER.fra(packet).fromJson(Orgnr.serializer()),
+        fnr = Spleis.Key.FØDSELSNUMMER.fra(packet).fromJson(String.serializer()),
+        vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.fra(packet).fromJson(UuidSerializer),
+        skjaeringstidspunkt = null,
+        sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.fra(packet).fromJson(Periode.serializer().list()),
+        forespurtData = null,
+        forespoerselBesvart = null,
+        status = Status.AKTIV,
+        type = Type.BEGRENSET
+    )
 }

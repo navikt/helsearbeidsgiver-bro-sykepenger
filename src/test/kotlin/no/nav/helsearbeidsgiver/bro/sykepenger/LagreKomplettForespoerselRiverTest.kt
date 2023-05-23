@@ -41,7 +41,7 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
 
     fun mockInnkommendeMelding(forespoersel: ForespoerselDto) {
         testRapid.sendJson(
-            Spleis.Key.TYPE to Spleis.Event.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER.toJson(Spleis.Event.serializer()),
+            Spleis.Key.TYPE to Spleis.Event.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER_KOMPLETT.toJson(Spleis.Event.serializer()),
             Spleis.Key.ORGANISASJONSNUMMER to forespoersel.orgnr.toJson(Orgnr.serializer()),
             Spleis.Key.FØDSELSNUMMER to forespoersel.fnr.toJson(),
             Spleis.Key.VEDTAKSPERIODE_ID to forespoersel.vedtaksperiodeId.toJson(),
