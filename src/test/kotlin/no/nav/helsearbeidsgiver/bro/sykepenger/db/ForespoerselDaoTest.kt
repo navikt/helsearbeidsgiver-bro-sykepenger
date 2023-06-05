@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
 import io.kotest.assertions.throwables.shouldThrowExactly
-import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -35,7 +34,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         val lagretForespoersel = dataSource.hentForespoersel(id).shouldNotBeNull()
 
         dataSource.antallForespoersler() shouldBeExactly 1
-        lagretForespoersel shouldBeEqualToComparingFields forespoersel
+        lagretForespoersel shouldBe forespoersel
     }
 
     test("Forkaster alle aktive forespørsler knyttet til en vedtaksperiodeId når ny forespørsel med lik vedtaksperiodeId mottas") {
@@ -80,7 +79,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
         val actualForespoersel = forespoerselDao.hentAktivForespoerselFor(forkastetForespoersel.forespoerselId).shouldNotBeNull()
 
-        actualForespoersel shouldBeEqualToComparingFields aktivForespoersel
+        actualForespoersel shouldBe aktivForespoersel
     }
 
     test("Skal returnere siste aktive forespørsel dersom det er flere (skal ikke skje)") {
@@ -102,7 +101,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
         val actualForespoersel = forespoerselDao.hentAktivForespoerselFor(gammelForespoersel.forespoerselId).shouldNotBeNull()
 
-        actualForespoersel shouldBeEqualToComparingFields nyForespoersel
+        actualForespoersel shouldBe nyForespoersel
     }
 
     test("Skal returnere 'null' dersom ingen matchende forespørsler finnes") {
@@ -167,7 +166,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         val lagretForespoersel = dataSource.hentForespoersel(id).shouldNotBeNull()
 
         dataSource.antallForespoersler() shouldBeExactly 1
-        lagretForespoersel shouldBeEqualToComparingFields forespoersel
+        lagretForespoersel shouldBe forespoersel
     }
 })
 
