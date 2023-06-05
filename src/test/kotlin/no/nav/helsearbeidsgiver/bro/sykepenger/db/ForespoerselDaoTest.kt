@@ -169,7 +169,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         val lagretForespoersel = dataSource.hentForespoersel(id).shouldNotBeNull()
 
         dataSource.antallForespoersler() shouldBeExactly 1
-        lagretForespoersel shouldBeEqualToComparingFields forespoersel
+        lagretForespoersel shouldBe forespoersel
     }
 
     test("Lagre forespørsel uten skjæringstidspunkt i databasen") {
