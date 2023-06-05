@@ -107,12 +107,7 @@ private fun List<ForespurtDataDto>.hardcodedJson(): String =
     joinToString(prefix = "[", postfix = "]") {
         when (it) {
             is ArbeidsgiverPeriode ->
-                """
-                {
-                    "opplysningstype": "Arbeidsgiverperiode",
-                    "forslag": [${it.forslag.joinToString(transform = Periode::hardcodedJson)}]
-                }
-                """
+                """{ "opplysningstype": "Arbeidsgiverperiode" }"""
             is Inntekt ->
                 """
                 {
@@ -151,7 +146,10 @@ private fun ForslagRefusjon.hardcodedJson(): String =
     """
     {
         "fom": "$fom",
-        "tom": "$tom",
-        "beløp": "$beløp"
+        "tom": ${tom.jsonStrOrNull()},
+        "beløp": $beløp
     }
     """
+
+private fun <T : Any> T?.jsonStrOrNull(): String? =
+    this?.let { "\"it\"" }
