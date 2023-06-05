@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.bro.sykepenger
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
+import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
@@ -12,10 +13,13 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
+import java.util.UUID
 
 sealed class LagreForespoerselRiver(
     private val forespoerselDao: ForespoerselDao,
@@ -23,13 +27,26 @@ sealed class LagreForespoerselRiver(
 ) : River.PacketListener {
     abstract val loggernaut: Loggernaut<*>
 
-    abstract fun lesForespoersel(packet: JsonMessage): ForespoerselDto
+    abstract fun lesForespoersel(forespoerselId: UUID, packet: JsonMessage): ForespoerselDto
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        loggernaut.aapen.info("Mottok melding av type '${Spleis.Key.TYPE.fra(packet).fromJson(String.serializer())}'")
-        loggernaut.sikker.info("Mottok melding med innhold:\n${packet.toJson()}")
+        val forespoerselId = randomUuid()
 
-        val forespoersel = lesForespoersel(packet)
+        MdcUtils.withLogFields(
+            "forespoerselId" to forespoerselId.toString()
+        ) {
+            runCatching {
+                packet.loesBehov(forespoerselId)
+            }
+                .onFailure(loggernaut::ukjentFeil)
+        }
+    }
+
+    private fun JsonMessage.loesBehov(forespoerselId: UUID) {
+        loggernaut.aapen.info("Mottok melding av type '${Spleis.Key.TYPE.fra(this).fromJson(String.serializer())}'")
+        loggernaut.sikker.info("Mottok melding med innhold:\n${toJson()}")
+
+        val forespoersel = lesForespoersel(forespoerselId, this)
         loggernaut.sikker.info("Forespoersel lest: $forespoersel")
 
         if (forespoersel.orgnr in Env.AllowList.organisasjoner) {
@@ -53,8 +70,14 @@ sealed class LagreForespoerselRiver(
         } else {
             "Ignorerer mottatt forespørsel om inntektsmelding siden den gjelder organisasjon uten tillatelse til pilot.".let {
                 loggernaut.aapen.info(it)
-                loggernaut.sikker.info("$it orgnr=${forespoersel.orgnr}")
+                MdcUtils.withLogFields("orgnr" to forespoersel.orgnr.verdi) {
+                    loggernaut.sikker.info(it)
+                }
             }
         }
+    }
+
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        loggernaut.innkommendeMeldingFeil(problems)
     }
 }

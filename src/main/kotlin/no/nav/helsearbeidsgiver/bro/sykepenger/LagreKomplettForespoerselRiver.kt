@@ -15,13 +15,13 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.require
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.requireKeys
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import java.util.UUID
 
 class LagreKomplettForespoerselRiver(
     rapid: RapidsConnection,
@@ -51,9 +51,9 @@ class LagreKomplettForespoerselRiver(
         }.register(this)
     }
 
-    override fun lesForespoersel(packet: JsonMessage): ForespoerselDto =
+    override fun lesForespoersel(forespoerselId: UUID, packet: JsonMessage): ForespoerselDto =
         ForespoerselDto(
-            forespoerselId = randomUuid(),
+            forespoerselId = forespoerselId,
             orgnr = Spleis.Key.ORGANISASJONSNUMMER.fra(packet).fromJson(Orgnr.serializer()),
             fnr = Spleis.Key.FØDSELSNUMMER.fra(packet).fromJson(String.serializer()),
             vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.fra(packet).fromJson(UuidSerializer),
