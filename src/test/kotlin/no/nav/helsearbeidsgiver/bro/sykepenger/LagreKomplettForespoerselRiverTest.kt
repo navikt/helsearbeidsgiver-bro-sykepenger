@@ -18,7 +18,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
@@ -56,7 +55,7 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
     }
 
     test("Innkommende forespørsel blir lagret og sender notifikasjon videre") {
-        val forespoersel = mockForespoerselDto(type = Type.KOMPLETT)
+        val forespoersel = mockForespoerselDto()
 
         mockkObject(Env) {
             every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns forespoersel.orgnr.verdi
@@ -88,7 +87,7 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
     }
 
     test("Filtrer ut innkommende forespørsel som gjelder organisasjon uten tillatelse til pilot") {
-        val forespoersel = mockForespoerselDto(type = Type.KOMPLETT)
+        val forespoersel = mockForespoerselDto()
 
         mockkObject(Env) {
             // Ikke tillat noen pilotorganisasjoner
@@ -108,7 +107,9 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
     }
 
     test("Filtrer ut innkommende forespørsel som ikke har forespurt data") {
-        val forespoersel = mockForespoerselDto(forespurtData = null, type = Type.KOMPLETT)
+        val forespoersel = mockForespoerselDto().copy(
+            forespurtData = null
+        )
 
         mockkObject(Env) {
             every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns forespoersel.orgnr.verdi

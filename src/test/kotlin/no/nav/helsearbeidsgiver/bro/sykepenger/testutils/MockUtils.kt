@@ -19,7 +19,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import java.time.LocalDate
 import java.util.UUID
 
 object MockUuid {
@@ -27,24 +26,20 @@ object MockUuid {
     val forespoerselId: UUID = "98765654-abcd-0123-abcd-012345678901".let(UUID::fromString)
 }
 
-fun mockForespoerselDto(
-    skjæringstidspunkt: LocalDate? = 15.januar,
-    forespurtData: List<ForespurtDataDto>? = mockForespurtDataListe(),
-    type: Type
-): ForespoerselDto =
+fun mockForespoerselDto(): ForespoerselDto =
     ForespoerselDto(
         forespoerselId = randomUuid(),
         orgnr = "123456789".let(::Orgnr),
         fnr = "123456789",
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
-        skjaeringstidspunkt = skjæringstidspunkt,
+        skjaeringstidspunkt = 15.januar,
         sykmeldingsperioder = listOf(
             Periode(1.januar, 10.januar),
             Periode(15.januar, 20.januar)
         ),
-        forespurtData = forespurtData,
+        forespurtData = mockForespurtDataListe(),
         forespoerselBesvart = null,
-        type = type,
+        type = Type.KOMPLETT,
         status = Status.AKTIV
     )
 

@@ -53,7 +53,11 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
     }
 
     test("Innkommende forespørsel blir lagret og sender notifikasjon videre") {
-        val forespoersel = mockForespoerselDto(null, null, Type.BEGRENSET)
+        val forespoersel = mockForespoerselDto().copy(
+            type = Type.BEGRENSET,
+            skjaeringstidspunkt = null,
+            forespurtData = null
+        )
 
         mockkObject(Env) {
             every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns forespoersel.orgnr.verdi
@@ -85,7 +89,11 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
     }
 
     test("Filtrer ut innkommende forespørsel som gjelder organisasjon uten tillatelse til pilot") {
-        val forespoersel = mockForespoerselDto(null, null, Type.BEGRENSET)
+        val forespoersel = mockForespoerselDto().copy(
+            type = Type.BEGRENSET,
+            skjaeringstidspunkt = null,
+            forespurtData = null
+        )
 
         mockkObject(Env) {
             // Ikke tillat noen pilotorganisasjoner

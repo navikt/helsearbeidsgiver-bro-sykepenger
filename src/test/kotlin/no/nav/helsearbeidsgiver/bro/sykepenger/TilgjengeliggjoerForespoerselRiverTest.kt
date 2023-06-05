@@ -28,7 +28,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
     }
 
     test("Ved innkommende event, svar ut korrekt ForespoerselSvar") {
-        val forespoersel = mockForespoerselDto(type = Type.KOMPLETT)
+        val forespoersel = mockForespoerselDto()
 
         every { mockForespoerselDao.hentAktivForespoerselFor(any()) } returns forespoersel
 
@@ -54,7 +54,11 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
     }
 
     test("Ved innkommende event, svar ut korrekt ForespoerselSvar uten forespurt data eller skjæringstidspunkt") {
-        val forespoersel = mockForespoerselDto(forespurtData = null, skjæringstidspunkt = null, type = Type.BEGRENSET)
+        val forespoersel = mockForespoerselDto().copy(
+            type = Type.BEGRENSET,
+            skjaeringstidspunkt = null,
+            forespurtData = null
+        )
 
         every { mockForespoerselDao.hentAktivForespoerselFor(any()) } returns forespoersel
 
@@ -82,7 +86,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
     test("Når forespørsel ikke finnes skal det sendes ForespoerselSvar med error") {
         every { mockForespoerselDao.hentAktivForespoerselFor(any()) } returns null
 
-        val forespoersel = mockForespoerselDto(type = Type.KOMPLETT)
+        val forespoersel = mockForespoerselDto()
         val expectedPublished = ForespoerselSvar(
             forespoerselId = forespoersel.forespoerselId,
             feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET,
