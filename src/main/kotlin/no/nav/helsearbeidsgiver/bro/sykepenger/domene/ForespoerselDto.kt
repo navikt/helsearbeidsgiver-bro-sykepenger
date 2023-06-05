@@ -33,23 +33,25 @@ enum class Status {
 
 enum class Type {
 
-    /* En komplett forespørsel tilhører en vanlig vedtaksperiode og kjenner til hvilke opplysninger vedtaksperioden trenger fra arbeidsgiver */
+    /** En komplett forespørsel tilhører en vanlig vedtaksperiode og kjenner til hvilke opplysninger vedtaksperioden trenger fra arbeidsgiver. */
     KOMPLETT,
 
-    /* En begrenset forespørsel tilhører en vedtaksperiode som ble sendt til Infotrygd før den fikk tilstrekkelig informasjon om opplysningene som trengs
-    *
-    * En begrenset forespørsel mangler:
-    *   - hvilke opplysninger vi trenger fra arbeidsgiver (forespurt data)
-    *   - skjæringstidspunkt
-    *   - andre sykmeldingsperioder enn den forkastede perioden som er knyttet til arbeidsgiverperioden
-    * */
+    /**
+     * En begrenset forespørsel tilhører en vedtaksperiode som ble sendt til Infotrygd før den fikk tilstrekkelig informasjon om opplysningene som trengs.
+     *
+     * En begrenset forespørsel mangler:
+     *   - hvilke opplysninger vi trenger fra arbeidsgiver (forespurt data)
+     *   - skjæringstidspunkt
+     *   - andre sykmeldingsperioder enn den forkastede perioden som er knyttet til arbeidsgiverperioden
+     */
     BEGRENSET,
 
-    /* En potensiell forespørsel er knyttet til en vedtaksperiode som er innenfor arbeidsgiverperioden
-
-    * Slike perioder trenger ingen arbeidsgiveropplysninger, men skal tillate å motta opplysninger fra arbeidsgiver
-    * fordi de kan ha opplysninger som gjør at perioden strekker seg forbi arbeidsgiverperioden
-    * */
+    /**
+     * En potensiell forespørsel er knyttet til en vedtaksperiode som er innenfor arbeidsgiverperioden.
+     *
+     * Slike perioder trenger ingen arbeidsgiveropplysninger, men skal tillate å motta opplysninger fra arbeidsgiver
+     * fordi de kan ha opplysninger som gjør at perioden strekker seg forbi arbeidsgiverperioden.
+     */
     POTENSIELL
 }
 
