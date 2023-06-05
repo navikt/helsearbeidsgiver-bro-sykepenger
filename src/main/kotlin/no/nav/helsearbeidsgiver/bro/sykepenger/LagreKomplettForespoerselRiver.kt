@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.require
@@ -21,15 +22,13 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 class LagreKomplettForespoerselRiver(
     rapid: RapidsConnection,
     forespoerselDao: ForespoerselDao,
     priProducer: PriProducer
 ) : LagreForespoerselRiver(forespoerselDao, priProducer) {
-    override val logger: Logger = LoggerFactory.getLogger(this::class.java)
+    override val loggernaut = Loggernaut(this)
 
     init {
         River(rapid).apply {

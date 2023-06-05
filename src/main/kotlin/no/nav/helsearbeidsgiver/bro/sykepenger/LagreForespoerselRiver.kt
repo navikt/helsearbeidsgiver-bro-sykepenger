@@ -11,36 +11,34 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
-import org.slf4j.Logger
 
 sealed class LagreForespoerselRiver(
     private val forespoerselDao: ForespoerselDao,
     private val priProducer: PriProducer
 ) : River.PacketListener {
-    abstract val logger: Logger
-    private val sikkerlogger = sikkerLogger()
+    abstract val loggernaut: Loggernaut<*>
 
     abstract fun lesForespoersel(packet: JsonMessage): ForespoerselDto
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logger.info("Mottok melding av type '${Spleis.Key.TYPE.fra(packet).fromJson(String.serializer())}'")
-        sikkerlogger.info("Mottok melding med innhold:\n${packet.toJson()}")
+        loggernaut.aapen.info("Mottok melding av type '${Spleis.Key.TYPE.fra(packet).fromJson(String.serializer())}'")
+        loggernaut.sikker.info("Mottok melding med innhold:\n${packet.toJson()}")
 
         val forespoersel = lesForespoersel(packet)
-        sikkerlogger.info("Forespoersel lest: $forespoersel")
+        loggernaut.sikker.info("Forespoersel lest: $forespoersel")
 
         if (forespoersel.orgnr in Env.AllowList.organisasjoner) {
             forespoerselDao.lagre(forespoersel)
                 .let { id ->
                     if (id != null) {
-                        logger.info("Forespørsel lagret med id=$id.")
+                        loggernaut.aapen.info("Forespørsel lagret med id=$id.")
                     } else {
-                        logger.error("Forespørsel ble ikke lagret.")
+                        loggernaut.aapen.error("Forespørsel ble ikke lagret.")
                     }
                 }
 
@@ -50,12 +48,12 @@ sealed class LagreForespoerselRiver(
                 Pri.Key.ORGNR to forespoersel.orgnr.toJson(Orgnr.serializer()),
                 Pri.Key.FNR to forespoersel.fnr.toJson()
             )
-                .ifTrue { logger.info("Sa ifra om mottatt forespørsel til Simba.") }
-                .ifFalse { logger.error("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
+                .ifTrue { loggernaut.aapen.info("Sa ifra om mottatt forespørsel til Simba.") }
+                .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
         } else {
             "Ignorerer mottatt forespørsel om inntektsmelding siden den gjelder organisasjon uten tillatelse til pilot.".let {
-                logger.info(it)
-                sikkerlogger.info("$it orgnr=${forespoersel.orgnr}")
+                loggernaut.aapen.info(it)
+                loggernaut.sikker.info("$it orgnr=${forespoersel.orgnr}")
             }
         }
     }
