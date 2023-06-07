@@ -34,9 +34,10 @@ fun mockForespoerselDto(): ForespoerselDto =
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
         skjaeringstidspunkt = 15.januar,
         sykmeldingsperioder = listOf(
-            Periode(1.januar, 10.januar),
+            Periode(2.januar, 10.januar),
             Periode(15.januar, 20.januar)
         ),
+        egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         forespurtData = mockForespurtDataListe(),
         forespoerselBesvart = null,
         type = Type.KOMPLETT,
@@ -51,9 +52,10 @@ fun mockForespoerselUtenForespurtDataDto(): ForespoerselDto =
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
         skjaeringstidspunkt = 15.januar,
         sykmeldingsperioder = listOf(
-            Periode(1.januar, 10.januar),
+            Periode(2.januar, 10.januar),
             Periode(15.januar, 20.januar)
         ),
+        egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         forespurtData = null,
         forespoerselBesvart = null,
         type = Type.KOMPLETT,

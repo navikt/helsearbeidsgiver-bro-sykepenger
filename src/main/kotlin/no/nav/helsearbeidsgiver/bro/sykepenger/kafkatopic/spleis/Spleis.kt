@@ -15,6 +15,7 @@ object Spleis {
         VEDTAKSPERIODE_ID("vedtaksperiodeId"),
         SKJÆRINGSTIDSPUNKT("skjæringstidspunkt"),
         SYKMELDINGSPERIODER("sykmeldingsperioder"),
+        EGENMELDINGSPERIODER("egenmeldingsperioder"),
         FOM("fom"),
         TOM("tom"),
         FORESPURT_DATA("forespurtData");

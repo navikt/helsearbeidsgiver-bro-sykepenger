@@ -17,6 +17,7 @@ data class ForespoerselDto(
     val vedtaksperiodeId: UUID,
     val skjaeringstidspunkt: LocalDate,
     val sykmeldingsperioder: List<Periode>,
+    val egenmeldingsperioder: List<Periode>,
     val forespurtData: List<ForespurtDataDto>?,
     val forespoerselBesvart: LocalDateTime?,
     val status: Status,

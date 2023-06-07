@@ -7,6 +7,7 @@ object Db {
     const val VEDTAKSPERIODE_ID = "vedtaksperiode_id"
     const val SKJAERINGSTIDSPUNKT = "skjaeringstidspunkt"
     const val SYKMELDINGSPERIODER = "sykmeldingsperioder"
+    const val EGENMELDINGSPERIODER = "egenmeldingsperioder"
     const val FORESPURT_DATA = "forespurt_data"
     const val FORESPOERSEL_BESVART = "forespoersel_besvart"
     const val STATUS = "status"

@@ -47,6 +47,7 @@ class LagreForespoerselRiverTest : FunSpec({
             Spleis.Key.VEDTAKSPERIODE_ID to forespoersel.vedtaksperiodeId.toJson(),
             Spleis.Key.SKJÆRINGSTIDSPUNKT to forespoersel.skjaeringstidspunkt.toJson(),
             Spleis.Key.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJson(Periode.serializer().list()),
+            Spleis.Key.EGENMELDINGSPERIODER to forespoersel.egenmeldingsperioder.toJson(Periode.serializer().list()),
             Spleis.Key.FORESPURT_DATA to forespoersel.forespurtData?.toJson(ForespurtDataDto.serializer().list())
         )
     }
