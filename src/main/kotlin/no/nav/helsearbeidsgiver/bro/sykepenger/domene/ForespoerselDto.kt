@@ -18,7 +18,7 @@ data class ForespoerselDto(
     val skjaeringstidspunkt: LocalDate,
     val sykmeldingsperioder: List<Periode>,
     val egenmeldingsperioder: List<Periode>,
-    val forespurtData: List<ForespurtDataDto>?,
+    val forespurtData: List<ForespurtDataDto>,
     val forespoerselBesvart: LocalDateTime?,
     val status: Status,
     val type: Type,

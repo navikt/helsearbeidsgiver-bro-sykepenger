@@ -21,7 +21,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselUtenForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.toKeyMap
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
@@ -94,25 +93,6 @@ class LagreForespoerselRiverTest : FunSpec({
         mockkObject(Env) {
             // Ikke tillat noen pilotorganisasjoner
             every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns ""
-
-            mockkStatic(::randomUuid) {
-                every { randomUuid() } returns forespoersel.forespoerselId
-
-                mockInnkommendeMelding(forespoersel)
-            }
-        }
-
-        verify {
-            mockForespoerselDao wasNot Called
-            mockPriProducer wasNot Called
-        }
-    }
-
-    test("Filtrer ut innkommende forespørsel som ikke har forespurt data") {
-        val forespoersel = mockForespoerselUtenForespurtDataDto()
-
-        mockkObject(Env) {
-            every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns forespoersel.orgnr.verdi
 
             mockkStatic(::randomUuid) {
                 every { randomUuid() } returns forespoersel.forespoerselId
