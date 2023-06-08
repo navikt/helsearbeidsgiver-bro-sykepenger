@@ -87,7 +87,8 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
     ForespoerselSvar.Suksess(
         orgnr = "569046822".let(::Orgnr),
         fnr = "abc",
-        sykmeldingsperioder = listOf(Periode(1.januar, 16.januar)),
+        sykmeldingsperioder = listOf(Periode(2.januar, 16.januar)),
+        egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         forespurtData = mockForespurtDataListe()
     )
 
