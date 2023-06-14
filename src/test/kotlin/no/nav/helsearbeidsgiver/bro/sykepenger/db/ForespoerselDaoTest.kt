@@ -10,8 +10,10 @@ import kotliquery.sessionOf
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type.BEGRENSET
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.januar
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockBegrensetForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.nullableResult
@@ -156,6 +158,32 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         val id3 = id2 + 1
 
         dataSource.hentForespoersel(id3).shouldBeNull()
+    }
+
+    test("Lagre forespørsel med begrenset forespurt data i databasen") {
+        val forespoersel = mockForespoerselDto().copy(
+            type = BEGRENSET,
+            forespurtData = mockBegrensetForespurtDataListe()
+        )
+
+        val id = forespoersel.lagreNotNull()
+        val lagretForespoersel = dataSource.hentForespoersel(id).shouldNotBeNull()
+
+        dataSource.antallForespoersler() shouldBeExactly 1
+        lagretForespoersel shouldBe forespoersel
+    }
+
+    test("Lagre forespørsel uten skjæringstidspunkt i databasen") {
+        val forespoersel = mockForespoerselDto().copy(
+            type = BEGRENSET,
+            skjaeringstidspunkt = null
+        )
+
+        val id = forespoersel.lagreNotNull()
+        val lagretForespoersel = dataSource.hentForespoersel(id).shouldNotBeNull()
+
+        dataSource.antallForespoersler() shouldBeExactly 1
+        lagretForespoersel shouldBe forespoersel
     }
 })
 

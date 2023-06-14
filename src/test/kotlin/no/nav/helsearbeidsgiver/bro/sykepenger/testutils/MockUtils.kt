@@ -63,6 +63,13 @@ fun mockForespurtDataListe(): List<ForespurtDataDto> =
         )
     )
 
+fun mockBegrensetForespurtDataListe(): List<ForespurtDataDto> =
+    listOf(
+        ArbeidsgiverPeriode,
+        Inntekt(forslag = ForslagInntekt(beregningsmåneder = emptyList())),
+        Refusjon(forslag = emptyList())
+    )
+
 fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtDataDto> =
     listOf(
         ArbeidsgiverPeriode,

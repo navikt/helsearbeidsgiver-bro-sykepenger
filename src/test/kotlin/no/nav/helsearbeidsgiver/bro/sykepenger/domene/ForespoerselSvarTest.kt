@@ -100,7 +100,7 @@ private fun ForespoerselSvar.Suksess.hardcodedJson(): String =
         "fnr": "$fnr",
         "sykmeldingsperioder": [${sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
         "egenmeldingsperioder": [${egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
-        "forespurtData": ${forespurtData!!.hardcodedJson()}
+        "forespurtData": ${forespurtData.hardcodedJson()}
     }
     """.removeJsonWhitespace()
 

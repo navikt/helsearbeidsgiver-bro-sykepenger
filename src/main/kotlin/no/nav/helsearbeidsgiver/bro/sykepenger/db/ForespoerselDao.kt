@@ -40,7 +40,7 @@ class ForespoerselDao(private val dataSource: DataSource) {
         val jsonFelter = mapOf(
             Db.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJsonStr(Periode.serializer().list()),
             Db.EGENMELDINGSPERIODER to forespoersel.egenmeldingsperioder.toJsonStr(Periode.serializer().list()),
-            Db.FORESPURT_DATA to forespoersel.forespurtData?.toJsonStr(ForespurtDataDto.serializer().list())
+            Db.FORESPURT_DATA to forespoersel.forespurtData.toJsonStr(ForespurtDataDto.serializer().list())
         )
 
         val kolonnenavn = (felter + jsonFelter).keys.joinToString()
@@ -106,9 +106,9 @@ fun Row.toForespoerselDto(): ForespoerselDto =
         orgnr = Db.ORGNR.let(::string).let(::Orgnr),
         fnr = Db.FNR.let(::string),
         vedtaksperiodeId = Db.VEDTAKSPERIODE_ID.let(::uuid),
-        skjaeringstidspunkt = Db.SKJAERINGSTIDSPUNKT.let(::localDate),
         sykmeldingsperioder = Db.SYKMELDINGSPERIODER.let(::string).fromJson(Periode.serializer().list()),
         egenmeldingsperioder = Db.EGENMELDINGSPERIODER.let(::string).fromJson(Periode.serializer().list()),
+        skjaeringstidspunkt = Db.SKJAERINGSTIDSPUNKT.let(::localDateOrNull),
         forespurtData = Db.FORESPURT_DATA.let(::string).fromJson(ForespurtDataDto.serializer().list()),
         forespoerselBesvart = Db.FORESPOERSEL_BESVART.let(::localDateTimeOrNull),
         status = Db.STATUS.let(::string).let(Status::valueOf),

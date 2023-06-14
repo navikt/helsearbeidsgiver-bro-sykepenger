@@ -15,7 +15,7 @@ data class ForespoerselDto(
     val orgnr: Orgnr,
     val fnr: String,
     val vedtaksperiodeId: UUID,
-    val skjaeringstidspunkt: LocalDate,
+    val skjaeringstidspunkt: LocalDate?,
     val sykmeldingsperioder: List<Periode>,
     val egenmeldingsperioder: List<Periode>,
     val forespurtData: List<ForespurtDataDto>,
@@ -33,8 +33,25 @@ enum class Status {
 }
 
 enum class Type {
+
+    /** En komplett forespørsel tilhører en vanlig vedtaksperiode og kjenner til hvilke opplysninger vedtaksperioden trenger fra arbeidsgiver. */
     KOMPLETT,
+
+    /**
+     * En begrenset forespørsel tilhører en vedtaksperiode som ble sendt til Infotrygd før den fikk tilstrekkelig informasjon om opplysningene som trengs.
+     *
+     * En begrenset forespørsel:
+     *   - ber alltid om Inntekt, Refusjon og Arbeidsgiverperiode og sender aldri med forslag til hva disse skal være (forespurt data)
+     *   - mangler skjæringstidspunkt
+     */
     BEGRENSET,
+
+    /**
+     * En potensiell forespørsel er knyttet til en vedtaksperiode som er innenfor arbeidsgiverperioden.
+     *
+     * Slike perioder trenger ingen arbeidsgiveropplysninger, men skal tillate å motta opplysninger fra arbeidsgiver
+     * fordi de kan ha opplysninger som gjør at perioden strekker seg forbi arbeidsgiverperioden.
+     */
     POTENSIELL
 }
 
