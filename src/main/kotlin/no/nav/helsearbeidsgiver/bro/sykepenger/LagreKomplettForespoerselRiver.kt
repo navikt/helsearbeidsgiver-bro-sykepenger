@@ -40,6 +40,12 @@ class LagreKomplettForespoerselRiver(
                         Spleis.Key.TOM to { it.fromJson(LocalDateSerializer) }
                     )
                 }
+                msg.requireArray(Spleis.Key.EGENMELDINGSPERIODER.verdi) {
+                    require(
+                        Spleis.Key.FOM to { it.fromJson(LocalDateSerializer) },
+                        Spleis.Key.TOM to { it.fromJson(LocalDateSerializer) }
+                    )
+                }
                 msg.requireKeys(
                     Spleis.Key.ORGANISASJONSNUMMER,
                     Spleis.Key.FØDSELSNUMMER,
@@ -59,6 +65,7 @@ class LagreKomplettForespoerselRiver(
             vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.fra(packet).fromJson(UuidSerializer),
             skjaeringstidspunkt = Spleis.Key.SKJÆRINGSTIDSPUNKT.fra(packet).fromJson(LocalDateSerializer),
             sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.fra(packet).fromJson(Periode.serializer().list()),
+            egenmeldingsperioder = Spleis.Key.EGENMELDINGSPERIODER.fra(packet).fromJson(Periode.serializer().list()),
             forespurtData = Spleis.Key.FORESPURT_DATA.fra(packet).fromJson(ForespurtDataDto.serializer().list()),
             forespoerselBesvart = null,
             status = Status.AKTIV,

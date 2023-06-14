@@ -34,9 +34,10 @@ fun mockForespoerselDto(): ForespoerselDto =
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
         skjaeringstidspunkt = 15.januar,
         sykmeldingsperioder = listOf(
-            Periode(1.januar, 10.januar),
+            Periode(2.januar, 10.januar),
             Periode(15.januar, 20.januar)
         ),
+        egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         forespurtData = mockForespurtDataListe(),
         forespoerselBesvart = null,
         type = Type.KOMPLETT,
@@ -93,7 +94,8 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
     ForespoerselSvar.Suksess(
         orgnr = "569046822".let(::Orgnr),
         fnr = "abc",
-        sykmeldingsperioder = listOf(Periode(1.januar, 16.januar)),
+        sykmeldingsperioder = listOf(Periode(2.januar, 16.januar)),
+        egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         forespurtData = mockForespurtDataListe()
     )
 

@@ -1,1 +1,0 @@
-ALTER TABLE forespoersel ALTER COLUMN skjaeringstidspunkt DROP NOT NULL; -- kan man ha en contstrain som sier den ikke kan være null hvis type = KOMPLETT?

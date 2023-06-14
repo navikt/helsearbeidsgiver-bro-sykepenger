@@ -59,6 +59,7 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
         val forespoersel = mockForespoerselDto().copy(
             type = Type.BEGRENSET,
             skjaeringstidspunkt = null,
+            egenmeldingsperioder = emptyList(),
             forespurtData = mockBegrensetForespurtDataListe()
         )
 
@@ -77,7 +78,6 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
             orgnr = forespoersel.orgnr,
             fnr = forespoersel.fnr
         )
-
         verifySequence {
             mockForespoerselDao.lagre(
                 withArg {

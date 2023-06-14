@@ -70,7 +70,7 @@ sealed class LagreForespoerselRiver(
         } else {
             "Ignorerer mottatt forespørsel om inntektsmelding siden den gjelder organisasjon uten tillatelse til pilot.".let {
                 loggernaut.aapen.info(it)
-                MdcUtils.withLogFields("orgnr" to forespoersel.orgnr.verdi) {
+                MdcUtils.withLogFields(Pri.Key.ORGNR.verdi to forespoersel.orgnr.verdi) {
                     loggernaut.sikker.info(it)
                 }
             }

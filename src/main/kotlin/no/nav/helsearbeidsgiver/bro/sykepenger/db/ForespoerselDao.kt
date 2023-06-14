@@ -14,7 +14,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.listResult
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.nullableResult
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.updateAndReturnGeneratedKey
 import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -40,7 +39,8 @@ class ForespoerselDao(private val dataSource: DataSource) {
 
         val jsonFelter = mapOf(
             Db.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJsonStr(Periode.serializer().list()),
-            Db.FORESPURT_DATA to forespoersel.forespurtData?.toJsonStr(ForespurtDataDto.serializer().list())
+            Db.EGENMELDINGSPERIODER to forespoersel.egenmeldingsperioder.toJsonStr(Periode.serializer().list()),
+            Db.FORESPURT_DATA to forespoersel.forespurtData.toJsonStr(ForespurtDataDto.serializer().list())
         )
 
         val kolonnenavn = (felter + jsonFelter).keys.joinToString()
@@ -106,9 +106,10 @@ fun Row.toForespoerselDto(): ForespoerselDto =
         orgnr = Db.ORGNR.let(::string).let(::Orgnr),
         fnr = Db.FNR.let(::string),
         vedtaksperiodeId = Db.VEDTAKSPERIODE_ID.let(::uuid),
+        sykmeldingsperioder = Db.SYKMELDINGSPERIODER.let(::string).fromJson(Periode.serializer().list()),
+        egenmeldingsperioder = Db.EGENMELDINGSPERIODER.let(::string).fromJson(Periode.serializer().list()),
         skjaeringstidspunkt = Db.SKJAERINGSTIDSPUNKT.let(::localDateOrNull),
-        sykmeldingsperioder = Db.SYKMELDINGSPERIODER.let(::string).parseJson().fromJson(Periode.serializer().list()),
-        forespurtData = Db.FORESPURT_DATA.let(::string).parseJson().fromJson(ForespurtDataDto.serializer().list()),
+        forespurtData = Db.FORESPURT_DATA.let(::string).fromJson(ForespurtDataDto.serializer().list()),
         forespoerselBesvart = Db.FORESPOERSEL_BESVART.let(::localDateTimeOrNull),
         status = Db.STATUS.let(::string).let(Status::valueOf),
         type = Db.TYPE.let(::string).let(Type::valueOf),

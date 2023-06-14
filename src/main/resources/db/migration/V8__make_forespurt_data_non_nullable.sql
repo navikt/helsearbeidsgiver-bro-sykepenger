@@ -1,0 +1,1 @@
+ALTER TABLE forespoersel ALTER COLUMN forespurt_data SET NOT NULL;
