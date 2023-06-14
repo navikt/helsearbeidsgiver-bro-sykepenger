@@ -17,7 +17,7 @@ data class ForespoerselDto(
     val vedtaksperiodeId: UUID,
     val skjaeringstidspunkt: LocalDate?,
     val sykmeldingsperioder: List<Periode>,
-    val forespurtData: List<ForespurtDataDto>?,
+    val forespurtData: List<ForespurtDataDto>,
     val forespoerselBesvart: LocalDateTime?,
     val status: Status,
     val type: Type,
@@ -39,10 +39,9 @@ enum class Type {
     /**
      * En begrenset forespørsel tilhører en vedtaksperiode som ble sendt til Infotrygd før den fikk tilstrekkelig informasjon om opplysningene som trengs.
      *
-     * En begrenset forespørsel mangler:
-     *   - hvilke opplysninger vi trenger fra arbeidsgiver (forespurt data)
-     *   - skjæringstidspunkt
-     *   - andre sykmeldingsperioder enn den forkastede perioden som er knyttet til arbeidsgiverperioden
+     * En begrenset forespørsel:
+     *   - ber alltid om Inntekt, Refusjon og Arbeidsgiverperiode og sender aldri med forslag til hva disse skal være (forespurt data)
+     *   - mangler skjæringstidspunkt
      */
     BEGRENSET,
 

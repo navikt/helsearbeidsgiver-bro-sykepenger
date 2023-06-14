@@ -23,17 +23,12 @@ fun main() {
 
     val rapid = RapidApplication.create(System.getenv())
 
-    LagreKomplettForespoerselRiver(
-        rapid = rapid,
-        forespoerselDao = forespoerselDao,
-        priProducer = priProducer
-    )
+    LagreKomplettForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
 
-    TilgjengeliggjoerForespoerselRiver(
-        rapid = rapid,
-        forespoerselDao = forespoerselDao,
-        priProducer = priProducer
-    )
+    TilgjengeliggjoerForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
+
+    // Denne skal ikke registreres før portalen er klar for å vise begrensede forespørsler
+    // LagreBegrensetForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
 
     rapid.registerDatasource(dataSourceBuilder, dataSource)
 

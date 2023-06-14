@@ -15,11 +15,13 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.Env.fromEnv
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockBegrensetForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.toKeyMap
@@ -44,7 +46,8 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
             Spleis.Key.ORGANISASJONSNUMMER to forespoersel.orgnr.toJson(Orgnr.serializer()),
             Spleis.Key.FØDSELSNUMMER to forespoersel.fnr.toJson(),
             Spleis.Key.VEDTAKSPERIODE_ID to forespoersel.vedtaksperiodeId.toJson(),
-            Spleis.Key.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJson(Periode.serializer().list())
+            Spleis.Key.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJson(Periode.serializer().list()),
+            Spleis.Key.FORESPURT_DATA to forespoersel.forespurtData.toJson(ForespurtDataDto.serializer().list())
         )
     }
 
@@ -56,7 +59,7 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
         val forespoersel = mockForespoerselDto().copy(
             type = Type.BEGRENSET,
             skjaeringstidspunkt = null,
-            forespurtData = null
+            forespurtData = mockBegrensetForespurtDataListe()
         )
 
         mockkObject(Env) {
@@ -92,7 +95,7 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
         val forespoersel = mockForespoerselDto().copy(
             type = Type.BEGRENSET,
             skjaeringstidspunkt = null,
-            forespurtData = null
+            forespurtData = mockBegrensetForespurtDataListe()
         )
 
         mockkObject(Env) {

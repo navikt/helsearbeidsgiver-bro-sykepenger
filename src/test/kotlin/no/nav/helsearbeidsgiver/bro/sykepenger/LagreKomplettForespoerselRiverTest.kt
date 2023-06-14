@@ -46,7 +46,7 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
             Spleis.Key.VEDTAKSPERIODE_ID to forespoersel.vedtaksperiodeId.toJson(),
             Spleis.Key.SKJÆRINGSTIDSPUNKT to forespoersel.skjaeringstidspunkt?.toJson(),
             Spleis.Key.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJson(Periode.serializer().list()),
-            Spleis.Key.FORESPURT_DATA to forespoersel.forespurtData?.toJson(ForespurtDataDto.serializer().list())
+            Spleis.Key.FORESPURT_DATA to forespoersel.forespurtData.toJson(ForespurtDataDto.serializer().list())
         )
     }
 
@@ -92,27 +92,6 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
         mockkObject(Env) {
             // Ikke tillat noen pilotorganisasjoner
             every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns ""
-
-            mockkStatic(::randomUuid) {
-                every { randomUuid() } returns forespoersel.forespoerselId
-
-                mockInnkommendeMelding(forespoersel)
-            }
-        }
-
-        verify {
-            mockForespoerselDao wasNot Called
-            mockPriProducer wasNot Called
-        }
-    }
-
-    test("Filtrer ut innkommende forespørsel som ikke har forespurt data") {
-        val forespoersel = mockForespoerselDto().copy(
-            forespurtData = null
-        )
-
-        mockkObject(Env) {
-            every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns forespoersel.orgnr.verdi
 
             mockkStatic(::randomUuid) {
                 every { randomUuid() } returns forespoersel.forespoerselId

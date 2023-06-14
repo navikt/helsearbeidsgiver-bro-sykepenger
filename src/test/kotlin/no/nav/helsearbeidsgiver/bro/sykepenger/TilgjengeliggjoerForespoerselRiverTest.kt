@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockBegrensetForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockJsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
@@ -53,11 +54,11 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         }
     }
 
-    test("Ved innkommende event, svar ut korrekt ForespoerselSvar uten forespurt data eller skjæringstidspunkt") {
+    test("Ved innkommende event, svar ut korrekt ForespoerselSvar med begrenset forespurtData og uten skjæringstidspunkt") {
         val forespoersel = mockForespoerselDto().copy(
             type = Type.BEGRENSET,
             skjaeringstidspunkt = null,
-            forespurtData = null
+            forespurtData = mockBegrensetForespurtDataListe()
         )
 
         every { mockForespoerselDao.hentAktivForespoerselFor(any()) } returns forespoersel

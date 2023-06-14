@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type.BEGRENSET
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.januar
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockBegrensetForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.nullableResult
@@ -159,10 +160,10 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         dataSource.hentForespoersel(id3).shouldBeNull()
     }
 
-    test("Lagre forespørsel uten forespurt data i databasen") {
+    test("Lagre forespørsel med begrenset forespurt data i databasen") {
         val forespoersel = mockForespoerselDto().copy(
             type = BEGRENSET,
-            forespurtData = null
+            forespurtData = mockBegrensetForespurtDataListe()
         )
 
         val id = forespoersel.lagreNotNull()
