@@ -76,6 +76,10 @@ class ForespoerselDao(private val dataSource: DataSource) {
                 session = session
             )
 
+    internal fun oppdaterStatus(vedtaksperiodeId: UUID, besvart: Status) {
+        TODO("Not yet implemented")
+    }
+
     fun hentAktivForespoerselFor(forespoerselId: UUID): ForespoerselDto? =
         hentVedtaksperiodeId(forespoerselId)
             ?.let { vedtaksperiodeId ->

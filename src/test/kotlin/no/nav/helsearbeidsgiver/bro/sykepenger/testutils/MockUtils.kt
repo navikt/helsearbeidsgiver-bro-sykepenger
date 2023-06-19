@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Inntekt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.InntektsmeldingHaandtertDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
@@ -97,6 +98,12 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
         sykmeldingsperioder = listOf(Periode(2.januar, 16.januar)),
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         forespurtData = mockForespurtDataListe()
+    )
+
+fun mockInntektsmeldingHaandtertDto(): InntektsmeldingHaandtertDto =
+    InntektsmeldingHaandtertDto(
+        vedtaksperiodeId = MockUuid.vedtaksperiodeId,
+        orgnr = "287429436".let(::Orgnr)
     )
 
 fun mockJsonElement(): JsonElement =
