@@ -39,6 +39,7 @@ sealed class LagreForespoerselRiver(
                 packet.loesBehov(forespoerselId)
             }
                 .onFailure(loggernaut::ukjentFeil)
+                .getOrThrow()
         }
     }
 
