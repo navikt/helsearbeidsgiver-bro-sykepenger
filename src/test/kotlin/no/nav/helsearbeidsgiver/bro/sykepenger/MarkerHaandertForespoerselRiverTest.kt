@@ -51,7 +51,7 @@ class MarkerHaandertForespoerselRiverTest : FunSpec({
             vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId
         )
         verifySequence {
-            mockForespoerselDao.oppdaterStatus(expectedPublished.vedtaksperiodeId, Status.BESVART)
+            mockForespoerselDao.oppdaterStatusForAktiveForespoersler(expectedPublished.vedtaksperiodeId, Status.BESVART)
         }
     }
 })

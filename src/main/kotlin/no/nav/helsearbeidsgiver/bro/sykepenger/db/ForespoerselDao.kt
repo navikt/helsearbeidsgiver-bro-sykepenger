@@ -76,9 +76,19 @@ class ForespoerselDao(private val dataSource: DataSource) {
                 session = session
             )
 
-    internal fun oppdaterStatus(vedtaksperiodeId: UUID, besvart: Status) {
-        TODO("Not yet implemented")
-    }
+    internal fun oppdaterStatusForAktiveForespoersler(vedtaksperiodeId: UUID, status: Status): Boolean =
+        sessionOf(dataSource = dataSource).use {
+                session ->
+            "UPDATE forespoersel SET ${Db.STATUS}=:nyStatus WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS}=:gammelStatus"
+                .execute(
+                    params = mapOf(
+                        "vedtaksperiodeId" to vedtaksperiodeId,
+                        "nyStatus" to status.name,
+                        "gammelStatus" to Status.AKTIV.name
+                    ),
+                    session = session
+                )
+        }
 
     fun hentAktivForespoerselFor(forespoerselId: UUID): ForespoerselDto? =
         hentVedtaksperiodeId(forespoerselId)

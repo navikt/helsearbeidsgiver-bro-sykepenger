@@ -40,7 +40,7 @@ internal class MarkerHaandertForespoerselRiver(
         )
         if (inntektsmeldingHaandtert.orgnr in Env.AllowList.organisasjoner) {
             // 1. markere forespørsel besvart
-            forespoerselDao.oppdaterStatus(inntektsmeldingHaandtert.vedtaksperiodeId, Status.BESVART)
+            forespoerselDao.oppdaterStatusForAktiveForespoersler(inntektsmeldingHaandtert.vedtaksperiodeId, Status.BESVART)
 
             // 2. lagre en noe metadata
 

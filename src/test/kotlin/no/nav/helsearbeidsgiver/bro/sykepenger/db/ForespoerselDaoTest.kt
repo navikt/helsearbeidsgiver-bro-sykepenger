@@ -185,6 +185,16 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         dataSource.antallForespoersler() shouldBeExactly 1
         lagretForespoersel shouldBe forespoersel
     }
+
+    test("Oppdatere status for aktive forespørsel") {
+        val id1 = mockForespoerselDto().lagreNotNull()
+        val id2 = mockForespoerselDto().lagreNotNull()
+
+        forespoerselDao.oppdaterStatusForAktiveForespoersler(MockUuid.vedtaksperiodeId, Status.BESVART)
+
+        dataSource.hentForespoersel(id1)?.status shouldBe Status.FORKASTET
+        dataSource.hentForespoersel(id2)?.status shouldBe Status.BESVART
+    }
 })
 
 private fun DataSource.hentForespoersel(id: Long): ForespoerselDto? =
