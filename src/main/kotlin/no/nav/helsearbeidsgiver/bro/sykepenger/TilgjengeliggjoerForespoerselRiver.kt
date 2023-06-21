@@ -7,7 +7,10 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagRefusjon
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
@@ -19,6 +22,7 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import java.time.LocalDate
 import java.util.UUID
 
 /* Tilgjengeliggjør hvilke data spleis forespør fra arbeidsgiver */
@@ -67,6 +71,8 @@ class TilgjengeliggjoerForespoerselRiver(
         )
             .let {
                 val forespoersel = forespoerselDao.hentAktivForespoerselFor(it.forespoerselId)
+                    ?.medEksplisitteRefusjonsforslag()
+
                 if (forespoersel != null) {
                     loggernaut.aapen.info("Forespørsel funnet.")
                     it.copy(resultat = ForespoerselSvar.Suksess(forespoersel))
@@ -87,4 +93,70 @@ class TilgjengeliggjoerForespoerselRiver(
     override fun onError(problems: MessageProblems, context: MessageContext) {
         loggernaut.innkommendeMeldingFeil(problems)
     }
+
+    private fun ForespoerselDto.medEksplisitteRefusjonsforslag(): ForespoerselDto {
+        val nyForespoersel = forespurtData.map { forespurtElement ->
+            if (forespurtElement is Refusjon) {
+                forespurtElement.forslag
+                    .sortedBy { it.fom }
+                    .medEksplisitteTilDatoer()
+                    .medEksplisitteRefusjonsopphold()
+                    .let(::Refusjon)
+            } else {
+                forespurtElement
+            }
+        }
+            .let {
+                copy(forespurtData = it)
+            }
+
+        if (refusjonsforslag().isNotEmpty() && refusjonsforslag().size != nyForespoersel.refusjonsforslag().size) {
+            loggernaut.sikker.info("Refusjonsforslag endret fra ${refusjonsforslag()} til ${nyForespoersel.refusjonsforslag()}.")
+        }
+
+        return nyForespoersel
+    }
 }
+
+private fun List<ForslagRefusjon>.medEksplisitteTilDatoer(): List<ForslagRefusjon> =
+    mapWithNext { current, next ->
+        if (current.tom != null || next == null) {
+            current
+        } else {
+            current.copy(
+                tom = next.fom.minusDays(1)
+            )
+        }
+    }
+
+private fun List<ForslagRefusjon>.medEksplisitteRefusjonsopphold(): List<ForslagRefusjon> =
+    mapWithNext { current, next ->
+        if (current.tom == null || next == null || current.tom.isDayBefore(next.fom)) {
+            listOf(current)
+        } else {
+            listOf(
+                current,
+                ForslagRefusjon(
+                    fom = current.tom.plusDays(1),
+                    tom = next.fom.minusDays(1),
+                    beløp = 0.0
+                )
+            )
+        }
+    }
+        .flatten()
+
+private fun LocalDate.isDayBefore(other: LocalDate): Boolean =
+    this == other.minusDays(1)
+
+private fun ForespoerselDto.refusjonsforslag(): List<ForslagRefusjon> =
+    forespurtData.filterIsInstance<Refusjon>().firstOrNull()?.forslag.orEmpty()
+
+private fun <T : Any, R : Any> List<T>.mapWithNext(transform: (T, T?) -> R): List<R> =
+    windowed(size = 2, partialWindows = true)
+        .map {
+            val current = it[0]
+            val next = it.getOrNull(1)
+
+            transform(current, next)
+        }
