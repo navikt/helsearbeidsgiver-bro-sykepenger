@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.InntektsmeldingHaandtertDt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.RefusjonPeriode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
@@ -58,8 +59,11 @@ fun mockForespurtDataListe(): List<ForespurtDataDto> =
             )
         ),
         Refusjon(
-            forslag = listOf(
-                ForslagRefusjon(17.mai, null, 13.37)
+            forslag = ForslagRefusjon(
+                perioder = listOf(
+                    RefusjonPeriode(17.mai, 13.37)
+                ),
+                opphoersdato = null
             )
         )
     )
@@ -68,7 +72,12 @@ fun mockBegrensetForespurtDataListe(): List<ForespurtDataDto> =
     listOf(
         ArbeidsgiverPeriode,
         Inntekt(forslag = ForslagInntekt(beregningsmåneder = emptyList())),
-        Refusjon(forslag = emptyList())
+        Refusjon(
+            forslag = ForslagRefusjon(
+                perioder = emptyList(),
+                opphoersdato = null
+            )
+        )
     )
 
 fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtDataDto> =
@@ -78,8 +87,11 @@ fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtDataDto> =
             fastsattInntekt = 31415.92
         ),
         Refusjon(
-            listOf(
-                ForslagRefusjon(1.januar, null, 31415.92)
+            forslag = ForslagRefusjon(
+                perioder = listOf(
+                    RefusjonPeriode(1.januar, 31415.92)
+                ),
+                opphoersdato = null
             )
         )
     )

@@ -31,7 +31,11 @@ data class FastsattInntekt(val fastsattInntekt: Double) : ForespurtDataDto()
 
 @Serializable
 @SerialName("Refusjon")
-data class Refusjon(val forslag: List<ForslagRefusjon>) : ForespurtDataDto()
+data class Refusjon(val forslag: ForslagRefusjon) : ForespurtDataDto()
+
+@Serializable
+@SerialName("SpleisRefusjon")
+data class SpleisRefusjon(val forslag: List<SpleisForslagRefusjon>) : ForespurtDataDto()
 
 @Serializable
 data class ForslagInntekt(
@@ -40,6 +44,18 @@ data class ForslagInntekt(
 
 @Serializable
 data class ForslagRefusjon(
+    val perioder: List<RefusjonPeriode>,
+    val opphoersdato: LocalDate?
+)
+
+@Serializable
+data class RefusjonPeriode(
+    val fom: LocalDate,
+    val beloep: Double
+)
+
+@Serializable
+data class SpleisForslagRefusjon(
     val fom: LocalDate,
     val tom: LocalDate?,
     val beløp: Double

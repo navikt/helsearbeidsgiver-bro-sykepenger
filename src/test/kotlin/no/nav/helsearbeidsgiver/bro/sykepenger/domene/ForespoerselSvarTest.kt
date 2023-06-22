@@ -129,9 +129,11 @@ private fun List<ForespurtDataDto>.hardcodedJson(): String =
                 """
                 {
                     "opplysningstype": "Refusjon", 
-                    "forslag": [${it.forslag.joinToString(transform = ForslagRefusjon::hardcodedJson)}]
+                    "forslag": [${it.forslag.hardcodedJson()}]
                 }
                 """
+            is SpleisRefusjon ->
+                throw IllegalArgumentException("Type skal ikke brukes i ForespoerselSvar.")
         }
     }
 
@@ -146,9 +148,16 @@ private fun Periode.hardcodedJson(): String =
 private fun ForslagRefusjon.hardcodedJson(): String =
     """
     {
+        "perioder": ${perioder.joinToString(transform = RefusjonPeriode::hardcodedJson)},
+        "opphoersdato": ${opphoersdato.jsonStrOrNull()}
+    }
+    """
+
+private fun RefusjonPeriode.hardcodedJson(): String =
+    """
+    {
         "fom": "$fom",
-        "tom": ${tom.jsonStrOrNull()},
-        "beløp": $beløp
+        "beloep": $beloep
     }
     """
 
