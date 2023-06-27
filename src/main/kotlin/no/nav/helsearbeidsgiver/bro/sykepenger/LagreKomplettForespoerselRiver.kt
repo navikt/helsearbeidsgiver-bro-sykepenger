@@ -69,6 +69,7 @@ class LagreKomplettForespoerselRiver(
             forespurtData = Spleis.Key.FORESPURT_DATA.fra(packet).fromJson(ForespurtDataDto.serializer().list()),
             forespoerselBesvart = null,
             status = Status.AKTIV,
-            type = Type.KOMPLETT
+            type = Type.KOMPLETT,
+            dokumentId = null
         )
 }

@@ -61,6 +61,7 @@ class LagreBegrensetForespoerselRiver(
         forespurtData = Spleis.Key.FORESPURT_DATA.fra(packet).fromJson(ForespurtDataDto.serializer().list()),
         forespoerselBesvart = null,
         status = Status.AKTIV,
-        type = Type.BEGRENSET
+        type = Type.BEGRENSET,
+        dokumentId = null
     )
 }

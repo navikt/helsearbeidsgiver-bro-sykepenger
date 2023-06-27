@@ -21,6 +21,7 @@ data class ForespoerselDto(
     val forespurtData: List<ForespurtDataDto>,
     val forespoerselBesvart: LocalDateTime?,
     val status: Status,
+    val dokumentId: UUID?,
     val type: Type,
     val opprettet: LocalDateTime = LocalDateTime.now().truncMillis(),
     val oppdatert: LocalDateTime = LocalDateTime.now().truncMillis()

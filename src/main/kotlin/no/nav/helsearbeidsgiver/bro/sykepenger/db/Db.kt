@@ -12,6 +12,7 @@ object Db {
     const val FORESPOERSEL_BESVART = "forespoersel_besvart"
     const val STATUS = "status"
     const val TYPE = "type"
+    const val DOKUMENT_ID = "dokument_id"
     const val OPPRETTET = "opprettet"
     const val OPPDATERT = "oppdatert"
 }

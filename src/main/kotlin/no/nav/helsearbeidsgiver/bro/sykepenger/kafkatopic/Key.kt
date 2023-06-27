@@ -7,6 +7,8 @@ interface Key {
     val verdi: String
 
     fun fra(message: JsonMessage): JsonElement
+
+    fun fraEllerNull(message: JsonMessage): JsonElement?
 }
 
 fun <K : Key, V : Any> Map<K, V>.keysAsString(): Map<String, V> =

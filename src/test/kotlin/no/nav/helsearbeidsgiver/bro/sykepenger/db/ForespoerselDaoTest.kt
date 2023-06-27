@@ -186,14 +186,23 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         lagretForespoersel shouldBe forespoersel
     }
 
-    test("Oppdatere status for aktive forespørsel") {
+    test("Oppdatere status, dokumentId og forespørselBesvart for aktive forespørsel") {
         val id1 = mockForespoerselDto().lagreNotNull()
         val id2 = mockForespoerselDto().lagreNotNull()
+        val forespoerselBesvart = LocalDateTime.now()
 
-        forespoerselDao.oppdaterStatusForAktiveForespoersler(MockUuid.vedtaksperiodeId, Status.BESVART)
+        forespoerselDao.oppdaterAktiveForespoerslerSomErBesvart(MockUuid.vedtaksperiodeId, Status.BESVART, forespoerselBesvart, MockUuid.dokumentId)
 
-        dataSource.hentForespoersel(id1)?.status shouldBe Status.FORKASTET
-        dataSource.hentForespoersel(id2)?.status shouldBe Status.BESVART
+        val forespoersel1 = dataSource.hentForespoersel(id1)
+        val forespoersel2 = dataSource.hentForespoersel(id2)
+
+        forespoersel1?.status shouldBe Status.FORKASTET
+        forespoersel1?.dokumentId shouldBe null
+        forespoersel1?.forespoerselBesvart shouldBe null
+
+        forespoersel2?.status shouldBe Status.BESVART
+        forespoersel2?.dokumentId shouldBe MockUuid.dokumentId
+        forespoersel2?.forespoerselBesvart shouldBe forespoerselBesvart
     }
 })
 

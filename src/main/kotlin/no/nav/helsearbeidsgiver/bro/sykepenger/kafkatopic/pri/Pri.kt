@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJsonElement
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJsonElementOrNull
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.Key as TopicKey
 
 object Pri {
@@ -26,6 +27,9 @@ object Pri {
 
         override fun fra(message: JsonMessage): JsonElement =
             message[verdi].toJsonElement()
+
+        override fun fraEllerNull(message: JsonMessage): JsonElement? =
+            message[verdi].toJsonElementOrNull()
     }
 
     @Serializable

@@ -17,6 +17,7 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.logger
+import java.time.LocalDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -76,16 +77,21 @@ class ForespoerselDao(private val dataSource: DataSource) {
                 session = session
             )
 
-    internal fun oppdaterStatusForAktiveForespoersler(vedtaksperiodeId: UUID, status: Status): Boolean =
+    internal fun oppdaterAktiveForespoerslerSomErBesvart(vedtaksperiodeId: UUID, status: Status, besvart: LocalDateTime, dokumentId: UUID?): Boolean =
         sessionOf(dataSource = dataSource).use {
                 session ->
-            "UPDATE forespoersel SET ${Db.STATUS}=:nyStatus WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS}=:gammelStatus"
+            (
+                "UPDATE forespoersel " +
+                    "SET ${Db.STATUS}=:nyStatus, ${Db.FORESPOERSEL_BESVART}=:besvart, ${Db.DOKUMENT_ID}=:dokumentId " +
+                    "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS}=:gammelStatus"
+                )
                 .execute(
-                    params = mapOf(
+                    params = mutableMapOf(
                         "vedtaksperiodeId" to vedtaksperiodeId,
                         "nyStatus" to status.name,
-                        "gammelStatus" to Status.AKTIV.name
-                    ),
+                        "gammelStatus" to Status.AKTIV.name,
+                        "besvart" to besvart
+                    ).also { if (dokumentId != null) it["dokumentId"] = dokumentId },
                     session = session
                 )
         }
@@ -128,5 +134,6 @@ fun Row.toForespoerselDto(): ForespoerselDto =
         status = Db.STATUS.let(::string).let(Status::valueOf),
         type = Db.TYPE.let(::string).let(Type::valueOf),
         opprettet = Db.OPPRETTET.let(::localDateTime),
-        oppdatert = Db.OPPDATERT.let(::localDateTime)
+        oppdatert = Db.OPPDATERT.let(::localDateTime),
+        dokumentId = Db.DOKUMENT_ID.let(::uuidOrNull)
     )
