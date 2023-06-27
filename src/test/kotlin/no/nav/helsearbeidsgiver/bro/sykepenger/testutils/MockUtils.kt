@@ -25,6 +25,7 @@ import java.util.UUID
 object MockUuid {
     val vedtaksperiodeId: UUID = "01234567-abcd-0123-abcd-012345678901".let(UUID::fromString)
     val forespoerselId: UUID = "98765654-abcd-0123-abcd-012345678901".let(UUID::fromString)
+    val dokumentId: UUID = "22efb342-3e72-4880-a449-eb1efcf0f18b".let(UUID::fromString)
 }
 
 fun mockForespoerselDto(): ForespoerselDto =
@@ -102,8 +103,10 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
 
 fun mockInntektsmeldingHaandtertDto(): InntektsmeldingHaandtertDto =
     InntektsmeldingHaandtertDto(
+        orgnr = "287429436".let(::Orgnr),
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
-        orgnr = "287429436".let(::Orgnr)
+        dokumentId = MockUuid.dokumentId,
+        fnr = "fnr"
     )
 
 fun mockJsonElement(): JsonElement =

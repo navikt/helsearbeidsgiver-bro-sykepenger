@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
+import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -27,7 +28,9 @@ internal class MarkerHaandertForespoerselRiver(
                 msg.demandValues(Spleis.Key.TYPE to Spleis.Event.INNTEKTSMELDING_HÅNDTERT.name)
                 msg.requireKeys(
                     Spleis.Key.ORGANISASJONSNUMMER,
-                    Spleis.Key.VEDTAKSPERIODE_ID
+                    Spleis.Key.FØDSELSNUMMER,
+                    Spleis.Key.VEDTAKSPERIODE_ID,
+                    Spleis.Key.DOKUMENT_ID
                 )
             }
         }.register(this)
@@ -36,7 +39,9 @@ internal class MarkerHaandertForespoerselRiver(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val inntektsmeldingHaandtert = InntektsmeldingHaandtertDto(
             orgnr = Spleis.Key.ORGANISASJONSNUMMER.fra(packet).fromJson(Orgnr.serializer()),
-            vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.fra(packet).fromJson(UuidSerializer)
+            fnr = Spleis.Key.FØDSELSNUMMER.fra(packet).fromJson(String.serializer()),
+            vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.fra(packet).fromJson(UuidSerializer),
+            dokumentId = Spleis.Key.DOKUMENT_ID.fra(packet).fromJson(UuidSerializer)
         )
         if (inntektsmeldingHaandtert.orgnr in Env.AllowList.organisasjoner) {
             // 1. markere forespørsel besvart

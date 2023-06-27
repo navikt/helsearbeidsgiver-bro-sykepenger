@@ -6,6 +6,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.verifySequence
+import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.bro.sykepenger.Env.fromEnv
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
@@ -30,7 +31,9 @@ class MarkerHaandertForespoerselRiverTest : FunSpec({
         testRapid.sendJson(
             Spleis.Key.TYPE to Spleis.Event.INNTEKTSMELDING_HÅNDTERT.toJson(Spleis.Event.serializer()),
             Spleis.Key.ORGANISASJONSNUMMER to inntektsmeldingHaandtert.orgnr.toJson(Orgnr.serializer()),
-            Spleis.Key.VEDTAKSPERIODE_ID to inntektsmeldingHaandtert.vedtaksperiodeId.toJson()
+            Spleis.Key.FØDSELSNUMMER to inntektsmeldingHaandtert.fnr.toJson(String.serializer()),
+            Spleis.Key.VEDTAKSPERIODE_ID to inntektsmeldingHaandtert.vedtaksperiodeId.toJson(),
+            Spleis.Key.DOKUMENT_ID to inntektsmeldingHaandtert.dokumentId?.toJson()
         )
     }
 
@@ -48,7 +51,9 @@ class MarkerHaandertForespoerselRiverTest : FunSpec({
 
         val expectedPublished = InntektsmeldingHaandtertDto(
             orgnr = inntektsmeldingHaandtert.orgnr,
-            vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId
+            fnr = inntektsmeldingHaandtert.fnr,
+            vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId,
+            dokumentId = inntektsmeldingHaandtert.dokumentId
         )
         verifySequence {
             mockForespoerselDao.oppdaterStatusForAktiveForespoersler(expectedPublished.vedtaksperiodeId, Status.BESVART)

@@ -18,7 +18,8 @@ object Spleis {
         EGENMELDINGSPERIODER("egenmeldingsperioder"),
         FOM("fom"),
         TOM("tom"),
-        FORESPURT_DATA("forespurtData");
+        FORESPURT_DATA("forespurtData"),
+        DOKUMENT_ID("dokumentId");
 
         override fun toString(): String =
             verdi
