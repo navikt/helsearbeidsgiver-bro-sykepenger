@@ -67,9 +67,8 @@ class LagreKomplettForespoerselRiver(
             sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.fra(packet).fromJson(Periode.serializer().list()),
             egenmeldingsperioder = Spleis.Key.EGENMELDINGSPERIODER.fra(packet).fromJson(Periode.serializer().list()),
             forespurtData = Spleis.Key.FORESPURT_DATA.fra(packet).fromJson(SpleisForespurtDataDto.serializer().list()),
-            forespoerselBesvart = null,
             status = Status.AKTIV,
             type = Type.KOMPLETT,
-            dokumentId = null
+            besvarelse = null
         )
 }

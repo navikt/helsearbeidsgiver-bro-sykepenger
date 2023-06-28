@@ -18,7 +18,7 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 
-internal class MarkerHaandertForespoerselRiver(
+internal class MarkerBesvartForespoerselRiver(
     rapid: RapidsConnection,
     private val forespoerselDao: ForespoerselDao
 ) : River.PacketListener {
@@ -43,17 +43,17 @@ internal class MarkerHaandertForespoerselRiver(
         loggernaut.aapen.info("Mottok melding på arbeidsgiveropplysninger-topic av type '${Spleis.Key.TYPE.fra(packet).fromJson(String.serializer())}'.")
         loggernaut.sikker.info("Mottok melding på arbeidsgiveropplysninger-topic med innhold:\n${packet.toJson()}")
 
-        val dokumentId = Spleis.Key.DOKUMENT_ID.fraEllerNull(packet)?.fromJson(UuidSerializer)
+        val inntektsmeldingId = Spleis.Key.DOKUMENT_ID.fraEllerNull(packet)?.fromJson(UuidSerializer)
         val inntektsmeldingHaandtert = InntektsmeldingHaandtertDto(
             orgnr = Spleis.Key.ORGANISASJONSNUMMER.fra(packet).fromJson(Orgnr.serializer()),
-            vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.fra(packet).fromJson(UuidSerializer),
             fnr = Spleis.Key.FØDSELSNUMMER.fra(packet).fromJson(String.serializer()),
-            dokumentId = dokumentId,
-            opprettet = Spleis.Key.OPPRETTET.fra(packet).fromJson(LocalDateTimeSerializer)
+            vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.fra(packet).fromJson(UuidSerializer),
+            inntektsmeldingId = inntektsmeldingId,
+            haandtert = Spleis.Key.OPPRETTET.fra(packet).fromJson(LocalDateTimeSerializer)
         )
 
         if (inntektsmeldingHaandtert.orgnr in Env.AllowList.organisasjoner) {
-            forespoerselDao.oppdaterAktiveForespoerslerSomErBesvart(inntektsmeldingHaandtert.vedtaksperiodeId, Status.BESVART, inntektsmeldingHaandtert.opprettet, dokumentId)
+            forespoerselDao.oppdaterForespoerslerSomBesvart(inntektsmeldingHaandtert.vedtaksperiodeId, Status.BESVART, inntektsmeldingHaandtert.haandtert, inntektsmeldingId)
 
             loggernaut.aapen.info("Oppdaterte forespørselstatus til besvart")
             loggernaut.sikker.info("Oppdaterte forespørselstatus til besvart:\n${packet.toJson()}")

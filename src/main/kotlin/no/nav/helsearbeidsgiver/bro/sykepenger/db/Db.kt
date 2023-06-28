@@ -1,7 +1,9 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
 object Db {
+    const val ID = "id"
     const val FORESPOERSEL_ID = "forespoersel_id"
+    const val FK_FORESPOERSEL_ID = "fk_forespoersel_id"
     const val ORGNR = "orgnr"
     const val FNR = "fnr"
     const val VEDTAKSPERIODE_ID = "vedtaksperiode_id"
@@ -12,7 +14,7 @@ object Db {
     const val FORESPOERSEL_BESVART = "forespoersel_besvart"
     const val STATUS = "status"
     const val TYPE = "type"
-    const val DOKUMENT_ID = "dokument_id"
+    const val INNTEKTSMELDING_ID = "inntektsmelding_id"
     const val OPPRETTET = "opprettet"
     const val OPPDATERT = "oppdatert"
 }

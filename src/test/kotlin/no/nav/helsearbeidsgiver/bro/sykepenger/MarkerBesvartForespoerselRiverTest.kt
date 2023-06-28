@@ -20,11 +20,11 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.time.LocalDateTime
 
-class MarkerHaandertForespoerselRiverTest : FunSpec({
+class MarkerBesvartForespoerselRiverTest : FunSpec({
     val testRapid = TestRapid()
     val mockForespoerselDao = mockk<ForespoerselDao>(relaxed = true)
 
-    MarkerHaandertForespoerselRiver(
+    MarkerBesvartForespoerselRiver(
         rapid = testRapid,
         forespoerselDao = mockForespoerselDao
     )
@@ -35,8 +35,8 @@ class MarkerHaandertForespoerselRiverTest : FunSpec({
             Spleis.Key.ORGANISASJONSNUMMER to inntektsmeldingHaandtert.orgnr.toJson(Orgnr.serializer()),
             Spleis.Key.FØDSELSNUMMER to inntektsmeldingHaandtert.fnr.toJson(String.serializer()),
             Spleis.Key.VEDTAKSPERIODE_ID to inntektsmeldingHaandtert.vedtaksperiodeId.toJson(),
-            Spleis.Key.DOKUMENT_ID to inntektsmeldingHaandtert.dokumentId?.toJson(),
-            Spleis.Key.OPPRETTET to inntektsmeldingHaandtert.opprettet.toJson()
+            Spleis.Key.DOKUMENT_ID to inntektsmeldingHaandtert.inntektsmeldingId?.toJson(),
+            Spleis.Key.OPPRETTET to inntektsmeldingHaandtert.haandtert.toJson()
         )
     }
 
@@ -45,7 +45,7 @@ class MarkerHaandertForespoerselRiverTest : FunSpec({
     }
 
     test("Innkommende event oppdaterer aktive forespørsler som er besvart") {
-        val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = MockUuid.dokumentId)
+        val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = MockUuid.inntektsmeldingId)
 
         mockkObject(Env) {
             every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns inntektsmeldingHaandtert.orgnr.verdi
@@ -54,13 +54,13 @@ class MarkerHaandertForespoerselRiverTest : FunSpec({
 
         val expectedPublished = InntektsmeldingHaandtertDto(
             orgnr = inntektsmeldingHaandtert.orgnr,
-            vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId,
             fnr = inntektsmeldingHaandtert.fnr,
-            dokumentId = inntektsmeldingHaandtert.dokumentId,
-            opprettet = LocalDateTime.MAX
+            vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId,
+            inntektsmeldingId = inntektsmeldingHaandtert.inntektsmeldingId,
+            haandtert = LocalDateTime.MAX
         )
         verifySequence {
-            mockForespoerselDao.oppdaterAktiveForespoerslerSomErBesvart(expectedPublished.vedtaksperiodeId, Status.BESVART, expectedPublished.opprettet, expectedPublished.dokumentId)
+            mockForespoerselDao.oppdaterForespoerslerSomBesvart(expectedPublished.vedtaksperiodeId, Status.BESVART, expectedPublished.haandtert, expectedPublished.inntektsmeldingId)
         }
     }
 
@@ -74,13 +74,17 @@ class MarkerHaandertForespoerselRiverTest : FunSpec({
 
         val expectedPublished = InntektsmeldingHaandtertDto(
             orgnr = inntektsmeldingHaandtert.orgnr,
-            vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId,
             fnr = inntektsmeldingHaandtert.fnr,
-            dokumentId = inntektsmeldingHaandtert.dokumentId,
-            opprettet = LocalDateTime.MAX
+            vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId,
+            inntektsmeldingId = inntektsmeldingHaandtert.inntektsmeldingId,
+            haandtert = LocalDateTime.MAX
         )
         verifySequence {
-            mockForespoerselDao.oppdaterAktiveForespoerslerSomErBesvart(expectedPublished.vedtaksperiodeId, Status.BESVART, LocalDateTime.MAX, expectedPublished.dokumentId)
+            mockForespoerselDao.oppdaterForespoerslerSomBesvart(expectedPublished.vedtaksperiodeId, Status.BESVART, LocalDateTime.MAX, expectedPublished.inntektsmeldingId)
         }
+    }
+
+    test("Skal ikke sende ut event om å slette oppgave for forespørsler som allerede er besvart") {
+        // TODO
     }
 })
