@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.db
 import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.sessionOf
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.BesvarelseMetadataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
@@ -17,12 +18,14 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.log.logger
+import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import java.time.LocalDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
 class ForespoerselDao(private val dataSource: DataSource) {
     private val logger = logger()
+    private val sikkerlogg = sikkerLogger()
 
     fun lagre(forespoersel: ForespoerselDto): Long? {
         val felter = mapOf(
@@ -31,7 +34,6 @@ class ForespoerselDao(private val dataSource: DataSource) {
             Db.FNR to forespoersel.fnr,
             Db.VEDTAKSPERIODE_ID to forespoersel.vedtaksperiodeId,
             Db.SKJAERINGSTIDSPUNKT to forespoersel.skjaeringstidspunkt,
-            Db.FORESPOERSEL_BESVART to null,
             Db.STATUS to forespoersel.status.name,
             Db.TYPE to forespoersel.type.name,
             Db.OPPRETTET to forespoersel.opprettet,
@@ -77,29 +79,58 @@ class ForespoerselDao(private val dataSource: DataSource) {
                 session = session
             )
 
-    internal fun oppdaterAktiveForespoerslerSomErBesvart(vedtaksperiodeId: UUID, status: Status, besvart: LocalDateTime, dokumentId: UUID?): Boolean =
-        sessionOf(dataSource = dataSource).use {
-                session ->
-            (
-                "UPDATE forespoersel " +
-                    "SET ${Db.STATUS}=:nyStatus, ${Db.FORESPOERSEL_BESVART}=:besvart, ${Db.DOKUMENT_ID}=:dokumentId " +
-                    "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS}=:gammelStatus"
-                )
-                .execute(
-                    params = mutableMapOf(
-                        "vedtaksperiodeId" to vedtaksperiodeId,
-                        "nyStatus" to status.name,
-                        "gammelStatus" to Status.AKTIV.name,
-                        "besvart" to besvart
-                    ).also { if (dokumentId != null) it["dokumentId"] = dokumentId },
-                    session = session
-                )
+    internal fun oppdaterForespoerslerSomBesvart(vedtaksperiodeId: UUID, status: Status, besvart: LocalDateTime, inntektsmeldingId: UUID?) =
+        sessionOf(dataSource = dataSource).use { session ->
+            session.transaction {
+                val oppdaterteForespoersler = updateStatus(it, vedtaksperiodeId, status)
+                if (oppdaterteForespoersler.size > 1) {
+                    logger.error("Fant to aktive forespørsler for samme vedtaksperiode, det skal ikke skje. Sjekk sikkerlogg for mer info")
+                    sikkerlogg.error("Fant to aktive forespørsler for samme vedtaksperiode med id-er: $oppdaterteForespoersler. Det skal ikke skje.")
+                }
+                oppdaterteForespoersler.forEach { id ->
+                    insertOrUpdateBesvarelse(it, id, besvart, inntektsmeldingId)
+                }
+            }
         }
+
+    private fun updateStatus(session: TransactionalSession, vedtaksperiodeId: UUID, status: Status) =
+        (
+            "UPDATE forespoersel " +
+                "SET ${Db.STATUS}=:nyStatus " +
+                "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS} in ('${Status.AKTIV.name}', '${Status.BESVART.name}')" +
+                "RETURNING id"
+            )
+            .listResult(
+                params = mutableMapOf(
+                    "vedtaksperiodeId" to vedtaksperiodeId,
+                    "nyStatus" to status.name
+                ),
+                session = session,
+                transform = Row::toId
+            )
+
+    private fun insertOrUpdateBesvarelse(session: TransactionalSession, forespoerselId: Long, forespoerselBesvart: LocalDateTime, inntektsmeldingId: UUID?): Boolean =
+        (
+            "INSERT INTO besvarelse_metadata(${Db.FK_FORESPOERSEL_ID}, ${Db.FORESPOERSEL_BESVART}, ${Db.INNTEKTSMELDING_ID}) " +
+                "VALUES(:forespoerselId, :forespoerselBesvart, :inntektsmeldingId) " +
+                "ON CONFLICT (fk_forespoersel_id) DO UPDATE SET ${Db.FORESPOERSEL_BESVART}=:forespoerselBesvart, ${Db.INNTEKTSMELDING_ID}=:inntektsmeldingId"
+            )
+            .execute(
+                params = mutableMapOf(
+                    "forespoerselId" to forespoerselId,
+                    "forespoerselBesvart" to forespoerselBesvart
+                ).also { if (inntektsmeldingId != null) it["inntektsmeldingId"] = inntektsmeldingId },
+                session = session
+            )
 
     fun hentAktivForespoerselFor(forespoerselId: UUID): ForespoerselDto? =
         hentVedtaksperiodeId(forespoerselId)
             ?.let { vedtaksperiodeId ->
-                "SELECT * FROM forespoersel WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS}='AKTIV'"
+                (
+                    "SELECT * FROM forespoersel f " +
+                        "LEFT JOIN besvarelse_metadata b ON f.id=b.fk_forespoersel_id " +
+                        "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS}='AKTIV'"
+                    )
                     .listResult(
                         params = mapOf("vedtaksperiodeId" to vedtaksperiodeId),
                         dataSource = dataSource,
@@ -130,10 +161,18 @@ fun Row.toForespoerselDto(): ForespoerselDto =
         egenmeldingsperioder = Db.EGENMELDINGSPERIODER.let(::string).fromJson(Periode.serializer().list()),
         skjaeringstidspunkt = Db.SKJAERINGSTIDSPUNKT.let(::localDateOrNull),
         forespurtData = Db.FORESPURT_DATA.let(::string).fromJson(SpleisForespurtDataDto.serializer().list()),
-        forespoerselBesvart = Db.FORESPOERSEL_BESVART.let(::localDateTimeOrNull),
         status = Db.STATUS.let(::string).let(Status::valueOf),
         type = Db.TYPE.let(::string).let(Type::valueOf),
+        besvarelse = toBesvarelseMetadataDto(),
         opprettet = Db.OPPRETTET.let(::localDateTime),
-        oppdatert = Db.OPPDATERT.let(::localDateTime),
-        dokumentId = Db.DOKUMENT_ID.let(::uuidOrNull)
+        oppdatert = Db.OPPDATERT.let(::localDateTime)
     )
+
+fun Row.toBesvarelseMetadataDto(): BesvarelseMetadataDto? {
+    val forespoerselBesvart = Db.FORESPOERSEL_BESVART.let(::localDateTimeOrNull)
+    val inntektsmeldingId = Db.INNTEKTSMELDING_ID.let(::uuidOrNull)
+    return forespoerselBesvart?.let { BesvarelseMetadataDto(forespoerselBesvart, inntektsmeldingId) }
+}
+fun Row.toId(): Long {
+    return Db.ID.let(::long)
+}

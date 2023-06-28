@@ -59,9 +59,8 @@ class LagreBegrensetForespoerselRiver(
         sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.fra(packet).fromJson(Periode.serializer().list()),
         egenmeldingsperioder = emptyList(),
         forespurtData = Spleis.Key.FORESPURT_DATA.fra(packet).fromJson(SpleisForespurtDataDto.serializer().list()),
-        forespoerselBesvart = null,
         status = Status.AKTIV,
-        type = Type.BEGRENSET,
-        dokumentId = null
+        besvarelse = null,
+        type = Type.BEGRENSET
     )
 }

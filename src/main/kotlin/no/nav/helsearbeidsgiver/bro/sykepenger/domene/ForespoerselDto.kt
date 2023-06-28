@@ -19,12 +19,16 @@ data class ForespoerselDto(
     val sykmeldingsperioder: List<Periode>,
     val egenmeldingsperioder: List<Periode>,
     val forespurtData: List<SpleisForespurtDataDto>,
-    val forespoerselBesvart: LocalDateTime?,
     val status: Status,
-    val dokumentId: UUID?,
     val type: Type,
+    val besvarelse: BesvarelseMetadataDto?,
     val opprettet: LocalDateTime = LocalDateTime.now().truncMillis(),
     val oppdatert: LocalDateTime = LocalDateTime.now().truncMillis()
+)
+
+data class BesvarelseMetadataDto(
+    val forespoerselBesvart: LocalDateTime,
+    val inntektsmeldingId: UUID?
 )
 
 enum class Status {
