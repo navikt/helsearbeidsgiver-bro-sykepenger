@@ -20,6 +20,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.nullableResult
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import org.postgresql.util.PSQLException
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import javax.sql.DataSource
 
 class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
@@ -202,7 +203,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
         forespoersel2?.status shouldBe Status.BESVART
         forespoersel2?.dokumentId shouldBe MockUuid.dokumentId
-        forespoersel2?.forespoerselBesvart shouldBe forespoerselBesvart
+        forespoersel2?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe forespoerselBesvart.truncatedTo(ChronoUnit.MILLIS)
     }
 })
 
