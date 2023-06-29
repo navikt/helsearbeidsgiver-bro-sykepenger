@@ -24,7 +24,7 @@ class ForespurtDataDtoTest : FunSpec({
             test("Forespurt data serialiseres korrekt") {
                 val forespurtDataListe = mockDataFn()
 
-                val serialisertJson = forespurtDataListe.toJsonStr(ForespurtDataDto.serializer().list())
+                val serialisertJson = forespurtDataListe.toJsonStr(SpleisForespurtDataDto.serializer().list())
 
                 withClue("Validerer mot '$fileName'") {
                     serialisertJson shouldBe expectedJson
@@ -34,7 +34,7 @@ class ForespurtDataDtoTest : FunSpec({
             test("Forespurt data deserialiseres korrekt") {
                 val forespurtDataListe = mockDataFn()
 
-                val deserialisertJson = expectedJson.parseJson().fromJson(ForespurtDataDto.serializer().list())
+                val deserialisertJson = expectedJson.parseJson().fromJson(SpleisForespurtDataDto.serializer().list())
 
                 withClue("Validerer mot '$fileName'") {
                     deserialisertJson shouldContainExactly forespurtDataListe
@@ -43,6 +43,7 @@ class ForespurtDataDtoTest : FunSpec({
         }
 })
 
-private fun String.readResource(): String = ClassLoader.getSystemClassLoader()
-    .getResource(this)
-    ?.readText()!!
+private fun String.readResource(): String =
+    ClassLoader.getSystemClassLoader()
+        .getResource(this)
+        ?.readText()!!

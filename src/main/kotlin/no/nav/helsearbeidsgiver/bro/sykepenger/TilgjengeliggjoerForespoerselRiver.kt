@@ -67,6 +67,7 @@ class TilgjengeliggjoerForespoerselRiver(
         )
             .let {
                 val forespoersel = forespoerselDao.hentAktivForespoerselFor(it.forespoerselId)
+
                 if (forespoersel != null) {
                     loggernaut.aapen.info("Forespørsel funnet.")
                     it.copy(resultat = ForespoerselSvar.Suksess(forespoersel))
