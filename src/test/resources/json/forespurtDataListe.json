@@ -6,9 +6,9 @@
     "opplysningstype": "Inntekt",
     "forslag": {
       "beregningsmåneder": [
-        "2017-10",
-        "2017-11",
-        "2017-12"
+        "1999-08",
+        "1999-09",
+        "1999-10"
       ]
     }
   },
@@ -16,9 +16,14 @@
     "opplysningstype": "Refusjon",
     "forslag": [
       {
-        "fom": "2018-05-17",
+        "fom": "2018-06-12",
         "tom": null,
-        "beløp": 13.37
+        "beløp": 21.31
+      },
+      {
+        "fom": "2018-08-02",
+        "tom": "2018-08-15",
+        "beløp": 44.77
       }
     ]
   }

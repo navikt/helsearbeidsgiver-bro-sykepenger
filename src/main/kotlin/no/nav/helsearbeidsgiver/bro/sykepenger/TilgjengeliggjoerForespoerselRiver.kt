@@ -7,13 +7,7 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagRefusjon
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.RefusjonPeriode
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForslagRefusjon
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
@@ -25,7 +19,6 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
-import java.time.LocalDate
 import java.util.UUID
 
 /* Tilgjengeliggjør hvilke data spleis forespør fra arbeidsgiver */
@@ -74,7 +67,6 @@ class TilgjengeliggjoerForespoerselRiver(
         )
             .let {
                 val forespoersel = forespoerselDao.hentAktivForespoerselFor(it.forespoerselId)
-                    ?.erstattRefusjonsforslagFraSpleisMedEgetFormat()
 
                 if (forespoersel != null) {
                     loggernaut.aapen.info("Forespørsel funnet.")
@@ -96,95 +88,4 @@ class TilgjengeliggjoerForespoerselRiver(
     override fun onError(problems: MessageProblems, context: MessageContext) {
         loggernaut.innkommendeMeldingFeil(problems)
     }
-
-    private fun ForespoerselDto.erstattRefusjonsforslagFraSpleisMedEgetFormat(): ForespoerselDto =
-        forespurtData.map { forespurtElement ->
-            if (forespurtElement is SpleisRefusjon) {
-                Refusjon(
-                    forslag = forespurtElement.forslag.tilEgetFormat()
-                )
-            } else {
-                forespurtElement
-            }
-        }
-            .let {
-                copy(forespurtData = it)
-            }
-
-    private fun List<SpleisForslagRefusjon>.tilEgetFormat(): ForslagRefusjon =
-        sortedBy { it.fom }
-            .medEksplisitteRefusjonsopphold()
-            .leadingAndLast()
-            ?.let { (leading, last) ->
-                ForslagRefusjon(
-                    perioder = leading.plus(last).map {
-                        RefusjonPeriode(it.fom, it.beløp)
-                    },
-                    opphoersdato = last.tom
-                )
-            }
-            ?: ForslagRefusjon(emptyList(), null)
-
-    private fun List<SpleisForslagRefusjon>.medEksplisitteRefusjonsopphold(): List<SpleisForslagRefusjon> {
-        val nyRefusjonsforslag = mapWithNext { current, next ->
-            if (next == null || current.tom == null || current.tom.isDayBefore(next.fom)) {
-                listOf(current)
-            } else {
-                listOf(
-                    current,
-                    SpleisForslagRefusjon(
-                        fom = current.tom.plusDays(1),
-                        tom = next.fom.minusDays(1),
-                        beløp = 0.0
-                    )
-                )
-            }
-        }
-            .flatten()
-
-        if (isNotEmpty() && size != nyRefusjonsforslag.size) {
-            loggernaut.sikker.info("Refusjonsforslag endret fra $this til $nyRefusjonsforslag.")
-        }
-
-        return nyRefusjonsforslag
-    }
 }
-
-private fun LocalDate.isDayBefore(other: LocalDate): Boolean =
-    this == other.minusDays(1)
-
-/**
- * Prioriterer `last` over `leading`.
- * For en liste med størrelse 1 vil det eneste elementet ende i `last`, og `leading` blir tom.
- */
-private fun <T : Any> List<T>.leadingAndLast(): Pair<List<T>, T>? {
-    val (leading, onlyLast) = partitionIndexed { index, _ ->
-        index != size - 1
-    }
-
-    return onlyLast.firstOrNull()
-        ?.let { last ->
-            Pair(leading, last)
-        }
-}
-
-private fun <T : Any, R : Any> List<T>.mapWithNext(transform: (T, T?) -> R): List<R> =
-    windowed(size = 2, partialWindows = true)
-        .map {
-            val current = it[0]
-            val next = it.getOrNull(1)
-
-            transform(current, next)
-        }
-
-private fun <T : Any> List<T>.partitionIndexed(predicate: (Int, T) -> Boolean): Pair<List<T>, List<T>> =
-    withIndex()
-        .partition {
-            predicate(it.index, it.value)
-        }
-        .let { (yieldedTrue, yieldedFalse) ->
-            Pair(
-                yieldedTrue.map { it.value },
-                yieldedFalse.map { it.value }
-            )
-        }

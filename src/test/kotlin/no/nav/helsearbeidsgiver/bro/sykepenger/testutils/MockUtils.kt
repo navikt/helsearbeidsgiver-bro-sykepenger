@@ -1,12 +1,11 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.testutils
 
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ArbeidsgiverPeriode
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.FastsattInntekt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtData
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Inntekt
@@ -14,7 +13,13 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.InntektsmeldingHaandtertDt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.RefusjonPeriode
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisArbeidsgiverperiode
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisFastsattInntekt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForslagInntekt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForslagRefusjon
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisInntekt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
@@ -40,60 +45,65 @@ fun mockForespoerselDto(): ForespoerselDto =
             Periode(15.januar, 20.januar)
         ),
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
-        forespurtData = mockForespurtDataListe(),
+        forespurtData = mockSpleisForespurtDataListe(),
         forespoerselBesvart = null,
         type = Type.KOMPLETT,
         status = Status.AKTIV
     )
 
-fun mockForespurtDataListe(): List<ForespurtDataDto> =
+fun mockSpleisForespurtDataListe(): List<SpleisForespurtDataDto> =
     listOf(
-        ArbeidsgiverPeriode,
-        Inntekt(
-            forslag = ForslagInntekt(
+        SpleisArbeidsgiverperiode,
+        SpleisInntekt(
+            forslag = SpleisForslagInntekt(
                 beregningsmåneder = listOf(
-                    oktober(2017),
-                    november(2017),
-                    desember(2017)
+                    august(1999),
+                    september(1999),
+                    oktober(1999)
                 )
             )
         ),
-        Refusjon(
-            forslag = ForslagRefusjon(
-                perioder = listOf(
-                    RefusjonPeriode(17.mai, 13.37)
+        SpleisRefusjon(
+            forslag = listOf(
+                SpleisForslagRefusjon(
+                    fom = 12.juni,
+                    tom = null,
+                    beløp = 21.31
                 ),
-                opphoersdato = null
+                SpleisForslagRefusjon(
+                    fom = 2.august,
+                    tom = 15.august,
+                    beløp = 44.77
+                )
             )
         )
     )
 
-fun mockBegrensetForespurtDataListe(): List<ForespurtDataDto> =
+fun mockBegrensetForespurtDataListe(): List<SpleisForespurtDataDto> =
     listOf(
-        ArbeidsgiverPeriode,
-        Inntekt(forslag = ForslagInntekt(beregningsmåneder = emptyList())),
-        Refusjon(
-            forslag = ForslagRefusjon(
-                perioder = emptyList(),
-                opphoersdato = null
+        SpleisArbeidsgiverperiode,
+        SpleisInntekt(forslag = SpleisForslagInntekt(beregningsmåneder = emptyList())),
+        SpleisRefusjon(forslag = emptyList())
+    )
+
+fun mockForespurtDataMedFastsattInntektListe(): List<SpleisForespurtDataDto> =
+    listOf(
+        SpleisArbeidsgiverperiode,
+        mockSpleisFastsattInntekt(),
+        SpleisRefusjon(
+            forslag = listOf(
+                SpleisForslagRefusjon(
+                    fom = 1.januar,
+                    tom = null,
+                    beløp = 31415.92
+                )
             )
         )
     )
 
-fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtDataDto> =
-    listOf(
-        ArbeidsgiverPeriode,
-        FastsattInntekt(
-            fastsattInntekt = 31415.92
-        ),
-        Refusjon(
-            forslag = ForslagRefusjon(
-                perioder = listOf(
-                    RefusjonPeriode(1.januar, 31415.92)
-                ),
-                opphoersdato = null
-            )
-        )
+fun mockSpleisFastsattInntekt(): SpleisFastsattInntekt =
+    SpleisFastsattInntekt(
+        fastsattInntekt = 31415.92
     )
 
 fun mockForespoerselMottatt(): ForespoerselMottatt =
@@ -109,7 +119,57 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
         fnr = "abc",
         sykmeldingsperioder = listOf(Periode(2.januar, 16.januar)),
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
-        forespurtData = mockForespurtDataListe()
+        forespurtData = mockForespurtData()
+    )
+
+fun mockForespurtData(): ForespurtData =
+    ForespurtData(
+        arbeidsgiverperiode = mockArbeidsgiverperiode(),
+        inntekt = mockInntektMedForslagGrunnlag(),
+        refusjon = mockRefusjon()
+    )
+
+fun mockArbeidsgiverperiode(): Arbeidsgiverperiode =
+    Arbeidsgiverperiode(
+        paakrevd = true
+    )
+
+fun mockInntektMedForslagGrunnlag(): Inntekt =
+    Inntekt(
+        paakrevd = true,
+        forslag = ForslagInntekt.Grunnlag(
+            beregningsmaaneder = listOf(
+                august(1999),
+                september(1999),
+                oktober(1999)
+            )
+        )
+    )
+
+fun mockInntektMedForslagFastsatt(): Inntekt =
+    Inntekt(
+        paakrevd = false,
+        forslag = ForslagInntekt.Fastsatt(
+            fastsattInntekt = 31415.92
+        )
+    )
+
+fun mockRefusjon(): Refusjon =
+    Refusjon(
+        paakrevd = true,
+        forslag = ForslagRefusjon(
+            perioder = listOf(
+                ForslagRefusjon.Periode(
+                    fom = 12.juni,
+                    beloep = 21.31
+                ),
+                ForslagRefusjon.Periode(
+                    fom = 2.august,
+                    beloep = 44.77
+                )
+            ),
+            opphoersdato = 15.august
+        )
     )
 
 fun mockInntektsmeldingHaandtertDto(): InntektsmeldingHaandtertDto =

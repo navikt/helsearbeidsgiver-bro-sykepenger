@@ -5,8 +5,8 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.data.row
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespurtDataMedFastsattInntektListe
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockSpleisForespurtDataListe
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
@@ -15,7 +15,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 
 class ForespurtDataDtoTest : FunSpec({
     listOf(
-        row("forespurtDataListe", ::mockForespurtDataListe),
+        row("forespurtDataListe", ::mockSpleisForespurtDataListe),
         row("forespurtDataMedFastsattInntektListe", ::mockForespurtDataMedFastsattInntektListe)
     )
         .forEach { (fileName, mockDataFn) ->
@@ -24,7 +24,7 @@ class ForespurtDataDtoTest : FunSpec({
             test("Forespurt data serialiseres korrekt") {
                 val forespurtDataListe = mockDataFn()
 
-                val serialisertJson = forespurtDataListe.toJsonStr(ForespurtDataDto.serializer().list())
+                val serialisertJson = forespurtDataListe.toJsonStr(SpleisForespurtDataDto.serializer().list())
 
                 withClue("Validerer mot '$fileName'") {
                     serialisertJson shouldBe expectedJson
@@ -34,7 +34,7 @@ class ForespurtDataDtoTest : FunSpec({
             test("Forespurt data deserialiseres korrekt") {
                 val forespurtDataListe = mockDataFn()
 
-                val deserialisertJson = expectedJson.parseJson().fromJson(ForespurtDataDto.serializer().list())
+                val deserialisertJson = expectedJson.parseJson().fromJson(SpleisForespurtDataDto.serializer().list())
 
                 withClue("Validerer mot '$fileName'") {
                     deserialisertJson shouldContainExactly forespurtDataListe
@@ -43,6 +43,7 @@ class ForespurtDataDtoTest : FunSpec({
         }
 })
 
-private fun String.readResource(): String = ClassLoader.getSystemClassLoader()
-    .getResource(this)
-    ?.readText()!!
+private fun String.readResource(): String =
+    ClassLoader.getSystemClassLoader()
+        .getResource(this)
+        ?.readText()!!

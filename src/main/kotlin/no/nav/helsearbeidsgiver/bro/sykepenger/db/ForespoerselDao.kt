@@ -4,9 +4,9 @@ import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.sessionOf
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
@@ -40,7 +40,7 @@ class ForespoerselDao(private val dataSource: DataSource) {
         val jsonFelter = mapOf(
             Db.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJsonStr(Periode.serializer().list()),
             Db.EGENMELDINGSPERIODER to forespoersel.egenmeldingsperioder.toJsonStr(Periode.serializer().list()),
-            Db.FORESPURT_DATA to forespoersel.forespurtData.toJsonStr(ForespurtDataDto.serializer().list())
+            Db.FORESPURT_DATA to forespoersel.forespurtData.toJsonStr(SpleisForespurtDataDto.serializer().list())
         )
 
         val kolonnenavn = (felter + jsonFelter).keys.joinToString()
@@ -123,7 +123,7 @@ fun Row.toForespoerselDto(): ForespoerselDto =
         sykmeldingsperioder = Db.SYKMELDINGSPERIODER.let(::string).fromJson(Periode.serializer().list()),
         egenmeldingsperioder = Db.EGENMELDINGSPERIODER.let(::string).fromJson(Periode.serializer().list()),
         skjaeringstidspunkt = Db.SKJAERINGSTIDSPUNKT.let(::localDateOrNull),
-        forespurtData = Db.FORESPURT_DATA.let(::string).fromJson(ForespurtDataDto.serializer().list()),
+        forespurtData = Db.FORESPURT_DATA.let(::string).fromJson(SpleisForespurtDataDto.serializer().list()),
         forespoerselBesvart = Db.FORESPOERSEL_BESVART.let(::localDateTimeOrNull),
         status = Db.STATUS.let(::string).let(Status::valueOf),
         type = Db.TYPE.let(::string).let(Type::valueOf),

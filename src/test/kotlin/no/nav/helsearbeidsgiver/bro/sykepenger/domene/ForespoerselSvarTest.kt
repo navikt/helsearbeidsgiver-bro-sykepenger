@@ -104,38 +104,57 @@ private fun ForespoerselSvar.Suksess.hardcodedJson(): String =
     }
     """.removeJsonWhitespace()
 
-private fun List<ForespurtDataDto>.hardcodedJson(): String =
-    joinToString(prefix = "[", postfix = "]") {
-        when (it) {
-            is ArbeidsgiverPeriode ->
-                """{ "opplysningstype": "Arbeidsgiverperiode" }"""
-            is Inntekt ->
-                """
-                {
-                    "opplysningstype": "Inntekt",
-                    "forslag": {
-                        "beregningsmåneder": [${it.forslag.beregningsmåneder.joinToString { yearMonth -> "\"$yearMonth\"" }}]
-                    }
-                }
-                """
-            is FastsattInntekt ->
-                """
-                {
-                    "opplysningstype": "FastsattInntekt",
-                    "fastsattInntekt": ${it.fastsattInntekt}
-                }
-                """
-            is Refusjon ->
-                """
-                {
-                    "opplysningstype": "Refusjon", 
-                    "forslag": [${it.forslag.hardcodedJson()}]
-                }
-                """
-            is SpleisRefusjon ->
-                throw IllegalArgumentException("Type skal ikke brukes i ForespoerselSvar.")
+private fun ForespurtData.hardcodedJson(): String =
+    """
+    {
+        "arbeidsgiverperiode": {
+            "paakrevd": ${arbeidsgiverperiode.paakrevd}
+        },
+        "inntekt": {
+            "paakrevd": ${inntekt.paakrevd},
+            "forslag": ${inntekt.forslag.hardcodedJson()}
+        },
+        "refusjon": {
+            "paakrevd": ${refusjon.paakrevd},
+            "forslag": ${refusjon.forslag.hardcodedJson()}
         }
     }
+    """
+
+private fun ForslagInntekt.hardcodedJson(): String =
+    when (this) {
+        is ForslagInntekt.Grunnlag ->
+            """
+            {
+                "type": "ForslagInntektGrunnlag",
+                "beregningsmaaneder": [${beregningsmaaneder.joinToString { yearMonth -> "\"$yearMonth\"" }}]
+            }
+            """
+
+        is ForslagInntekt.Fastsatt ->
+            """
+            {
+                "type": "ForslagInntektFastsatt",
+                "fastsattInntekt": $fastsattInntekt
+            }
+            """
+    }
+
+private fun ForslagRefusjon.hardcodedJson(): String =
+    """
+    {
+        "perioder": [${perioder.joinToString(transform = ForslagRefusjon.Periode::hardcodedJson)}],
+        "opphoersdato": ${opphoersdato.jsonStrOrNull()}
+    }
+    """
+
+private fun ForslagRefusjon.Periode.hardcodedJson(): String =
+    """
+    {
+        "fom": "$fom",
+        "beloep": $beloep
+    }
+    """
 
 private fun Periode.hardcodedJson(): String =
     """
@@ -145,21 +164,5 @@ private fun Periode.hardcodedJson(): String =
     }
     """
 
-private fun ForslagRefusjon.hardcodedJson(): String =
-    """
-    {
-        "perioder": ${perioder.joinToString(transform = RefusjonPeriode::hardcodedJson)},
-        "opphoersdato": ${opphoersdato.jsonStrOrNull()}
-    }
-    """
-
-private fun RefusjonPeriode.hardcodedJson(): String =
-    """
-    {
-        "fom": "$fom",
-        "beloep": $beloep
-    }
-    """
-
 private fun <T : Any> T?.jsonStrOrNull(): String? =
-    this?.let { "\"it\"" }
+    this?.let { "\"$it\"" }
