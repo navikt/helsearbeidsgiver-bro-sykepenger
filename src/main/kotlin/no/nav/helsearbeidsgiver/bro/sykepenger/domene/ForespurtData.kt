@@ -46,7 +46,6 @@ data class Refusjon(
     }
 }
 
-// TODO vurder nytten
 @Serializable
 sealed class ForslagInntekt {
     @Serializable
