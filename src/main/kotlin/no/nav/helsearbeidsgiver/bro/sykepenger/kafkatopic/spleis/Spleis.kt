@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJsonElement
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJsonElementOrNull
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.Key as TopicKey
 
 object Spleis {
@@ -18,13 +19,18 @@ object Spleis {
         EGENMELDINGSPERIODER("egenmeldingsperioder"),
         FOM("fom"),
         TOM("tom"),
-        FORESPURT_DATA("forespurtData");
+        FORESPURT_DATA("forespurtData"),
+        DOKUMENT_ID("dokumentId"),
+        OPPRETTET("@opprettet");
 
         override fun toString(): String =
             verdi
 
         override fun fra(message: JsonMessage): JsonElement =
             message[verdi].toJsonElement()
+
+        override fun fraEllerNull(message: JsonMessage): JsonElement? =
+            message[verdi].toJsonElementOrNull()
     }
 
     @Serializable

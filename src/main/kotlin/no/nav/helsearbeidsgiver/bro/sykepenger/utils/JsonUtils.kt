@@ -6,3 +6,5 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 
 fun JsonNode.toJsonElement(): JsonElement =
     toString().parseJson()
+
+fun JsonNode.toJsonElementOrNull(): JsonElement? = if (isMissingNode) null else toString().parseJson()

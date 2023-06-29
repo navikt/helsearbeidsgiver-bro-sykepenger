@@ -26,14 +26,16 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import java.time.LocalDateTime
 import java.util.UUID
 
 object MockUuid {
     val vedtaksperiodeId: UUID = "01234567-abcd-0123-abcd-012345678901".let(UUID::fromString)
     val forespoerselId: UUID = "98765654-abcd-0123-abcd-012345678901".let(UUID::fromString)
+    val dokumentId: UUID = "22efb342-3e72-4880-a449-eb1efcf0f18b".let(UUID::fromString)
 }
 
-fun mockForespoerselDto(): ForespoerselDto =
+fun mockForespoerselDto(dokumentId: UUID? = null): ForespoerselDto =
     ForespoerselDto(
         forespoerselId = randomUuid(),
         orgnr = "123456789".let(::Orgnr),
@@ -47,8 +49,9 @@ fun mockForespoerselDto(): ForespoerselDto =
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         forespurtData = mockSpleisForespurtDataListe(),
         forespoerselBesvart = null,
-        type = Type.KOMPLETT,
-        status = Status.AKTIV
+        status = Status.AKTIV,
+        dokumentId = dokumentId,
+        type = Type.KOMPLETT
     )
 
 fun mockSpleisForespurtDataListe(): List<SpleisForespurtDataDto> =
@@ -172,10 +175,13 @@ fun mockRefusjon(): Refusjon =
         )
     )
 
-fun mockInntektsmeldingHaandtertDto(): InntektsmeldingHaandtertDto =
+fun mockInntektsmeldingHaandtertDto(dokumentId: UUID? = MockUuid.dokumentId): InntektsmeldingHaandtertDto =
     InntektsmeldingHaandtertDto(
+        orgnr = "287429436".let(::Orgnr),
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
-        orgnr = "287429436".let(::Orgnr)
+        fnr = "fnr",
+        dokumentId = dokumentId,
+        opprettet = LocalDateTime.MAX
     )
 
 fun mockJsonElement(): JsonElement =
