@@ -15,31 +15,31 @@ import java.time.YearMonth
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
 @JsonClassDiscriminator("opplysningstype")
-sealed class ForespurtDataDto
+sealed class SpleisForespurtDataDto
 
 @Serializable
 @SerialName("Arbeidsgiverperiode")
-object ArbeidsgiverPeriode : ForespurtDataDto()
+object SpleisArbeidsgiverperiode : SpleisForespurtDataDto()
 
 @Serializable
 @SerialName("Inntekt")
-data class Inntekt(val forslag: ForslagInntekt) : ForespurtDataDto()
+data class SpleisInntekt(val forslag: SpleisForslagInntekt) : SpleisForespurtDataDto()
 
 @Serializable
 @SerialName("FastsattInntekt")
-data class FastsattInntekt(val fastsattInntekt: Double) : ForespurtDataDto()
+data class SpleisFastsattInntekt(val fastsattInntekt: Double) : SpleisForespurtDataDto()
 
 @Serializable
 @SerialName("Refusjon")
-data class Refusjon(val forslag: List<ForslagRefusjon>) : ForespurtDataDto()
+data class SpleisRefusjon(val forslag: List<SpleisForslagRefusjon>) : SpleisForespurtDataDto()
 
 @Serializable
-data class ForslagInntekt(
+data class SpleisForslagInntekt(
     val beregningsmåneder: List<YearMonth>
 )
 
 @Serializable
-data class ForslagRefusjon(
+data class SpleisForslagRefusjon(
     val fom: LocalDate,
     val tom: LocalDate?,
     val beløp: Double

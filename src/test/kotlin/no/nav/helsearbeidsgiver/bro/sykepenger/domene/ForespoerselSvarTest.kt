@@ -104,12 +104,12 @@ private fun ForespoerselSvar.Suksess.hardcodedJson(): String =
     }
     """.removeJsonWhitespace()
 
-private fun List<ForespurtDataDto>.hardcodedJson(): String =
+private fun List<SpleisForespurtDataDto>.hardcodedJson(): String =
     joinToString(prefix = "[", postfix = "]") {
         when (it) {
-            is ArbeidsgiverPeriode ->
+            is SpleisArbeidsgiverperiode ->
                 """{ "opplysningstype": "Arbeidsgiverperiode" }"""
-            is Inntekt ->
+            is SpleisInntekt ->
                 """
                 {
                     "opplysningstype": "Inntekt",
@@ -118,18 +118,18 @@ private fun List<ForespurtDataDto>.hardcodedJson(): String =
                     }
                 }
                 """
-            is FastsattInntekt ->
+            is SpleisFastsattInntekt ->
                 """
                 {
                     "opplysningstype": "FastsattInntekt",
                     "fastsattInntekt": ${it.fastsattInntekt}
                 }
                 """
-            is Refusjon ->
+            is SpleisRefusjon ->
                 """
                 {
                     "opplysningstype": "Refusjon", 
-                    "forslag": [${it.forslag.joinToString(transform = ForslagRefusjon::hardcodedJson)}]
+                    "forslag": [${it.forslag.joinToString(transform = SpleisForslagRefusjon::hardcodedJson)}]
                 }
                 """
         }
@@ -143,7 +143,7 @@ private fun Periode.hardcodedJson(): String =
     }
     """
 
-private fun ForslagRefusjon.hardcodedJson(): String =
+private fun SpleisForslagRefusjon.hardcodedJson(): String =
     """
     {
         "fom": "$fom",

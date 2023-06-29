@@ -1,19 +1,19 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.testutils
 
 import kotlinx.serialization.json.JsonElement
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ArbeidsgiverPeriode
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.FastsattInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtDataDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagInntekt
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagRefusjon
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Inntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.InntektsmeldingHaandtertDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisArbeidsgiverperiode
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisFastsattInntekt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForslagInntekt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForslagRefusjon
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisInntekt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
@@ -48,11 +48,11 @@ fun mockForespoerselDto(dokumentId: UUID? = null): ForespoerselDto =
         type = Type.KOMPLETT
     )
 
-fun mockForespurtDataListe(): List<ForespurtDataDto> =
+fun mockForespurtDataListe(): List<SpleisForespurtDataDto> =
     listOf(
-        ArbeidsgiverPeriode,
-        Inntekt(
-            forslag = ForslagInntekt(
+        SpleisArbeidsgiverperiode,
+        SpleisInntekt(
+            forslag = SpleisForslagInntekt(
                 beregningsmåneder = listOf(
                     oktober(2017),
                     november(2017),
@@ -60,29 +60,29 @@ fun mockForespurtDataListe(): List<ForespurtDataDto> =
                 )
             )
         ),
-        Refusjon(
+        SpleisRefusjon(
             forslag = listOf(
-                ForslagRefusjon(17.mai, null, 13.37)
+                SpleisForslagRefusjon(17.mai, null, 13.37)
             )
         )
     )
 
-fun mockBegrensetForespurtDataListe(): List<ForespurtDataDto> =
+fun mockBegrensetForespurtDataListe(): List<SpleisForespurtDataDto> =
     listOf(
-        ArbeidsgiverPeriode,
-        Inntekt(forslag = ForslagInntekt(beregningsmåneder = emptyList())),
-        Refusjon(forslag = emptyList())
+        SpleisArbeidsgiverperiode,
+        SpleisInntekt(forslag = SpleisForslagInntekt(beregningsmåneder = emptyList())),
+        SpleisRefusjon(forslag = emptyList())
     )
 
-fun mockForespurtDataMedFastsattInntektListe(): List<ForespurtDataDto> =
+fun mockForespurtDataMedFastsattInntektListe(): List<SpleisForespurtDataDto> =
     listOf(
-        ArbeidsgiverPeriode,
-        FastsattInntekt(
+        SpleisArbeidsgiverperiode,
+        SpleisFastsattInntekt(
             fastsattInntekt = 31415.92
         ),
-        Refusjon(
+        SpleisRefusjon(
             listOf(
-                ForslagRefusjon(1.januar, null, 31415.92)
+                SpleisForslagRefusjon(1.januar, null, 31415.92)
             )
         )
     )
