@@ -84,6 +84,47 @@ private fun List<SpleisForslagRefusjon>.tilForslagRefusjon(): ForslagRefusjon =
         }
         ?: ForslagRefusjon(emptyList(), null)
 
+/**
+ * Denne funksjonen erstatter Spleis sine implisitte refusjonsopphold med eksplisitte.
+ * Dvs. at man setter inn refusjonsperioder med beløp 0 kr der det finnes et tidsopphold mellom to refusjonsperioder.
+ *
+ * Eksempelvis vil (pseudo)input
+ * ```json
+ * [
+ *   {
+ *     "fom": "1998-07-08",
+ *     "tom": "1998-07-27",
+ *     "beløp": 500.00
+ *   },
+ *   {
+ *     "fom": "1998-08-15",
+ *     "tom": "1998-08-31",
+ *     "beløp": 100.00
+ *   }
+ * ]
+ * ```
+ * føre til output
+ * ```json
+ * [
+ *   {
+ *     "fom": "1998-07-08",
+ *     "tom": "1998-07-27",
+ *     "beløp": 500.00
+ *   },
+ *   {
+ *     "fom": "1998-07-28",
+ *     "tom": "1998-08-14",
+ *     "beløp": 0.00
+ *   },
+ *   {
+ *     "fom": "1998-08-15",
+ *     "tom": "1998-08-31",
+ *     "beløp": 100.00
+ *   }
+ * ]
+ * ```
+ * De opprinnelige periodene er uendrede, men en ny periode er satt inn som dekker tidsgapet mellom dem.
+ */
 private fun List<SpleisForslagRefusjon>.medEksplisitteRefusjonsopphold(): List<SpleisForslagRefusjon> {
     val nyRefusjonsforslag = mapWithNext { current, next ->
         if (next == null || current.tom == null || current.tom.isDayBefore(next.fom)) {
