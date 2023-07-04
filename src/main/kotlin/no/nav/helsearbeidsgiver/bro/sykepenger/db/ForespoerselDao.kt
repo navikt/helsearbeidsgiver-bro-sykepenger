@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.listResult
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.nullableResult
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.updateAndReturnGeneratedKey
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
@@ -25,7 +26,7 @@ import javax.sql.DataSource
 
 class ForespoerselDao(private val dataSource: DataSource) {
     private val logger = logger()
-    private val sikkerlogg = sikkerLogger()
+    private val sikkerLogger = sikkerLogger()
 
     fun lagre(forespoersel: ForespoerselDto): Long? {
         val felter = mapOf(
@@ -85,7 +86,7 @@ class ForespoerselDao(private val dataSource: DataSource) {
                 val oppdaterteForespoersler = updateStatus(it, vedtaksperiodeId, status)
                 if (oppdaterteForespoersler.size > 1) {
                     logger.error("Fant to aktive forespørsler for samme vedtaksperiode, det skal ikke skje. Sjekk sikkerlogg for mer info")
-                    sikkerlogg.error("Fant to aktive forespørsler for samme vedtaksperiode med id-er: $oppdaterteForespoersler. Det skal ikke skje.")
+                    sikkerLogger.error("Fant to aktive forespørsler for samme vedtaksperiode med id-er: $oppdaterteForespoersler. Det skal ikke skje.")
                 }
                 oppdaterteForespoersler.forEach { id ->
                     insertOrUpdateBesvarelse(it, id, besvart, inntektsmeldingId)
@@ -97,7 +98,7 @@ class ForespoerselDao(private val dataSource: DataSource) {
         (
             "UPDATE forespoersel " +
                 "SET ${Db.STATUS}=:nyStatus " +
-                "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS} in ('${Status.AKTIV.name}', '${Status.BESVART.name}')" +
+                "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS} in ('${Status.AKTIV.name}', '${Status.BESVART.name}') " +
                 "RETURNING id"
             )
             .listResult(
@@ -116,10 +117,12 @@ class ForespoerselDao(private val dataSource: DataSource) {
                 "ON CONFLICT (fk_forespoersel_id) DO UPDATE SET ${Db.FORESPOERSEL_BESVART}=:forespoerselBesvart, ${Db.INNTEKTSMELDING_ID}=:inntektsmeldingId"
             )
             .execute(
-                params = mutableMapOf(
+                params = mapOf(
                     "forespoerselId" to forespoerselId,
-                    "forespoerselBesvart" to forespoerselBesvart
-                ).also { if (inntektsmeldingId != null) it["inntektsmeldingId"] = inntektsmeldingId },
+                    "forespoerselBesvart" to forespoerselBesvart,
+                    "inntektsmeldingId" to inntektsmeldingId
+                )
+                    .mapValuesNotNull { it },
                 session = session
             )
 
@@ -173,6 +176,6 @@ fun Row.toBesvarelseMetadataDto(): BesvarelseMetadataDto? {
     val inntektsmeldingId = Db.INNTEKTSMELDING_ID.let(::uuidOrNull)
     return forespoerselBesvart?.let { BesvarelseMetadataDto(forespoerselBesvart, inntektsmeldingId) }
 }
-fun Row.toId(): Long {
-    return Db.ID.let(::long)
-}
+
+fun Row.toId(): Long =
+    Db.ID.let(::long)
