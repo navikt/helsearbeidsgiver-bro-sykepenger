@@ -30,6 +30,7 @@ object Env {
             VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv()
                 .parseKommaSeparertOrgnrListe()
     }
+
     object AzureAD {
         val scope = "SPINN_SCOPE".fromEnv()
         val azureWellKnownUrl = "AZURE_APP_WELL_KNOWN_URL".fromEnv()
