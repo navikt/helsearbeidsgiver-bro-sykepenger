@@ -79,6 +79,9 @@ dependencies {
     val slf4jVersion: String by project
     val testcontainersPostgresqlVersion: String by project
     val utilsVersion: String by project
+    val ktorVersion: String by project
+    val tokenSupportVersion: String by project
+    val tokenProviderVersion: String by project
 
     implementation("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
@@ -88,6 +91,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("no.nav.security:token-client-core:$tokenSupportVersion")
+    implementation("no.nav.helsearbeidsgiver:tokenprovider:$tokenProviderVersion")
 
     runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
 
