@@ -6,6 +6,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.DataSourceBuilder
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
+import no.nav.helsearbeidsgiver.bro.sykepenger.oauth2.OAuth2ClientConfig
 import no.nav.helsearbeidsgiver.utils.log.logger
 
 fun main() {
@@ -20,6 +21,7 @@ fun main() {
     val dataSource by lazy { dataSourceBuilder.getDataSource() }
     val forespoerselDao = ForespoerselDao(dataSource)
     val priProducer = PriProducer()
+    val tokenProvider = OAuth2ClientConfig(Env.AzureAD)
 
     val rapid = RapidApplication.create(System.getenv())
 
