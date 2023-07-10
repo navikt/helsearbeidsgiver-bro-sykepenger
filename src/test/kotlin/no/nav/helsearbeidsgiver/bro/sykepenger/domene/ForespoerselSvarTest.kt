@@ -96,6 +96,8 @@ private fun ForespoerselSvar.Feil?.hardcodedJsonFieldOrEmpty(): String =
 private fun ForespoerselSvar.Suksess.hardcodedJson(): String =
     """
     {
+        "type": "$type",
+        "status": "$status",
         "orgnr": "${orgnr.verdi}",
         "fnr": "$fnr",
         "sykmeldingsperioder": [${sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],

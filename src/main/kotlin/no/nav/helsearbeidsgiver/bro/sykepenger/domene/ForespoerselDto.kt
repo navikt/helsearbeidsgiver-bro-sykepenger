@@ -12,6 +12,8 @@ import java.util.UUID
 
 data class ForespoerselDto(
     val forespoerselId: UUID,
+    val type: Type,
+    val status: Status,
     val orgnr: Orgnr,
     val fnr: String,
     val vedtaksperiodeId: UUID,
@@ -19,8 +21,6 @@ data class ForespoerselDto(
     val sykmeldingsperioder: List<Periode>,
     val egenmeldingsperioder: List<Periode>,
     val forespurtData: List<SpleisForespurtDataDto>,
-    val status: Status,
-    val type: Type,
     val besvarelse: BesvarelseMetadataDto?,
     val opprettet: LocalDateTime = LocalDateTime.now().truncMillis(),
     val oppdatert: LocalDateTime = LocalDateTime.now().truncMillis()

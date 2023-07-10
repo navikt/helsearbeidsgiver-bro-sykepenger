@@ -60,6 +60,8 @@ class LagreKomplettForespoerselRiver(
     override fun lesForespoersel(forespoerselId: UUID, packet: JsonMessage): ForespoerselDto =
         ForespoerselDto(
             forespoerselId = forespoerselId,
+            type = Type.KOMPLETT,
+            status = Status.AKTIV,
             orgnr = Spleis.Key.ORGANISASJONSNUMMER.fra(packet).fromJson(Orgnr.serializer()),
             fnr = Spleis.Key.FØDSELSNUMMER.fra(packet).fromJson(String.serializer()),
             vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.fra(packet).fromJson(UuidSerializer),
@@ -67,8 +69,6 @@ class LagreKomplettForespoerselRiver(
             sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.fra(packet).fromJson(Periode.serializer().list()),
             egenmeldingsperioder = Spleis.Key.EGENMELDINGSPERIODER.fra(packet).fromJson(Periode.serializer().list()),
             forespurtData = Spleis.Key.FORESPURT_DATA.fra(packet).fromJson(SpleisForespurtDataDto.serializer().list()),
-            status = Status.AKTIV,
-            type = Type.KOMPLETT,
             besvarelse = null
         )
 }

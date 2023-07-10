@@ -31,12 +31,12 @@ class ForespoerselDao(private val dataSource: DataSource) {
     fun lagre(forespoersel: ForespoerselDto): Long? {
         val felter = mapOf(
             Db.FORESPOERSEL_ID to forespoersel.forespoerselId,
+            Db.TYPE to forespoersel.type.name,
+            Db.STATUS to forespoersel.status.name,
             Db.ORGNR to forespoersel.orgnr.verdi,
             Db.FNR to forespoersel.fnr,
             Db.VEDTAKSPERIODE_ID to forespoersel.vedtaksperiodeId,
             Db.SKJAERINGSTIDSPUNKT to forespoersel.skjaeringstidspunkt,
-            Db.STATUS to forespoersel.status.name,
-            Db.TYPE to forespoersel.type.name,
             Db.OPPRETTET to forespoersel.opprettet,
             Db.OPPDATERT to forespoersel.oppdatert
         )
@@ -131,7 +131,7 @@ class ForespoerselDao(private val dataSource: DataSource) {
             ?.let { vedtaksperiodeId ->
                 (
                     "SELECT * FROM forespoersel f " +
-                        "LEFT JOIN besvarelse_metadata b ON f.id=b.fk_forespoersel_id " +
+                        "LEFT JOIN besvarelse_metadata b ON f.id=b.${Db.FK_FORESPOERSEL_ID} " +
                         "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS}='AKTIV'"
                     )
                     .listResult(
@@ -157,15 +157,15 @@ class ForespoerselDao(private val dataSource: DataSource) {
 fun Row.toForespoerselDto(): ForespoerselDto =
     ForespoerselDto(
         forespoerselId = Db.FORESPOERSEL_ID.let(::uuid),
+        type = Db.TYPE.let(::string).let(Type::valueOf),
+        status = Db.STATUS.let(::string).let(Status::valueOf),
         orgnr = Db.ORGNR.let(::string).let(::Orgnr),
         fnr = Db.FNR.let(::string),
         vedtaksperiodeId = Db.VEDTAKSPERIODE_ID.let(::uuid),
+        skjaeringstidspunkt = Db.SKJAERINGSTIDSPUNKT.let(::localDateOrNull),
         sykmeldingsperioder = Db.SYKMELDINGSPERIODER.let(::string).fromJson(Periode.serializer().list()),
         egenmeldingsperioder = Db.EGENMELDINGSPERIODER.let(::string).fromJson(Periode.serializer().list()),
-        skjaeringstidspunkt = Db.SKJAERINGSTIDSPUNKT.let(::localDateOrNull),
         forespurtData = Db.FORESPURT_DATA.let(::string).fromJson(SpleisForespurtDataDto.serializer().list()),
-        status = Db.STATUS.let(::string).let(Status::valueOf),
-        type = Db.TYPE.let(::string).let(Type::valueOf),
         besvarelse = toBesvarelseMetadataDto(),
         opprettet = Db.OPPRETTET.let(::localDateTime),
         oppdatert = Db.OPPDATERT.let(::localDateTime)
