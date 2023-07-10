@@ -1,13 +1,11 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonElement
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJsonElement
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJsonElementOrNull
+import no.nav.helsearbeidsgiver.utils.json.serializer.AsStringSerializer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.Key as TopicKey
 
 object Spleis {
+    @Serializable(KeySerializer::class)
     enum class Key(override val verdi: String) : TopicKey {
         // Egendefinerte
         TYPE("type"),
@@ -26,11 +24,13 @@ object Spleis {
         override fun toString(): String =
             verdi
 
-        override fun fra(message: JsonMessage): JsonElement =
-            message[verdi].toJsonElement()
-
-        override fun fraEllerNull(message: JsonMessage): JsonElement? =
-            message[verdi].toJsonElementOrNull()
+        companion object {
+            fun fromJson(json: String): Key =
+                Key.entries.firstOrNull {
+                    json == it.verdi
+                }
+                    ?: throw IllegalArgumentException("Fant ingen Spleis.Key med verdi som matchet '$json'.")
+        }
     }
 
     @Serializable
@@ -39,4 +39,9 @@ object Spleis {
         TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER_BEGRENSET,
         INNTEKTSMELDING_HÅNDTERT
     }
+
+    private object KeySerializer : AsStringSerializer<Key>(
+        serialName = "helsearbeidsgiver.kotlinx.bro.Spleis.Key",
+        parse = Key::fromJson
+    )
 }

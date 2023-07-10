@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
@@ -12,12 +13,16 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.les
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.rejectKeys
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.require
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.requireKeys
 import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import java.util.UUID
 
@@ -45,25 +50,32 @@ class TilgjengeliggjoerForespoerselRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val forespoerselId = Pri.Key.FORESPOERSEL_ID.fra(packet).fromJson(UuidSerializer)
+        val json = packet.toJson().parseJson()
+
+        val forespoerselId = Pri.Key.FORESPOERSEL_ID.les(
+            UuidSerializer,
+            json.fromJsonMapFiltered(Pri.Key.serializer())
+        )
 
         MdcUtils.withLogFields(
             "forespoerselId" to forespoerselId.toString()
         ) {
             runCatching {
-                packet.loesBehov(forespoerselId)
+                json.sendSvar(forespoerselId)
             }
                 .onFailure(loggernaut::ukjentFeil)
         }
     }
 
-    fun JsonMessage.loesBehov(forespoerselId: UUID) {
-        loggernaut.aapen.info("Mottok melding på pri-topic av type '${Pri.Key.BEHOV.fra(this).fromJson(String.serializer())}'.")
-        loggernaut.sikker.info("Mottok melding på pri-topic med innhold:\n${toJson()}")
+    private fun JsonElement.sendSvar(forespoerselId: UUID) {
+        val melding = fromJsonMapFiltered(Pri.Key.serializer())
+
+        loggernaut.aapen.info("Mottok melding på pri-topic av type '${Pri.Key.BEHOV.les(String.serializer(), melding)}'.")
+        loggernaut.sikker.info("Mottok melding på pri-topic med innhold:\n${toPretty()}")
 
         val forespoerselSvar = ForespoerselSvar(
             forespoerselId = forespoerselId,
-            boomerang = Pri.Key.BOOMERANG.fra(this)
+            boomerang = Pri.Key.BOOMERANG.les(JsonElement.serializer(), melding)
         )
             .let {
                 val forespoersel = forespoerselDao.hentAktivForespoerselFor(it.forespoerselId)

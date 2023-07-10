@@ -1,15 +1,13 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonElement
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJsonElement
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.toJsonElementOrNull
+import no.nav.helsearbeidsgiver.utils.json.serializer.AsStringSerializer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.Key as TopicKey
 
 object Pri {
     const val TOPIC = "helsearbeidsgiver.pri"
 
+    @Serializable(KeySerializer::class)
     enum class Key(override val verdi: String) : TopicKey {
         // Predefinerte fra rapids-and-rivers-biblioteket
         BEHOV("@behov"),
@@ -25,11 +23,13 @@ object Pri {
         override fun toString(): String =
             verdi
 
-        override fun fra(message: JsonMessage): JsonElement =
-            message[verdi].toJsonElement()
-
-        override fun fraEllerNull(message: JsonMessage): JsonElement? =
-            message[verdi].toJsonElementOrNull()
+        companion object {
+            fun fromJson(json: String): Key =
+                Key.entries.firstOrNull {
+                    json == it.verdi
+                }
+                    ?: throw IllegalArgumentException("Fant ingen Pri.Key med verdi som matchet '$json'.")
+        }
     }
 
     @Serializable
@@ -41,4 +41,9 @@ object Pri {
     enum class NotisType {
         FORESPØRSEL_MOTTATT
     }
+
+    private object KeySerializer : AsStringSerializer<Key>(
+        serialName = "helsearbeidsgiver.kotlinx.bro.Pri.Key",
+        parse = Key::fromJson
+    )
 }

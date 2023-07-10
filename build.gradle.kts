@@ -48,11 +48,6 @@ tasks {
     }
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
 repositories {
     val githubPassword: String by project
 
@@ -60,11 +55,11 @@ repositories {
     google()
     maven("https://packages.confluent.io/maven/")
     maven {
+        setUrl("https://maven.pkg.github.com/navikt/*")
         credentials {
             username = "x-access-token"
             password = githubPassword
         }
-        setUrl("https://maven.pkg.github.com/navikt/*")
     }
 }
 
@@ -99,6 +94,7 @@ dependencies {
 
     runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
 
+    testImplementation(testFixtures("no.nav.helsearbeidsgiver:utils:$utilsVersion"))
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-framework-datatest:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
