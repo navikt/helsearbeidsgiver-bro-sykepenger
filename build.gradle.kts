@@ -1,23 +1,25 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val mainClassPath = "no.nav.helsearbeidsgiver.bro.sykepenger.AppKt"
 
 plugins {
     application
     kotlin("jvm")
-    id("org.jmailen.kotlinter")
     kotlin("plugin.serialization")
+    id("org.jmailen.kotlinter")
 }
 
 application {
     mainClass.set(mainClassPath)
 }
 
-tasks {
-    withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
+}
 
+tasks {
     withType<Test> {
         useJUnitPlatform()
         testLogging {
