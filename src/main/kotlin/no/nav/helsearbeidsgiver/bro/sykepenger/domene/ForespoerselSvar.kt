@@ -22,6 +22,8 @@ data class ForespoerselSvar(
 
     @Serializable
     data class Suksess(
+        val type: Type,
+        val status: Status,
         val orgnr: Orgnr,
         val fnr: String,
         val sykmeldingsperioder: List<Periode>,
@@ -29,6 +31,8 @@ data class ForespoerselSvar(
         val forespurtData: List<SpleisForespurtDataDto>
     ) {
         constructor(forespoersel: ForespoerselDto) : this(
+            type = forespoersel.type,
+            status = forespoersel.status,
             orgnr = forespoersel.orgnr,
             fnr = forespoersel.fnr,
             sykmeldingsperioder = forespoersel.sykmeldingsperioder,

@@ -33,6 +33,8 @@ object MockUuid {
 fun mockForespoerselDto(besvarelseMetaData: BesvarelseMetadataDto? = null): ForespoerselDto =
     ForespoerselDto(
         forespoerselId = randomUuid(),
+        type = Type.KOMPLETT,
+        status = Status.AKTIV,
         orgnr = "123456789".let(::Orgnr),
         fnr = "123456789",
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
@@ -43,8 +45,6 @@ fun mockForespoerselDto(besvarelseMetaData: BesvarelseMetadataDto? = null): Fore
         ),
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         forespurtData = mockForespurtDataListe(),
-        status = Status.AKTIV,
-        type = Type.KOMPLETT,
         besvarelse = besvarelseMetaData
     )
 
@@ -96,6 +96,8 @@ fun mockForespoerselMottatt(): ForespoerselMottatt =
 
 fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
     ForespoerselSvar.Suksess(
+        type = Type.KOMPLETT,
+        status = Status.AKTIV,
         orgnr = "569046822".let(::Orgnr),
         fnr = "abc",
         sykmeldingsperioder = listOf(Periode(2.januar, 16.januar)),
