@@ -1,17 +1,32 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.testutils
 
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.Key
-import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.keysAsString
-import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 
 fun TestRapid.sendJson(vararg keyValuePairs: Pair<Key, JsonElement?>) {
     keyValuePairs.toMap()
-        .mapNotNull { (key, value) -> value?.let { key to it } }
-        .toMap()
-        .keysAsString()
-        .toJson()
-        .toString()
+        .mapValuesNotNull { it }
+        .toJsonStr()
         .let(this::sendTestMessage)
 }
+
+private fun Map<Key, JsonElement>.toJsonStr(): String =
+    tryToJsonStr(Pri.Key.serializer())
+        ?: tryToJsonStr(Spleis.Key.serializer())
+        ?: throw RuntimeException("Klarte ikke å serialisere testmelding.")
+
+@Suppress("UNCHECKED_CAST")
+private fun <K : Key> Map<Key, JsonElement>.tryToJsonStr(serializer: KSerializer<K>): String? =
+    (this as? Map<K, JsonElement>)?.toJsonStr(
+        MapSerializer(
+            serializer,
+            JsonElement.serializer()
+        )
+    )
