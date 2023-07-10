@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -13,12 +14,16 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.interestedKeys
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.les
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.lesOrNull
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.requireKeys
-import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 
-internal class MarkerHaandertForespoerselRiver(
+internal class MarkerBesvartForespoerselRiver(
     rapid: RapidsConnection,
     private val forespoerselDao: ForespoerselDao
 ) : River.PacketListener {
@@ -40,23 +45,36 @@ internal class MarkerHaandertForespoerselRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        loggernaut.aapen.info("Mottok melding på arbeidsgiveropplysninger-topic av type '${Spleis.Key.TYPE.fra(packet).fromJson(String.serializer())}'.")
-        loggernaut.sikker.info("Mottok melding på arbeidsgiveropplysninger-topic med innhold:\n${packet.toJson()}")
+        runCatching {
+            packet.toJson()
+                .parseJson()
+                .oppdaterForespoersel()
+        }
+            .onFailure(loggernaut::ukjentFeil)
+            .getOrThrow()
+    }
 
-        val dokumentId = Spleis.Key.DOKUMENT_ID.fraEllerNull(packet)?.fromJson(UuidSerializer)
+    private fun JsonElement.oppdaterForespoersel() {
+        val melding = fromJsonMapFiltered(Spleis.Key.serializer())
+
+        loggernaut.aapen.info("Mottok melding på arbeidsgiveropplysninger-topic av type '${Spleis.Key.TYPE.les(String.serializer(), melding)}'.")
+        loggernaut.sikker.info("Mottok melding på arbeidsgiveropplysninger-topic med innhold:\n${toPretty()}")
+
+        val inntektsmeldingId = Spleis.Key.DOKUMENT_ID.lesOrNull(UuidSerializer, melding)
+
         val inntektsmeldingHaandtert = InntektsmeldingHaandtertDto(
-            orgnr = Spleis.Key.ORGANISASJONSNUMMER.fra(packet).fromJson(Orgnr.serializer()),
-            vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.fra(packet).fromJson(UuidSerializer),
-            fnr = Spleis.Key.FØDSELSNUMMER.fra(packet).fromJson(String.serializer()),
-            dokumentId = dokumentId,
-            opprettet = Spleis.Key.OPPRETTET.fra(packet).fromJson(LocalDateTimeSerializer)
+            orgnr = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding),
+            fnr = Spleis.Key.FØDSELSNUMMER.les(String.serializer(), melding),
+            vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
+            inntektsmeldingId = inntektsmeldingId,
+            haandtert = Spleis.Key.OPPRETTET.les(LocalDateTimeSerializer, melding)
         )
 
         if (inntektsmeldingHaandtert.orgnr in Env.AllowList.organisasjoner) {
-            forespoerselDao.oppdaterAktiveForespoerslerSomErBesvart(inntektsmeldingHaandtert.vedtaksperiodeId, Status.BESVART, inntektsmeldingHaandtert.opprettet, dokumentId)
+            forespoerselDao.oppdaterForespoerslerSomBesvart(inntektsmeldingHaandtert.vedtaksperiodeId, Status.BESVART, inntektsmeldingHaandtert.haandtert, inntektsmeldingId)
 
             loggernaut.aapen.info("Oppdaterte forespørselstatus til besvart")
-            loggernaut.sikker.info("Oppdaterte forespørselstatus til besvart:\n${packet.toJson()}")
+            loggernaut.sikker.info("Oppdaterte forespørselstatus til besvart:\n${toPretty()}")
         }
     }
 }

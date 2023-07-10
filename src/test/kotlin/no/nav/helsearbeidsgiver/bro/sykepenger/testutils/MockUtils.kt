@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.testutils
 
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Arbeidsgiverperiode
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.BesvarelseMetadataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
@@ -26,18 +27,25 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.august
+import no.nav.helsearbeidsgiver.utils.test.date.januar
+import no.nav.helsearbeidsgiver.utils.test.date.juni
+import no.nav.helsearbeidsgiver.utils.test.date.oktober
+import no.nav.helsearbeidsgiver.utils.test.date.september
 import java.time.LocalDateTime
 import java.util.UUID
 
 object MockUuid {
     val vedtaksperiodeId: UUID = "01234567-abcd-0123-abcd-012345678901".let(UUID::fromString)
     val forespoerselId: UUID = "98765654-abcd-0123-abcd-012345678901".let(UUID::fromString)
-    val dokumentId: UUID = "22efb342-3e72-4880-a449-eb1efcf0f18b".let(UUID::fromString)
+    val inntektsmeldingId: UUID = "22efb342-3e72-4880-a449-eb1efcf0f18b".let(UUID::fromString)
 }
 
-fun mockForespoerselDto(dokumentId: UUID? = null): ForespoerselDto =
+fun mockForespoerselDto(besvarelseMetaData: BesvarelseMetadataDto? = null): ForespoerselDto =
     ForespoerselDto(
         forespoerselId = randomUuid(),
+        type = Type.KOMPLETT,
+        status = Status.AKTIV,
         orgnr = "123456789".let(::Orgnr),
         fnr = "123456789",
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
@@ -48,10 +56,7 @@ fun mockForespoerselDto(dokumentId: UUID? = null): ForespoerselDto =
         ),
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         forespurtData = mockSpleisForespurtDataListe(),
-        forespoerselBesvart = null,
-        status = Status.AKTIV,
-        dokumentId = dokumentId,
-        type = Type.KOMPLETT
+        besvarelse = besvarelseMetaData
     )
 
 fun mockSpleisForespurtDataListe(): List<SpleisForespurtDataDto> =
@@ -118,6 +123,8 @@ fun mockForespoerselMottatt(): ForespoerselMottatt =
 
 fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
     ForespoerselSvar.Suksess(
+        type = Type.KOMPLETT,
+        status = Status.AKTIV,
         orgnr = "569046822".let(::Orgnr),
         fnr = "abc",
         sykmeldingsperioder = listOf(Periode(2.januar, 16.januar)),
@@ -175,13 +182,13 @@ fun mockRefusjon(): Refusjon =
         )
     )
 
-fun mockInntektsmeldingHaandtertDto(dokumentId: UUID? = MockUuid.dokumentId): InntektsmeldingHaandtertDto =
+fun mockInntektsmeldingHaandtertDto(dokumentId: UUID? = MockUuid.inntektsmeldingId): InntektsmeldingHaandtertDto =
     InntektsmeldingHaandtertDto(
         orgnr = "287429436".let(::Orgnr),
-        vedtaksperiodeId = MockUuid.vedtaksperiodeId,
         fnr = "fnr",
-        dokumentId = dokumentId,
-        opprettet = LocalDateTime.MAX
+        vedtaksperiodeId = MockUuid.vedtaksperiodeId,
+        inntektsmeldingId = dokumentId,
+        haandtert = LocalDateTime.MAX
     )
 
 fun mockJsonElement(): JsonElement =

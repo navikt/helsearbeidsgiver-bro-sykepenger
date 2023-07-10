@@ -3,6 +3,7 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.utils
 import kotliquery.Query
 import kotliquery.Row
 import kotliquery.Session
+import kotliquery.TransactionalSession
 import kotliquery.action.QueryAction
 import kotliquery.queryOf
 import kotliquery.sessionOf
@@ -20,6 +21,11 @@ fun String.execute(params: Map<String, Any>, session: Session): Boolean =
 
 fun <T : Any> String.listResult(params: Map<String, Any>, dataSource: DataSource, transform: Row.() -> T): List<T> =
     runQuery(params, dataSource) {
+        map(transform).asList
+    }
+
+fun <T : Any> String.listResult(params: Map<String, Any>, session: TransactionalSession, transform: Row.() -> T): List<T> =
+    runQuery(params, session) {
         map(transform).asList
     }
 

@@ -1,0 +1,1 @@
+ALTER TABLE forespoersel DROP COLUMN forespoersel_besvart;

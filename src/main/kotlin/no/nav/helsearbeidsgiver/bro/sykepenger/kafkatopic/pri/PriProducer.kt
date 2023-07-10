@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri
 
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.Env
-import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.keysAsString
-import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -20,9 +20,7 @@ class PriProducer(
 
     fun send(vararg keyValuePairs: Pair<Pri.Key, JsonElement>): Boolean =
         keyValuePairs.toMap()
-            .keysAsString()
-            .toJson()
-            .toString()
+            .toJsonStr()
             .toRecord()
             .runCatching {
                 producer.send(this).get()
@@ -32,6 +30,14 @@ class PriProducer(
     private fun String.toRecord(): ProducerRecord<String, String> =
         ProducerRecord(topic, this)
 }
+
+fun Map<Pri.Key, JsonElement>.toJsonStr() =
+    toJsonStr(
+        MapSerializer(
+            Pri.Key.serializer(),
+            JsonElement.serializer()
+        )
+    )
 
 private fun createProducer(): KafkaProducer<String, String> =
     KafkaProducer(

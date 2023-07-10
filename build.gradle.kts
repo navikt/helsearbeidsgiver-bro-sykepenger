@@ -1,23 +1,25 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val mainClassPath = "no.nav.helsearbeidsgiver.bro.sykepenger.AppKt"
 
 plugins {
     application
     kotlin("jvm")
-    id("org.jmailen.kotlinter")
     kotlin("plugin.serialization")
+    id("org.jmailen.kotlinter")
 }
 
 application {
     mainClass.set(mainClassPath)
 }
 
-tasks {
-    withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
+}
 
+tasks {
     withType<Test> {
         useJUnitPlatform()
         testLogging {
@@ -46,11 +48,6 @@ tasks {
     }
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
 repositories {
     val githubPassword: String by project
 
@@ -58,11 +55,11 @@ repositories {
     google()
     maven("https://packages.confluent.io/maven/")
     maven {
+        setUrl("https://maven.pkg.github.com/navikt/*")
         credentials {
             username = "x-access-token"
             password = githubPassword
         }
-        setUrl("https://maven.pkg.github.com/navikt/*")
     }
 }
 
@@ -79,6 +76,9 @@ dependencies {
     val slf4jVersion: String by project
     val testcontainersPostgresqlVersion: String by project
     val utilsVersion: String by project
+    val ktorVersion: String by project
+    val tokenSupportVersion: String by project
+    val tokenProviderVersion: String by project
 
     implementation("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
@@ -88,9 +88,13 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("no.nav.security:token-client-core:$tokenSupportVersion")
+    implementation("no.nav.helsearbeidsgiver:tokenprovider:$tokenProviderVersion")
 
     runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
 
+    testImplementation(testFixtures("no.nav.helsearbeidsgiver:utils:$utilsVersion"))
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-framework-datatest:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")

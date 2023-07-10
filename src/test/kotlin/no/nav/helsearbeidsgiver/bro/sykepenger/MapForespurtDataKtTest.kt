@@ -18,14 +18,14 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForslagInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForslagRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisRefusjon
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.august
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.februar
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.januar
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.juli
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.juni
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mars
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockInntektMedForslagFastsatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockSpleisFastsattInntekt
+import no.nav.helsearbeidsgiver.utils.test.date.august
+import no.nav.helsearbeidsgiver.utils.test.date.februar
+import no.nav.helsearbeidsgiver.utils.test.date.januar
+import no.nav.helsearbeidsgiver.utils.test.date.juli
+import no.nav.helsearbeidsgiver.utils.test.date.juni
+import no.nav.helsearbeidsgiver.utils.test.date.mars
 
 class MapForespurtDataKtTest : FunSpec({
 

@@ -12,12 +12,12 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type.BEGRENSET
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.januar
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockBegrensetForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.nullableResult
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
+import no.nav.helsearbeidsgiver.utils.test.date.januar
 import org.postgresql.util.PSQLException
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -187,33 +187,90 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         lagretForespoersel shouldBe forespoersel
     }
 
-    test("Oppdatere status, dokumentId og forespørselBesvart for aktive forespørsel") {
+    test("Oppdaterer status, inntektsmeldingId og forespørselBesvart for aktive forespørsler") {
         val id1 = mockForespoerselDto().lagreNotNull()
         val id2 = mockForespoerselDto().lagreNotNull()
         val forespoerselBesvart = LocalDateTime.now()
 
-        forespoerselDao.oppdaterAktiveForespoerslerSomErBesvart(MockUuid.vedtaksperiodeId, Status.BESVART, forespoerselBesvart, MockUuid.dokumentId)
+        forespoerselDao.oppdaterForespoerslerSomBesvart(MockUuid.vedtaksperiodeId, Status.BESVART, forespoerselBesvart, MockUuid.inntektsmeldingId)
 
         val forespoersel1 = dataSource.hentForespoersel(id1)
         val forespoersel2 = dataSource.hentForespoersel(id2)
 
         forespoersel1?.status shouldBe Status.FORKASTET
-        forespoersel1?.dokumentId shouldBe null
-        forespoersel1?.forespoerselBesvart shouldBe null
+        forespoersel1?.besvarelse shouldBe null
 
         forespoersel2?.status shouldBe Status.BESVART
-        forespoersel2?.dokumentId shouldBe MockUuid.dokumentId
-        forespoersel2?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe forespoerselBesvart.truncatedTo(ChronoUnit.MILLIS)
+        forespoersel2?.besvarelse?.inntektsmeldingId shouldBe MockUuid.inntektsmeldingId
+        forespoersel2?.besvarelse?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe forespoerselBesvart.truncatedTo(ChronoUnit.MILLIS)
+    }
+
+    test("Oppdaterer status og forespørselBesvart for aktive forespørsel som mangler inntektsmeldingId") {
+        val id1 = mockForespoerselDto().lagreNotNull()
+        val id2 = mockForespoerselDto().lagreNotNull()
+        val forespoerselBesvart = LocalDateTime.now()
+
+        forespoerselDao.oppdaterForespoerslerSomBesvart(MockUuid.vedtaksperiodeId, Status.BESVART, forespoerselBesvart, null)
+
+        val forespoersel1 = dataSource.hentForespoersel(id1)
+        val forespoersel2 = dataSource.hentForespoersel(id2)
+
+        forespoersel1?.status shouldBe Status.FORKASTET
+        forespoersel1?.besvarelse shouldBe null
+
+        forespoersel2?.status shouldBe Status.BESVART
+        forespoersel2?.besvarelse?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe forespoerselBesvart.truncatedTo(ChronoUnit.MILLIS)
+        forespoersel2?.besvarelse?.inntektsmeldingId shouldBe null
+    }
+
+    test("Hvis forespørsel er besvart skal ny besvarelse overskrive den gamle") {
+        val inntektsmeldingId1 = randomUuid()
+        val inntektsmeldingId2 = randomUuid()
+
+        val forespoerselId = mockForespoerselDto().lagreNotNull()
+
+        forespoerselDao.oppdaterForespoerslerSomBesvart(MockUuid.vedtaksperiodeId, Status.BESVART, 1.januar.atStartOfDay(), inntektsmeldingId = inntektsmeldingId1)
+        forespoerselDao.oppdaterForespoerslerSomBesvart(MockUuid.vedtaksperiodeId, Status.BESVART, 2.januar.atStartOfDay(), inntektsmeldingId = inntektsmeldingId2)
+
+        val forespoersel = dataSource.hentForespoersel(forespoerselId)
+        forespoersel?.status shouldBe Status.BESVART
+        forespoersel?.besvarelse?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe 2.januar.atStartOfDay().truncatedTo(ChronoUnit.MILLIS)
+        forespoersel?.besvarelse?.inntektsmeldingId shouldBe inntektsmeldingId2
+
+        dataSource.antallBesvarelser() shouldBeExactly 1
+    }
+
+    test("Hvis forespørsel er besvart skal ny besvarelse overskrive den gamle, selv når inntektsmeldingId mangler") {
+        val inntektsmeldingId1 = randomUuid()
+        val forespoerselId = mockForespoerselDto().lagreNotNull()
+
+        forespoerselDao.oppdaterForespoerslerSomBesvart(MockUuid.vedtaksperiodeId, Status.BESVART, 1.januar.atStartOfDay(), inntektsmeldingId = inntektsmeldingId1)
+        forespoerselDao.oppdaterForespoerslerSomBesvart(MockUuid.vedtaksperiodeId, Status.BESVART, 2.januar.atStartOfDay(), inntektsmeldingId = null)
+
+        val forespoersel = dataSource.hentForespoersel(forespoerselId)
+        forespoersel?.status shouldBe Status.BESVART
+        forespoersel?.besvarelse?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe 2.januar.atStartOfDay().truncatedTo(ChronoUnit.MILLIS)
+        forespoersel?.besvarelse?.inntektsmeldingId shouldBe null
+
+        dataSource.antallBesvarelser() shouldBeExactly 1
     }
 })
 
 private fun DataSource.hentForespoersel(id: Long): ForespoerselDto? =
-    "SELECT * FROM forespoersel WHERE id=:id"
+    "SELECT * FROM forespoersel f LEFT JOIN besvarelse_metadata b ON f.id=b.fk_forespoersel_id WHERE f.id=:id "
         .nullableResult(
             params = mapOf("id" to id),
             dataSource = this,
             transform = Row::toForespoerselDto
         )
+
+private fun DataSource.antallBesvarelser(): Int =
+    "SELECT COUNT(1) FROM besvarelse_metadata"
+        .nullableResult(
+            params = emptyMap<String, Nothing>(),
+            dataSource = this
+        ) { int(1) }
+        .shouldNotBeNull()
 
 private fun DataSource.antallForespoersler(): Int =
     "SELECT COUNT(1) FROM forespoersel"
