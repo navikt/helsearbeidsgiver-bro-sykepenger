@@ -7,10 +7,9 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifySequence
-import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.keysAsString
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.toKeyMap
-import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
@@ -40,10 +39,7 @@ class PriProducerTest : FunSpec({
 
         val expected = ProducerRecord<String, String>(
             Pri.TOPIC,
-            forespoerselMottatt.toKeyMap()
-                .keysAsString()
-                .toJson()
-                .toString()
+            forespoerselMottatt.toKeyMap().toJsonStr()
         )
 
         verifySequence { mockProducer.send(expected) }

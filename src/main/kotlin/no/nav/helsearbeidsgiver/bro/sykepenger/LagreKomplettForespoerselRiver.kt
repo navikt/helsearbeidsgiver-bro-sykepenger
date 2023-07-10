@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
 import kotlinx.serialization.builtins.serializer
-import no.nav.helse.rapids_rivers.JsonMessage
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.les
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.require
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.requireKeys
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -57,18 +58,18 @@ class LagreKomplettForespoerselRiver(
         }.register(this)
     }
 
-    override fun lesForespoersel(forespoerselId: UUID, packet: JsonMessage): ForespoerselDto =
+    override fun lesForespoersel(forespoerselId: UUID, melding: Map<Spleis.Key, JsonElement>): ForespoerselDto =
         ForespoerselDto(
             forespoerselId = forespoerselId,
             type = Type.KOMPLETT,
             status = Status.AKTIV,
-            orgnr = Spleis.Key.ORGANISASJONSNUMMER.fra(packet).fromJson(Orgnr.serializer()),
-            fnr = Spleis.Key.FØDSELSNUMMER.fra(packet).fromJson(String.serializer()),
-            vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.fra(packet).fromJson(UuidSerializer),
-            skjaeringstidspunkt = Spleis.Key.SKJÆRINGSTIDSPUNKT.fra(packet).fromJson(LocalDateSerializer),
-            sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.fra(packet).fromJson(Periode.serializer().list()),
-            egenmeldingsperioder = Spleis.Key.EGENMELDINGSPERIODER.fra(packet).fromJson(Periode.serializer().list()),
-            forespurtData = Spleis.Key.FORESPURT_DATA.fra(packet).fromJson(SpleisForespurtDataDto.serializer().list()),
+            orgnr = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding),
+            fnr = Spleis.Key.FØDSELSNUMMER.les(String.serializer(), melding),
+            vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
+            skjaeringstidspunkt = Spleis.Key.SKJÆRINGSTIDSPUNKT.les(LocalDateSerializer, melding),
+            sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),
+            egenmeldingsperioder = Spleis.Key.EGENMELDINGSPERIODER.les(Periode.serializer().list(), melding),
+            forespurtData = Spleis.Key.FORESPURT_DATA.les(SpleisForespurtDataDto.serializer().list(), melding),
             besvarelse = null
         )
 }

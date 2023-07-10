@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.Key
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.pipe.mapFirst
 
 fun JsonMessage.demandValues(vararg keyAndValuePairs: Pair<Key, String>) {
@@ -39,7 +40,7 @@ private fun JsonMessage.validate(
 ) {
     keyAndParserPairs.forEach { (key, block) ->
         validateFn(this, key) {
-            it.toJsonElement().let(block)
+            it.toString().parseJson().let(block)
         }
     }
 }

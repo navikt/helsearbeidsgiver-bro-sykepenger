@@ -12,12 +12,12 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type.BEGRENSET
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.januar
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockBegrensetForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.nullableResult
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
+import no.nav.helsearbeidsgiver.utils.test.date.januar
 import org.postgresql.util.PSQLException
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit

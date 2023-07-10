@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
@@ -13,9 +14,12 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.les
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
-import no.nav.helsearbeidsgiver.utils.json.fromJson
+import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
+import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
@@ -27,7 +31,7 @@ sealed class LagreForespoerselRiver(
 ) : River.PacketListener {
     abstract val loggernaut: Loggernaut<*>
 
-    abstract fun lesForespoersel(forespoerselId: UUID, packet: JsonMessage): ForespoerselDto
+    abstract fun lesForespoersel(forespoerselId: UUID, melding: Map<Spleis.Key, JsonElement>): ForespoerselDto
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val forespoerselId = randomUuid()
@@ -36,18 +40,22 @@ sealed class LagreForespoerselRiver(
             "forespoerselId" to forespoerselId.toString()
         ) {
             runCatching {
-                packet.loesBehov(forespoerselId)
+                packet.toJson()
+                    .parseJson()
+                    .lagreForespoersel(forespoerselId)
             }
                 .onFailure(loggernaut::ukjentFeil)
                 .getOrThrow()
         }
     }
 
-    private fun JsonMessage.loesBehov(forespoerselId: UUID) {
-        loggernaut.aapen.info("Mottok melding av type '${Spleis.Key.TYPE.fra(this).fromJson(String.serializer())}'")
-        loggernaut.sikker.info("Mottok melding med innhold:\n${toJson()}")
+    private fun JsonElement.lagreForespoersel(forespoerselId: UUID) {
+        val melding = fromJsonMapFiltered(Spleis.Key.serializer())
 
-        val forespoersel = lesForespoersel(forespoerselId, this)
+        loggernaut.aapen.info("Mottok melding av type '${Spleis.Key.TYPE.les(String.serializer(), melding)}'")
+        loggernaut.sikker.info("Mottok melding med innhold:\n${toPretty()}")
+
+        val forespoersel = lesForespoersel(forespoerselId, melding)
         loggernaut.sikker.info("Forespoersel lest: $forespoersel")
 
         if (forespoersel.orgnr in Env.AllowList.organisasjoner) {
