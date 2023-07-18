@@ -9,7 +9,8 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.InntektsmeldingHaandtertDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
@@ -21,11 +22,16 @@ import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
+import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 
 internal class MarkerBesvartForespoerselRiver(
     rapid: RapidsConnection,
-    private val forespoerselDao: ForespoerselDao
+    private val forespoerselDao: ForespoerselDao,
+    private val priProducer: PriProducer
 ) : River.PacketListener {
     private val loggernaut = Loggernaut(this)
 
@@ -57,7 +63,7 @@ internal class MarkerBesvartForespoerselRiver(
     private fun JsonElement.oppdaterForespoersel() {
         val melding = fromJsonMapFiltered(Spleis.Key.serializer())
 
-        loggernaut.aapen.info("Mottok melding på arbeidsgiveropplysninger-topic av type '${Spleis.Key.TYPE.les(String.serializer(), melding)}'.")
+        loggernaut.aapen.info("Mottok melding på arbeidsgiveropplysninger-topic av type '${Spleis.Event.INNTEKTSMELDING_HÅNDTERT}'.")
         loggernaut.sikker.info("Mottok melding på arbeidsgiveropplysninger-topic med innhold:\n${toPretty()}")
 
         val inntektsmeldingId = Spleis.Key.DOKUMENT_ID.lesOrNull(UuidSerializer, melding)
@@ -71,10 +77,34 @@ internal class MarkerBesvartForespoerselRiver(
         )
 
         if (inntektsmeldingHaandtert.orgnr in Env.AllowList.organisasjoner) {
-            forespoerselDao.oppdaterForespoerslerSomBesvart(inntektsmeldingHaandtert.vedtaksperiodeId, Status.BESVART, inntektsmeldingHaandtert.haandtert, inntektsmeldingId)
+            val forespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
 
-            loggernaut.aapen.info("Oppdaterte forespørselstatus til besvart")
-            loggernaut.sikker.info("Oppdaterte forespørselstatus til besvart:\n${toPretty()}")
+            forespoerselDao.oppdaterForespoerslerSomBesvart(
+                vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId,
+                besvart = inntektsmeldingHaandtert.haandtert,
+                inntektsmeldingId = inntektsmeldingId
+            )
+
+            if (forespoersel != null) {
+                "Oppdaterte status til besvart for forespørsel ${forespoersel.forespoerselId}.".also {
+                    loggernaut.aapen.info(it)
+                    loggernaut.sikker.info(it)
+                }
+
+                priProducer.send(
+                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
+                    Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson()
+                )
+                    .ifTrue { loggernaut.aapen.info("Sa ifra om besvart forespørsel til Simba.") }
+                    .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om besvart forespørsel til Simba.") }
+            }
+        } else {
+            "Ignorerer besvart forespørsel siden den gjelder organisasjon uten tillatelse til pilot.".let {
+                loggernaut.aapen.info(it)
+                MdcUtils.withLogFields(Pri.Key.ORGNR.verdi to inntektsmeldingHaandtert.orgnr.verdi) {
+                    loggernaut.sikker.info(it)
+                }
+            }
         }
     }
 }

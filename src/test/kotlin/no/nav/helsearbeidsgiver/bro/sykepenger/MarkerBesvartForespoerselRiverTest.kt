@@ -5,6 +5,7 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -12,21 +13,24 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.Env.fromEnv
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.InntektsmeldingHaandtertDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockInntektsmeldingHaandtertDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import java.time.LocalDateTime
 
 class MarkerBesvartForespoerselRiverTest : FunSpec({
     val testRapid = TestRapid()
     val mockForespoerselDao = mockk<ForespoerselDao>(relaxed = true)
+    val mockPriProducer = mockk<PriProducer>(relaxed = true)
 
     MarkerBesvartForespoerselRiver(
         rapid = testRapid,
-        forespoerselDao = mockForespoerselDao
+        forespoerselDao = mockForespoerselDao,
+        priProducer = mockPriProducer
     )
 
     fun mockInnkommendeMelding(inntektsmeldingHaandtert: InntektsmeldingHaandtertDto) {
@@ -52,15 +56,9 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
             mockInnkommendeMelding(inntektsmeldingHaandtert)
         }
 
-        val expectedPublished = InntektsmeldingHaandtertDto(
-            orgnr = inntektsmeldingHaandtert.orgnr,
-            fnr = inntektsmeldingHaandtert.fnr,
-            vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId,
-            inntektsmeldingId = inntektsmeldingHaandtert.inntektsmeldingId,
-            haandtert = LocalDateTime.MAX
-        )
         verifySequence {
-            mockForespoerselDao.oppdaterForespoerslerSomBesvart(expectedPublished.vedtaksperiodeId, Status.BESVART, expectedPublished.haandtert, expectedPublished.inntektsmeldingId)
+            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
+            mockForespoerselDao.oppdaterForespoerslerSomBesvart(inntektsmeldingHaandtert.vedtaksperiodeId, inntektsmeldingHaandtert.haandtert, inntektsmeldingHaandtert.inntektsmeldingId)
         }
     }
 
@@ -72,19 +70,47 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
             mockInnkommendeMelding(inntektsmeldingHaandtert)
         }
 
-        val expectedPublished = InntektsmeldingHaandtertDto(
-            orgnr = inntektsmeldingHaandtert.orgnr,
-            fnr = inntektsmeldingHaandtert.fnr,
-            vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId,
-            inntektsmeldingId = inntektsmeldingHaandtert.inntektsmeldingId,
-            haandtert = LocalDateTime.MAX
-        )
         verifySequence {
-            mockForespoerselDao.oppdaterForespoerslerSomBesvart(expectedPublished.vedtaksperiodeId, Status.BESVART, LocalDateTime.MAX, expectedPublished.inntektsmeldingId)
+            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
+            mockForespoerselDao.oppdaterForespoerslerSomBesvart(inntektsmeldingHaandtert.vedtaksperiodeId, inntektsmeldingHaandtert.haandtert, inntektsmeldingHaandtert.inntektsmeldingId)
         }
     }
 
-    test("Skal ikke sende ut event om å slette oppgave for forespørsler som allerede er besvart") {
-        // TODO
+    test("Sier ifra til Simba om besvart forespørsel") {
+        val forespoersel = mockForespoerselDto()
+        val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = null)
+
+        every {
+            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
+        } returns forespoersel
+
+        mockkObject(Env) {
+            every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns inntektsmeldingHaandtert.orgnr.verdi
+            mockInnkommendeMelding(inntektsmeldingHaandtert)
+        }
+
+        verifySequence {
+            mockPriProducer.send(
+                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
+                Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson()
+            )
+        }
+    }
+
+    test("Sier _ikke_ ifra til Simba om besvart forespørsel dersom forespørselen allerede er besvart") {
+        val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = null)
+
+        every {
+            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
+        } returns null
+
+        mockkObject(Env) {
+            every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns inntektsmeldingHaandtert.orgnr.verdi
+            mockInnkommendeMelding(inntektsmeldingHaandtert)
+        }
+
+        verify(exactly = 0) {
+            mockPriProducer.send(*anyVararg())
+        }
     }
 })

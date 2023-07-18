@@ -31,7 +31,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
     test("Ved innkommende event, svar ut korrekt ForespoerselSvar") {
         val forespoersel = mockForespoerselDto()
 
-        every { mockForespoerselDao.hentAktivForespoerselFor(any()) } returns forespoersel
+        every { mockForespoerselDao.hentAktivForespoerselForForespoerselId(any()) } returns forespoersel
 
         val expectedPublished = ForespoerselSvar(
             forespoerselId = forespoersel.forespoerselId,
@@ -46,7 +46,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         )
 
         verifySequence {
-            mockForespoerselDao.hentAktivForespoerselFor(any())
+            mockForespoerselDao.hentAktivForespoerselForForespoerselId(any())
             mockPriProducer.send(
                 Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
                 Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer())
@@ -61,7 +61,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
             forespurtData = mockBegrensetForespurtDataListe()
         )
 
-        every { mockForespoerselDao.hentAktivForespoerselFor(any()) } returns forespoersel
+        every { mockForespoerselDao.hentAktivForespoerselForForespoerselId(any()) } returns forespoersel
 
         val expectedPublished = ForespoerselSvar(
             forespoerselId = forespoersel.forespoerselId,
@@ -76,7 +76,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         )
 
         verifySequence {
-            mockForespoerselDao.hentAktivForespoerselFor(any())
+            mockForespoerselDao.hentAktivForespoerselForForespoerselId(any())
             mockPriProducer.send(
                 Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
                 Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer())
@@ -85,7 +85,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
     }
 
     test("Når forespørsel ikke finnes skal det sendes ForespoerselSvar med error") {
-        every { mockForespoerselDao.hentAktivForespoerselFor(any()) } returns null
+        every { mockForespoerselDao.hentAktivForespoerselForForespoerselId(any()) } returns null
 
         val forespoersel = mockForespoerselDto()
         val expectedPublished = ForespoerselSvar(
@@ -101,7 +101,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         )
 
         verifySequence {
-            mockForespoerselDao.hentAktivForespoerselFor(any())
+            mockForespoerselDao.hentAktivForespoerselForForespoerselId(any())
             mockPriProducer.send(
                 Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
                 Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer())

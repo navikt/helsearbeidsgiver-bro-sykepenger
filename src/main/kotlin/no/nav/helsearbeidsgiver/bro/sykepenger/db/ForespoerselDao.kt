@@ -80,27 +80,29 @@ class ForespoerselDao(private val dataSource: DataSource) {
                 session = session
             )
 
-    internal fun oppdaterForespoerslerSomBesvart(vedtaksperiodeId: UUID, status: Status, besvart: LocalDateTime, inntektsmeldingId: UUID?) =
+    fun oppdaterForespoerslerSomBesvart(vedtaksperiodeId: UUID, besvart: LocalDateTime, inntektsmeldingId: UUID?) =
         sessionOf(dataSource = dataSource).use { session ->
-            session.transaction {
-                val oppdaterteForespoersler = updateStatus(it, vedtaksperiodeId, status)
-                if (oppdaterteForespoersler.size > 1) {
-                    logger.error("Fant to aktive forespørsler for samme vedtaksperiode, det skal ikke skje. Sjekk sikkerlogg for mer info")
-                    sikkerLogger.error("Fant to aktive forespørsler for samme vedtaksperiode med id-er: $oppdaterteForespoersler. Det skal ikke skje.")
+            session.transaction { transaction ->
+                val oppdaterteForespoersler = updateStatus(transaction, vedtaksperiodeId, Status.BESVART)
+                if (oppdaterteForespoersler.isEmpty()) {
+                    "Fant ingen aktive eller besvarte forespørsler for vedtaksperioden $vedtaksperiodeId. Det skal ikke skje.".let {
+                        logger.error(it)
+                        sikkerLogger.error(it)
+                    }
                 }
                 oppdaterteForespoersler.forEach { id ->
-                    insertOrUpdateBesvarelse(it, id, besvart, inntektsmeldingId)
+                    insertOrUpdateBesvarelse(transaction, id, besvart, inntektsmeldingId)
                 }
             }
         }
 
     private fun updateStatus(session: TransactionalSession, vedtaksperiodeId: UUID, status: Status) =
-        (
-            "UPDATE forespoersel " +
-                "SET ${Db.STATUS}=:nyStatus " +
-                "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS} in ('${Status.AKTIV.name}', '${Status.BESVART.name}') " +
-                "RETURNING id"
-            )
+        query(
+            "UPDATE forespoersel",
+            "SET ${Db.STATUS}=:nyStatus",
+            "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS} in ('${Status.AKTIV.name}', '${Status.BESVART.name}')",
+            "RETURNING id"
+        )
             .listResult(
                 params = mutableMapOf(
                     "vedtaksperiodeId" to vedtaksperiodeId,
@@ -110,12 +112,17 @@ class ForespoerselDao(private val dataSource: DataSource) {
                 transform = Row::toId
             )
 
-    private fun insertOrUpdateBesvarelse(session: TransactionalSession, forespoerselId: Long, forespoerselBesvart: LocalDateTime, inntektsmeldingId: UUID?): Boolean =
-        (
-            "INSERT INTO besvarelse_metadata(${Db.FK_FORESPOERSEL_ID}, ${Db.FORESPOERSEL_BESVART}, ${Db.INNTEKTSMELDING_ID}) " +
-                "VALUES(:forespoerselId, :forespoerselBesvart, :inntektsmeldingId) " +
-                "ON CONFLICT (fk_forespoersel_id) DO UPDATE SET ${Db.FORESPOERSEL_BESVART}=:forespoerselBesvart, ${Db.INNTEKTSMELDING_ID}=:inntektsmeldingId"
-            )
+    private fun insertOrUpdateBesvarelse(
+        session: TransactionalSession,
+        forespoerselId: Long,
+        forespoerselBesvart: LocalDateTime,
+        inntektsmeldingId: UUID?
+    ): Boolean =
+        query(
+            "INSERT INTO besvarelse_metadata(${Db.FK_FORESPOERSEL_ID}, ${Db.FORESPOERSEL_BESVART}, ${Db.INNTEKTSMELDING_ID})",
+            "VALUES(:forespoerselId, :forespoerselBesvart, :inntektsmeldingId)",
+            "ON CONFLICT (fk_forespoersel_id) DO UPDATE SET ${Db.FORESPOERSEL_BESVART}=:forespoerselBesvart, ${Db.INNTEKTSMELDING_ID}=:inntektsmeldingId"
+        )
             .execute(
                 params = mapOf(
                     "forespoerselId" to forespoerselId,
@@ -126,24 +133,30 @@ class ForespoerselDao(private val dataSource: DataSource) {
                 session = session
             )
 
-    fun hentAktivForespoerselFor(forespoerselId: UUID): ForespoerselDto? =
+    fun hentAktivForespoerselForForespoerselId(forespoerselId: UUID): ForespoerselDto? =
         hentVedtaksperiodeId(forespoerselId)
-            ?.let { vedtaksperiodeId ->
-                (
-                    "SELECT * FROM forespoersel f " +
-                        "LEFT JOIN besvarelse_metadata b ON f.id=b.${Db.FK_FORESPOERSEL_ID} " +
-                        "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS}='AKTIV'"
-                    )
-                    .listResult(
-                        params = mapOf("vedtaksperiodeId" to vedtaksperiodeId),
-                        dataSource = dataSource,
-                        transform = Row::toForespoerselDto
-                    )
-                    .also {
-                        if (it.size > 1) logger.error("Fant flere aktive forespørsler for vedtaksperiode: $vedtaksperiodeId")
+            ?.let(::hentAktivForespoerselForVedtaksperiodeId)
+
+    fun hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId: UUID): ForespoerselDto? =
+        query(
+            "SELECT * FROM forespoersel f",
+            "LEFT JOIN besvarelse_metadata b ON f.id=b.${Db.FK_FORESPOERSEL_ID}",
+            "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS}='AKTIV'"
+        )
+            .listResult(
+                params = mapOf("vedtaksperiodeId" to vedtaksperiodeId),
+                dataSource = dataSource,
+                transform = Row::toForespoerselDto
+            )
+            .also { forespoersler ->
+                if (forespoersler.size > 1) {
+                    "Fant flere aktive forespørsler for vedtaksperiode: $vedtaksperiodeId".also {
+                        logger.error(it)
+                        sikkerLogger.error(it)
                     }
+                }
             }
-            ?.maxByOrNull { it.opprettet }
+            .maxByOrNull { it.opprettet }
 
     private fun hentVedtaksperiodeId(forespoerselId: UUID): UUID? =
         "SELECT ${Db.VEDTAKSPERIODE_ID} FROM forespoersel WHERE ${Db.FORESPOERSEL_ID}=:forespoerselId"
@@ -171,11 +184,15 @@ fun Row.toForespoerselDto(): ForespoerselDto =
         oppdatert = Db.OPPDATERT.let(::localDateTime)
     )
 
-fun Row.toBesvarelseMetadataDto(): BesvarelseMetadataDto? {
+private fun Row.toBesvarelseMetadataDto(): BesvarelseMetadataDto? {
     val forespoerselBesvart = Db.FORESPOERSEL_BESVART.let(::localDateTimeOrNull)
     val inntektsmeldingId = Db.INNTEKTSMELDING_ID.let(::uuidOrNull)
     return forespoerselBesvart?.let { BesvarelseMetadataDto(forespoerselBesvart, inntektsmeldingId) }
 }
 
-fun Row.toId(): Long =
+private fun Row.toId(): Long =
     Db.ID.let(::long)
+
+/** Kun brukt for å få penere kodeformat på queries fordelt over flere linjer. */
+private fun query(vararg parts: String): String =
+    parts.joinToString(separator = " ")

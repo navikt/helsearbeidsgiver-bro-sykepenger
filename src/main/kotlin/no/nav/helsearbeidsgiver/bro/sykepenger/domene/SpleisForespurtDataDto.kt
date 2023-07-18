@@ -19,7 +19,7 @@ sealed class SpleisForespurtDataDto
 
 @Serializable
 @SerialName("Arbeidsgiverperiode")
-object SpleisArbeidsgiverperiode : SpleisForespurtDataDto()
+data object SpleisArbeidsgiverperiode : SpleisForespurtDataDto()
 
 @Serializable
 @SerialName("Inntekt")
