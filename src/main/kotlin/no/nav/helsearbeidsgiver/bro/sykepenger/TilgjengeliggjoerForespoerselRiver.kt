@@ -78,7 +78,7 @@ class TilgjengeliggjoerForespoerselRiver(
             boomerang = Pri.Key.BOOMERANG.les(JsonElement.serializer(), melding)
         )
             .let {
-                val forespoersel = forespoerselDao.hentAktivForespoerselFor(it.forespoerselId)
+                val forespoersel = forespoerselDao.hentAktivForespoerselForForespoerselId(it.forespoerselId)
 
                 if (forespoersel != null) {
                     loggernaut.aapen.info("Forespørsel funnet.")
