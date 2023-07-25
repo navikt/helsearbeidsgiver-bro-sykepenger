@@ -5,8 +5,8 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.data.row
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespurtDataMedFastsattInntektListe
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockSpleisForespurtDataListe
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
@@ -15,7 +15,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 
 class ForespurtDataDtoTest : FunSpec({
     listOf(
-        row("forespurtDataListe", ::mockForespurtDataListe),
+        row("forespurtDataListe", ::mockSpleisForespurtDataListe),
         row("forespurtDataMedFastsattInntektListe", ::mockForespurtDataMedFastsattInntektListe)
     )
         .forEach { (fileName, mockDataFn) ->
