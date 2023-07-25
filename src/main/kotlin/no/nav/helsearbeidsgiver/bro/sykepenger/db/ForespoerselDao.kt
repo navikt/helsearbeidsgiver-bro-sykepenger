@@ -86,7 +86,7 @@ class ForespoerselDao(private val dataSource: DataSource) {
                 val oppdaterteForespoersler = updateStatus(transaction, vedtaksperiodeId, Status.BESVART)
                 if (oppdaterteForespoersler.isEmpty()) {
                     val msg = "Fant ingen aktive eller besvarte forespørsler for vedtaksperioden $vedtaksperiodeId. " +
-                            "Dette skal kun skje for vedtaksperioder som ikke støttes enda (potensielle) eller som stammer fra før pilot."
+                        "Dette skal kun skje for vedtaksperioder som ikke støttes enda (potensielle) eller som stammer fra før pilot."
                     logger.warn(msg)
                     sikkerLogger.warn(msg)
                 }
