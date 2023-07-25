@@ -5,6 +5,7 @@ import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import kotliquery.Row
 import kotliquery.sessionOf
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
@@ -326,6 +327,20 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         forespoersel?.besvarelse?.inntektsmeldingId shouldBe null
 
         dataSource.antallBesvarelser() shouldBeExactly 1
+    }
+
+    test("Ved oppdatering settes oppdatert-kolonne automatisk") {
+        val id = mockForespoerselDto().lagreNotNull()
+
+        val foerOppdatering = dataSource.hentForespoersel(id).shouldNotBeNull()
+
+        dataSource.oppdaterStatus(id, Status.BESVART)
+
+        val etterOppdatering = dataSource.hentForespoersel(id).shouldNotBeNull()
+
+        foerOppdatering.status shouldBe Status.AKTIV
+        etterOppdatering.status shouldBe Status.BESVART
+        foerOppdatering.oppdatert shouldNotBe etterOppdatering.oppdatert
     }
 })
 
