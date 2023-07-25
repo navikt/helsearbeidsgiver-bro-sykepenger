@@ -85,10 +85,10 @@ class ForespoerselDao(private val dataSource: DataSource) {
             session.transaction { transaction ->
                 val oppdaterteForespoersler = updateStatus(transaction, vedtaksperiodeId, Status.BESVART)
                 if (oppdaterteForespoersler.isEmpty()) {
-                    "Fant ingen aktive eller besvarte forespørsler for vedtaksperioden $vedtaksperiodeId. Det skal ikke skje.".let {
-                        logger.error(it)
-                        sikkerLogger.error(it)
-                    }
+                    val msg = "Fant ingen aktive eller besvarte forespørsler for vedtaksperioden $vedtaksperiodeId. " +
+                            "Dette skal kun skje for vedtaksperioder som ikke støttes enda (potensielle) eller som stammer fra før pilot."
+                    logger.warn(msg)
+                    sikkerLogger.warn(msg)
                 }
                 oppdaterteForespoersler.forEach { id ->
                     insertOrUpdateBesvarelse(transaction, id, besvart, inntektsmeldingId)
