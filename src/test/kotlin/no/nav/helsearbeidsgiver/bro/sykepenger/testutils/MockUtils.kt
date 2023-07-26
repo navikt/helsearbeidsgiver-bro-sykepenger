@@ -125,13 +125,13 @@ fun mockForespoerselMottatt(): ForespoerselMottatt =
 fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
     ForespoerselSvar.Suksess(
         type = Type.KOMPLETT,
-        status = Status.AKTIV,
         orgnr = "569046822".let(::Orgnr),
         fnr = "abc",
         skjaeringstidspunkt = 10.november(1999),
         sykmeldingsperioder = listOf(Periode(2.januar, 16.januar)),
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
-        forespurtData = mockForespurtData()
+        forespurtData = mockForespurtData(),
+        erBesvart = false
     )
 
 fun mockForespurtData(): ForespurtData =

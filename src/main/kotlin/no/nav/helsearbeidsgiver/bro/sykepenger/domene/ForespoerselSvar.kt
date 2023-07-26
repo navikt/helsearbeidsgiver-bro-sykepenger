@@ -26,23 +26,23 @@ data class ForespoerselSvar(
     @Serializable
     data class Suksess(
         val type: Type,
-        val status: Status,
         val orgnr: Orgnr,
         val fnr: String,
         val skjaeringstidspunkt: LocalDate?,
         val sykmeldingsperioder: List<Periode>,
         val egenmeldingsperioder: List<Periode>,
-        val forespurtData: ForespurtData
+        val forespurtData: ForespurtData,
+        val erBesvart: Boolean
     ) {
         constructor(forespoersel: ForespoerselDto) : this(
             type = forespoersel.type,
-            status = forespoersel.status,
             orgnr = forespoersel.orgnr,
             fnr = forespoersel.fnr,
             skjaeringstidspunkt = forespoersel.skjaeringstidspunkt,
             sykmeldingsperioder = forespoersel.sykmeldingsperioder,
             egenmeldingsperioder = forespoersel.egenmeldingsperioder,
-            forespurtData = forespoersel.forespurtData.tilForespurtData()
+            forespurtData = forespoersel.forespurtData.tilForespurtData(),
+            erBesvart = forespoersel.status == Status.BESVART
         )
     }
 
