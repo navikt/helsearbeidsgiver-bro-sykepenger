@@ -30,6 +30,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.juni
+import no.nav.helsearbeidsgiver.utils.test.date.november
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import no.nav.helsearbeidsgiver.utils.test.date.september
 import java.time.LocalDateTime
@@ -127,6 +128,7 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
         status = Status.AKTIV,
         orgnr = "569046822".let(::Orgnr),
         fnr = "abc",
+        skjaeringstidspunkt = 10.november(1999),
         sykmeldingsperioder = listOf(Periode(2.januar, 16.januar)),
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         forespurtData = mockForespurtData()

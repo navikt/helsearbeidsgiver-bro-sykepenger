@@ -100,6 +100,7 @@ private fun ForespoerselSvar.Suksess.hardcodedJson(): String =
         "status": "$status",
         "orgnr": "${orgnr.verdi}",
         "fnr": "$fnr",
+        "skjaeringstidspunkt": "$skjaeringstidspunkt",
         "sykmeldingsperioder": [${sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
         "egenmeldingsperioder": [${egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
         "forespurtData": ${forespurtData.hardcodedJson()}
