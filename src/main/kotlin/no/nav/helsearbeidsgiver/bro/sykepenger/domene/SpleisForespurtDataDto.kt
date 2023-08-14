@@ -35,7 +35,8 @@ data class SpleisRefusjon(val forslag: List<SpleisForslagRefusjon>) : SpleisFore
 
 @Serializable
 data class SpleisForslagInntekt(
-    val beregningsmåneder: List<YearMonth>
+    val beregningsmåneder: List<YearMonth>,
+    val forrigeInntekt: SpleisForrigeInntekt? = null
 )
 
 @Serializable
@@ -44,3 +45,15 @@ data class SpleisForslagRefusjon(
     val tom: LocalDate?,
     val beløp: Double
 )
+
+@Serializable
+data class SpleisForrigeInntekt(
+    val skjæringstidspunkt: LocalDate,
+    val kilde: SpleisKilde,
+    val beløp: Double
+)
+
+enum class SpleisKilde {
+    INNTEKTSMELDING,
+    SAKSBEHANDLER
+}
