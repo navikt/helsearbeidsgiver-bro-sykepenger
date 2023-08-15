@@ -51,12 +51,16 @@ sealed class ForslagInntekt {
     @Serializable
     @SerialName("ForslagInntektGrunnlag")
     // TODO erstatt med skjæringstidspunkt?
-    data class Grunnlag(val beregningsmaaneder: List<YearMonth>) : ForslagInntekt()
+    data class Grunnlag(
+        val beregningsmaaneder: List<YearMonth>,
+        val forrigeInntekt: ForrigeInntekt? = null
+    ) : ForslagInntekt()
 
     @Serializable
     @SerialName("ForslagInntektFastsatt")
     data class Fastsatt(val fastsattInntekt: Double) : ForslagInntekt()
 }
+
 
 @Serializable
 data class ForslagRefusjon(
@@ -69,3 +73,9 @@ data class ForslagRefusjon(
         val beloep: Double
     )
 }
+@Serializable
+data class ForrigeInntekt (
+    val skjæringstidspunkt: LocalDate,
+    val kilde: String,
+    val beløp: Double
+)

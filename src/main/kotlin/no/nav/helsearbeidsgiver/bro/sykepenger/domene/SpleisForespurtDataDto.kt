@@ -49,11 +49,6 @@ data class SpleisForslagRefusjon(
 @Serializable
 data class SpleisForrigeInntekt(
     val skjæringstidspunkt: LocalDate,
-    val kilde: SpleisKilde,
+    val kilde: String,
     val beløp: Double
 )
-
-enum class SpleisKilde {
-    INNTEKTSMELDING,
-    SAKSBEHANDLER
-}

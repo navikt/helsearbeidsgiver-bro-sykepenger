@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.bro.sykepenger
 
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtData
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForrigeInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Inntekt
@@ -34,11 +35,17 @@ private fun List<SpleisForespurtDataDto>.lesArbeidsgiverperiode(): Arbeidsgiverp
 private fun List<SpleisForespurtDataDto>.lesInntekt(): Inntekt {
     val inntekt = filterIsInstance<SpleisInntekt>()
         .firstOrNull()
-        ?.let {
+        ?.let { spleisInntekt ->
             Inntekt(
                 paakrevd = true,
                 forslag = ForslagInntekt.Grunnlag(
-                    beregningsmaaneder = it.forslag.beregningsmåneder
+                    beregningsmaaneder = spleisInntekt.forslag.beregningsmåneder,
+                    forrigeInntekt = spleisInntekt.forslag.forrigeInntekt?.let {
+                        ForrigeInntekt(
+                            it.skjæringstidspunkt,
+                            it.kilde,
+                            it.beløp)
+                    }
                 )
             )
         }

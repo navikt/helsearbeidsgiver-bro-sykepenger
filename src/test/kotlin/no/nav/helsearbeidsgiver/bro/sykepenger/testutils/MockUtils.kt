@@ -21,7 +21,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForrigeInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForslagInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForslagRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisInntekt
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisKilde
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
@@ -102,7 +101,7 @@ fun mockSpleisForespurtDataMedForrigeInntektListe(): List<SpleisForespurtDataDto
                 ),
                 forrigeInntekt = SpleisForrigeInntekt(
                     skjæringstidspunkt = 1.januar,
-                    kilde = SpleisKilde.INNTEKTSMELDING,
+                    kilde = "INNTEKTSMELDING",
                     beløp = 10000.0
                 )
             )
