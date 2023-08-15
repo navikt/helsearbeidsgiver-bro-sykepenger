@@ -61,7 +61,6 @@ sealed class ForslagInntekt {
     data class Fastsatt(val fastsattInntekt: Double) : ForslagInntekt()
 }
 
-
 @Serializable
 data class ForslagRefusjon(
     val perioder: List<Periode>,
@@ -73,8 +72,9 @@ data class ForslagRefusjon(
         val beloep: Double
     )
 }
+
 @Serializable
-data class ForrigeInntekt (
+data class ForrigeInntekt(
     val skjæringstidspunkt: LocalDate,
     val kilde: String,
     val beløp: Double
