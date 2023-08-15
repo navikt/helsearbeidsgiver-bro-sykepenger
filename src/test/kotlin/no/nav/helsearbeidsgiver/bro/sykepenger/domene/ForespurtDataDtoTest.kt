@@ -7,6 +7,7 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespurtDataMedFastsattInntektListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockSpleisForespurtDataListe
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockSpleisForespurtDataMedForrigeInntektListe
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
@@ -16,7 +17,8 @@ import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 class ForespurtDataDtoTest : FunSpec({
     listOf(
         row("forespurtDataListe", ::mockSpleisForespurtDataListe),
-        row("forespurtDataMedFastsattInntektListe", ::mockForespurtDataMedFastsattInntektListe)
+        row("forespurtDataMedFastsattInntektListe", ::mockForespurtDataMedFastsattInntektListe),
+        row("forespurtDataMedForrigeInntektListe", ::mockSpleisForespurtDataMedForrigeInntektListe)
     )
         .forEach { (fileName, mockDataFn) ->
             val expectedJson = "json/$fileName.json".readResource().removeJsonWhitespace()

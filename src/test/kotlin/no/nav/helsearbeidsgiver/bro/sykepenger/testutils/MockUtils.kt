@@ -17,9 +17,11 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisArbeidsgiverperiode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisFastsattInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForrigeInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForslagInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForslagRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisInntekt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisKilde
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
@@ -69,6 +71,39 @@ fun mockSpleisForespurtDataListe(): List<SpleisForespurtDataDto> =
                     august(1999),
                     september(1999),
                     oktober(1999)
+                )
+            )
+        ),
+        SpleisRefusjon(
+            forslag = listOf(
+                SpleisForslagRefusjon(
+                    fom = 12.juni,
+                    tom = null,
+                    beløp = 21.31
+                ),
+                SpleisForslagRefusjon(
+                    fom = 2.august,
+                    tom = 15.august,
+                    beløp = 44.77
+                )
+            )
+        )
+    )
+
+fun mockSpleisForespurtDataMedForrigeInntektListe(): List<SpleisForespurtDataDto> =
+    listOf(
+        SpleisArbeidsgiverperiode,
+        SpleisInntekt(
+            forslag = SpleisForslagInntekt(
+                beregningsmåneder = listOf(
+                    august(1999),
+                    september(1999),
+                    oktober(1999)
+                ),
+                forrigeInntekt = SpleisForrigeInntekt(
+                    skjæringstidspunkt = 1.januar,
+                    kilde = SpleisKilde.INNTEKTSMELDING,
+                    beløp = 10000.0
                 )
             )
         ),
