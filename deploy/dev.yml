@@ -55,3 +55,5 @@ spec:
       - type: POSTGRES_14
         databases:
           - name: helsearbeidsgiver-bro-sykepenger
+            users:
+              - name: bro_naisjobb_bruker
