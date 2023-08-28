@@ -342,6 +342,23 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         etterOppdatering.status shouldBe Status.BESVART
         foerOppdatering.oppdatert shouldNotBe etterOppdatering.oppdatert
     }
+
+    test("Oppdaterer aktiv forespørsel til forkastet") {
+        val forespoerselId = mockForespoerselDto().lagreNotNull()
+        forespoerselDao.oppdaterForespoerselSomForkastet(MockUuid.vedtaksperiodeId)
+
+        val forespoersel = dataSource.hentForespoersel(forespoerselId)
+        forespoersel?.status shouldBe Status.FORKASTET
+        forespoersel?.besvarelse shouldBe null
+    }
+
+    test("Oppdaterer ikke besvart forespørsel til forkastet") {
+        val forespoerselId = mockForespoerselDto(status = Status.BESVART).lagreNotNull()
+        forespoerselDao.oppdaterForespoerselSomForkastet(MockUuid.vedtaksperiodeId)
+
+        val forespoersel = dataSource.hentForespoersel(forespoerselId)
+        forespoersel?.status shouldBe Status.BESVART
+    }
 })
 
 private fun DataSource.hentForespoersel(id: Long): ForespoerselDto? =

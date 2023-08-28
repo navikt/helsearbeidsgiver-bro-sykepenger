@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
 import kotliquery.Row
+import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.sessionOf
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.BesvarelseMetadataDto
@@ -83,7 +84,7 @@ class ForespoerselDao(private val dataSource: DataSource) {
     fun oppdaterForespoerslerSomBesvart(vedtaksperiodeId: UUID, besvart: LocalDateTime, inntektsmeldingId: UUID?) =
         sessionOf(dataSource = dataSource).use { session ->
             session.transaction { transaction ->
-                val oppdaterteForespoersler = updateStatus(transaction, vedtaksperiodeId, Status.BESVART)
+                val oppdaterteForespoersler = oppdaterAktiveOgBesvarteStatuser(transaction, vedtaksperiodeId, Status.BESVART)
                 if (oppdaterteForespoersler.isEmpty()) {
                     val msg = "Fant ingen aktive eller besvarte forespørsler for vedtaksperioden $vedtaksperiodeId. " +
                         "Dette skal kun skje for vedtaksperioder som ikke støttes enda (potensielle) eller som stammer fra før pilot."
@@ -96,7 +97,10 @@ class ForespoerselDao(private val dataSource: DataSource) {
             }
         }
 
-    private fun updateStatus(session: TransactionalSession, vedtaksperiodeId: UUID, status: Status) =
+    fun oppdaterForespoerselSomForkastet(vedtaksperiodeId: UUID) =
+        sessionOf(dataSource = dataSource).use { oppdaterAktivStatus(it, vedtaksperiodeId, Status.FORKASTET) }
+
+    private fun oppdaterAktiveOgBesvarteStatuser(session: TransactionalSession, vedtaksperiodeId: UUID, status: Status) =
         query(
             "UPDATE forespoersel",
             "SET ${Db.STATUS}=:nyStatus",
@@ -111,6 +115,19 @@ class ForespoerselDao(private val dataSource: DataSource) {
                 session = session,
                 transform = Row::toId
             )
+
+    private fun oppdaterAktivStatus(session: Session, vedtaksperiodeId: UUID, status: Status) =
+        query(
+            "UPDATE forespoersel",
+            "SET ${Db.STATUS}=:nyStatus",
+            "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS}='${Status.AKTIV.name}'"
+        ).execute(
+            params = mutableMapOf(
+                "vedtaksperiodeId" to vedtaksperiodeId,
+                "nyStatus" to status.name
+            ),
+            session = session
+        )
 
     private fun insertOrUpdateBesvarelse(
         session: TransactionalSession,

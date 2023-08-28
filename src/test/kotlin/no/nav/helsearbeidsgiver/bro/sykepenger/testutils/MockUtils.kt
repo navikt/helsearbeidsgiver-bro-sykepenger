@@ -43,11 +43,11 @@ object MockUuid {
     val inntektsmeldingId: UUID = "22efb342-3e72-4880-a449-eb1efcf0f18b".let(UUID::fromString)
 }
 
-fun mockForespoerselDto(besvarelseMetaData: BesvarelseMetadataDto? = null): ForespoerselDto =
+fun mockForespoerselDto(besvarelseMetaData: BesvarelseMetadataDto? = null, status: Status = Status.AKTIV): ForespoerselDto =
     ForespoerselDto(
         forespoerselId = randomUuid(),
         type = Type.KOMPLETT,
-        status = Status.AKTIV,
+        status = status,
         orgnr = "123456789".let(::Orgnr),
         fnr = "123456789",
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
