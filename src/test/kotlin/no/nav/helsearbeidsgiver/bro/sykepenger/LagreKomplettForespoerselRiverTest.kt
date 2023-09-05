@@ -130,6 +130,7 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
             fnr = forespoersel.fnr
         )
 
+        // Forventer at priProducer.send _ikke_ skal bli kalt ved andre forespørsel
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
             mockForespoerselDao.lagre(
