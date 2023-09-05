@@ -60,6 +60,7 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
 
         mockkObject(Env) {
             every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns forespoersel.orgnr.verdi
+            every { mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId) } returns null
 
             mockkStatic(::randomUuid) {
                 every { randomUuid() } returns forespoersel.forespoerselId
@@ -75,6 +76,7 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
         )
 
         verifySequence {
+            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
             mockForespoerselDao.lagre(
                 withArg {
                     it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)
@@ -104,6 +106,48 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
         verify {
             mockForespoerselDao wasNot Called
             mockPriProducer wasNot Called
+        }
+    }
+
+    test("Sender ikke notifikasjon til simba når en forespørsel oppdateres") {
+        val forespoersel = mockForespoerselDto()
+
+        mockkObject(Env) {
+            every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns forespoersel.orgnr.verdi
+            every { mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId) } returns null andThen forespoersel
+
+            mockkStatic(::randomUuid) {
+                every { randomUuid() } returns forespoersel.forespoerselId
+
+                mockInnkommendeMelding(forespoersel)
+                mockInnkommendeMelding(forespoersel)
+            }
+        }
+
+        val expectedPublished = ForespoerselMottatt(
+            forespoerselId = forespoersel.forespoerselId,
+            orgnr = forespoersel.orgnr,
+            fnr = forespoersel.fnr
+        )
+
+        verifySequence {
+            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
+            mockForespoerselDao.lagre(
+                withArg {
+                    it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)
+                }
+            )
+
+            mockPriProducer.send(
+                *expectedPublished.toKeyMap().toList().toTypedArray()
+            )
+
+            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
+            mockForespoerselDao.lagre(
+                withArg {
+                    it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)
+                }
+            )
         }
     }
 })

@@ -65,6 +65,7 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
 
         mockkObject(Env) {
             every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns forespoersel.orgnr.verdi
+            every { mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId) } returns null
 
             mockkStatic(::randomUuid) {
                 every { randomUuid() } returns forespoersel.forespoerselId
@@ -79,6 +80,7 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
             fnr = forespoersel.fnr
         )
         verifySequence {
+            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
             mockForespoerselDao.lagre(
                 withArg {
                     it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)

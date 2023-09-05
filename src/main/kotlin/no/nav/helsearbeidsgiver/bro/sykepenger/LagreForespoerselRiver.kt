@@ -62,6 +62,7 @@ sealed class LagreForespoerselRiver(
         loggernaut.sikker.info("Forespoersel lest: $forespoersel")
 
         if (forespoersel.orgnr in Env.AllowList.organisasjoner) {
+            val erNyForespoerselForVedtaksperiode = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId) == null
             forespoerselDao.lagre(forespoersel)
                 .let { id ->
                     if (id != null) {
@@ -71,14 +72,18 @@ sealed class LagreForespoerselRiver(
                     }
                 }
 
-            priProducer.send(
-                Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(Pri.NotisType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
-                Pri.Key.ORGNR to forespoersel.orgnr.toJson(Orgnr.serializer()),
-                Pri.Key.FNR to forespoersel.fnr.toJson()
-            )
-                .ifTrue { loggernaut.aapen.info("Sa ifra om mottatt forespørsel til Simba.") }
-                .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
+            if (erNyForespoerselForVedtaksperiode) {
+                priProducer.send(
+                    Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(Pri.NotisType.serializer()),
+                    Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
+                    Pri.Key.ORGNR to forespoersel.orgnr.toJson(Orgnr.serializer()),
+                    Pri.Key.FNR to forespoersel.fnr.toJson()
+                )
+                    .ifTrue { loggernaut.aapen.info("Sa ifra om mottatt forespørsel til Simba.") }
+                    .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
+            } else {
+                loggernaut.aapen.info("Sa ikke ifra om mottatt forespørsel til Simba fordi det er en oppdatering av eksisterende forespørsel.")
+            }
         } else {
             "Ignorerer mottatt forespørsel om inntektsmelding siden den gjelder organisasjon uten tillatelse til pilot.".let {
                 loggernaut.aapen.info(it)
