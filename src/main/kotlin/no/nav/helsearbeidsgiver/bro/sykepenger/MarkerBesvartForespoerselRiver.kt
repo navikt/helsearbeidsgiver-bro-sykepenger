@@ -91,12 +91,18 @@ internal class MarkerBesvartForespoerselRiver(
                     loggernaut.sikker.info(it)
                 }
 
-                priProducer.send(
-                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
-                    Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson()
-                )
-                    .ifTrue { loggernaut.aapen.info("Sa ifra om besvart forespørsel til Simba.") }
-                    .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om besvart forespørsel til Simba.") }
+                val forespoerselIdKnyttetTilOppgaveIPortalen = forespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(inntektsmeldingHaandtert.vedtaksperiodeId)
+                if (forespoerselIdKnyttetTilOppgaveIPortalen == null) {
+                    loggernaut.aapen.info("Fant ingen forespørsler for den besvarte inntektsmeldingen")
+                    loggernaut.sikker.info("Fant ingen forespørsler for den besvarte inntektsmeldingen: ${toPretty()}")
+                } else {
+                    priProducer.send(
+                        Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
+                        Pri.Key.FORESPOERSEL_ID to forespoerselIdKnyttetTilOppgaveIPortalen.toJson()
+                    )
+                        .ifTrue { loggernaut.aapen.info("Sa ifra om besvart forespørsel til Simba.") }
+                        .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om besvart forespørsel til Simba.") }
+                }
             }
         } else {
             "Ignorerer besvart forespørsel siden den gjelder organisasjon uten tillatelse til pilot.".let {

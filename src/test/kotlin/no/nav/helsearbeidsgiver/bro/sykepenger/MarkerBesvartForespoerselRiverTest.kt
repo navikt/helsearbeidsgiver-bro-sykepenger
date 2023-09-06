@@ -20,6 +20,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockInntektsmeldingHaandtertDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
 class MarkerBesvartForespoerselRiverTest : FunSpec({
@@ -59,6 +60,7 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
             mockForespoerselDao.oppdaterForespoerslerSomBesvart(inntektsmeldingHaandtert.vedtaksperiodeId, inntektsmeldingHaandtert.haandtert, inntektsmeldingHaandtert.inntektsmeldingId)
+            mockForespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(inntektsmeldingHaandtert.vedtaksperiodeId)
         }
     }
 
@@ -73,6 +75,7 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
             mockForespoerselDao.oppdaterForespoerslerSomBesvart(inntektsmeldingHaandtert.vedtaksperiodeId, inntektsmeldingHaandtert.haandtert, inntektsmeldingHaandtert.inntektsmeldingId)
+            mockForespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(inntektsmeldingHaandtert.vedtaksperiodeId)
         }
     }
 
@@ -83,6 +86,9 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
         every {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
         } returns forespoersel
+        every {
+            mockForespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(inntektsmeldingHaandtert.vedtaksperiodeId)
+        } returns forespoersel.forespoerselId
 
         mockkObject(Env) {
             every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns inntektsmeldingHaandtert.orgnr.verdi
@@ -111,6 +117,29 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
 
         verify(exactly = 0) {
             mockPriProducer.send(*anyVararg())
+        }
+    }
+
+    test("Sender forespørselId-en portalen forventer når forespørsel markeres som besvart") {
+        val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = null)
+        val expectedForespoerselId = randomUuid()
+        every {
+            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
+        } returns mockForespoerselDto()
+        every {
+            mockForespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(inntektsmeldingHaandtert.vedtaksperiodeId)
+        } returns expectedForespoerselId
+
+        mockkObject(Env) {
+            every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns inntektsmeldingHaandtert.orgnr.verdi
+            mockInnkommendeMelding(inntektsmeldingHaandtert)
+        }
+
+        verify {
+            mockPriProducer.send(
+                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
+                Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson()
+            )
         }
     }
 })

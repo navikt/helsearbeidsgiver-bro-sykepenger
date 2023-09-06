@@ -81,7 +81,9 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 .copy(vedtaksperiodeId = randomUuid())
                 .also(ForespoerselDto::lagreNotNull)
 
-            val actualForespoersel = forespoerselDao.hentAktivForespoerselForForespoerselId(forkastetForespoersel.forespoerselId).shouldNotBeNull()
+            val actualForespoersel =
+                forespoerselDao.hentAktivForespoerselForForespoerselId(forkastetForespoersel.forespoerselId)
+                    .shouldNotBeNull()
 
             actualForespoersel shouldBe aktivForespoersel
         }
@@ -103,7 +105,9 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
             dataSource.oppdaterStatus(gammelForespoerselId, Status.AKTIV)
 
-            val actualForespoersel = forespoerselDao.hentAktivForespoerselForForespoerselId(gammelForespoersel.forespoerselId).shouldNotBeNull()
+            val actualForespoersel =
+                forespoerselDao.hentAktivForespoerselForForespoerselId(gammelForespoersel.forespoerselId)
+                    .shouldNotBeNull()
 
             actualForespoersel shouldBe nyForespoersel
         }
@@ -152,7 +156,9 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 .copy(vedtaksperiodeId = randomUuid())
                 .also(ForespoerselDto::lagreNotNull)
 
-            val actualForespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forkastetForespoersel.vedtaksperiodeId).shouldNotBeNull()
+            val actualForespoersel =
+                forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forkastetForespoersel.vedtaksperiodeId)
+                    .shouldNotBeNull()
 
             actualForespoersel shouldBe aktivForespoersel
         }
@@ -174,7 +180,9 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
             dataSource.oppdaterStatus(gammelForespoerselId, Status.AKTIV)
 
-            val actualForespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(gammelForespoersel.vedtaksperiodeId).shouldNotBeNull()
+            val actualForespoersel =
+                forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(gammelForespoersel.vedtaksperiodeId)
+                    .shouldNotBeNull()
 
             actualForespoersel shouldBe nyForespoersel
         }
@@ -266,7 +274,11 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         val id2 = mockForespoerselDto().lagreNotNull()
         val forespoerselBesvart = LocalDateTime.now()
 
-        forespoerselDao.oppdaterForespoerslerSomBesvart(MockUuid.vedtaksperiodeId, forespoerselBesvart, MockUuid.inntektsmeldingId)
+        forespoerselDao.oppdaterForespoerslerSomBesvart(
+            MockUuid.vedtaksperiodeId,
+            forespoerselBesvart,
+            MockUuid.inntektsmeldingId
+        )
 
         val forespoersel1 = dataSource.hentForespoersel(id1)
         val forespoersel2 = dataSource.hentForespoersel(id2)
@@ -276,7 +288,9 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
         forespoersel2?.status shouldBe Status.BESVART
         forespoersel2?.besvarelse?.inntektsmeldingId shouldBe MockUuid.inntektsmeldingId
-        forespoersel2?.besvarelse?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe forespoerselBesvart.truncatedTo(ChronoUnit.MILLIS)
+        forespoersel2?.besvarelse?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe forespoerselBesvart.truncatedTo(
+            ChronoUnit.MILLIS
+        )
     }
 
     test("Oppdaterer status og forespørselBesvart for aktive forespørsel som mangler inntektsmeldingId") {
@@ -293,7 +307,9 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         forespoersel1?.besvarelse shouldBe null
 
         forespoersel2?.status shouldBe Status.BESVART
-        forespoersel2?.besvarelse?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe forespoerselBesvart.truncatedTo(ChronoUnit.MILLIS)
+        forespoersel2?.besvarelse?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe forespoerselBesvart.truncatedTo(
+            ChronoUnit.MILLIS
+        )
         forespoersel2?.besvarelse?.inntektsmeldingId shouldBe null
     }
 
@@ -303,12 +319,21 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
         val forespoerselId = mockForespoerselDto().lagreNotNull()
 
-        forespoerselDao.oppdaterForespoerslerSomBesvart(MockUuid.vedtaksperiodeId, 1.januar.atStartOfDay(), inntektsmeldingId = inntektsmeldingId1)
-        forespoerselDao.oppdaterForespoerslerSomBesvart(MockUuid.vedtaksperiodeId, 2.januar.atStartOfDay(), inntektsmeldingId = inntektsmeldingId2)
+        forespoerselDao.oppdaterForespoerslerSomBesvart(
+            MockUuid.vedtaksperiodeId,
+            1.januar.atStartOfDay(),
+            inntektsmeldingId = inntektsmeldingId1
+        )
+        forespoerselDao.oppdaterForespoerslerSomBesvart(
+            MockUuid.vedtaksperiodeId,
+            2.januar.atStartOfDay(),
+            inntektsmeldingId = inntektsmeldingId2
+        )
 
         val forespoersel = dataSource.hentForespoersel(forespoerselId)
         forespoersel?.status shouldBe Status.BESVART
-        forespoersel?.besvarelse?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe 2.januar.atStartOfDay().truncatedTo(ChronoUnit.MILLIS)
+        forespoersel?.besvarelse?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe 2.januar.atStartOfDay()
+            .truncatedTo(ChronoUnit.MILLIS)
         forespoersel?.besvarelse?.inntektsmeldingId shouldBe inntektsmeldingId2
 
         dataSource.antallBesvarelser() shouldBeExactly 1
@@ -318,12 +343,21 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         val inntektsmeldingId1 = randomUuid()
         val forespoerselId = mockForespoerselDto().lagreNotNull()
 
-        forespoerselDao.oppdaterForespoerslerSomBesvart(MockUuid.vedtaksperiodeId, 1.januar.atStartOfDay(), inntektsmeldingId = inntektsmeldingId1)
-        forespoerselDao.oppdaterForespoerslerSomBesvart(MockUuid.vedtaksperiodeId, 2.januar.atStartOfDay(), inntektsmeldingId = null)
+        forespoerselDao.oppdaterForespoerslerSomBesvart(
+            MockUuid.vedtaksperiodeId,
+            1.januar.atStartOfDay(),
+            inntektsmeldingId = inntektsmeldingId1
+        )
+        forespoerselDao.oppdaterForespoerslerSomBesvart(
+            MockUuid.vedtaksperiodeId,
+            2.januar.atStartOfDay(),
+            inntektsmeldingId = null
+        )
 
         val forespoersel = dataSource.hentForespoersel(forespoerselId)
         forespoersel?.status shouldBe Status.BESVART
-        forespoersel?.besvarelse?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe 2.januar.atStartOfDay().truncatedTo(ChronoUnit.MILLIS)
+        forespoersel?.besvarelse?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe 2.januar.atStartOfDay()
+            .truncatedTo(ChronoUnit.MILLIS)
         forespoersel?.besvarelse?.inntektsmeldingId shouldBe null
 
         dataSource.antallBesvarelser() shouldBeExactly 1
@@ -358,6 +392,125 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
         val forespoersel = dataSource.hentForespoersel(forespoerselId)
         forespoersel?.status shouldBe Status.BESVART
+    }
+
+    context("Henter siste forespørselId som er sendt til portalen") {
+
+        test("flere besvarte forespørsler") {
+            val idA = mockForespoerselDto().lagreNotNull()
+            val idB = mockForespoerselDto().lagreNotNull()
+
+            forespoerselDao.oppdaterForespoerslerSomBesvart(
+                MockUuid.vedtaksperiodeId,
+                LocalDateTime.now(),
+                randomUuid()
+            )
+
+            val idC = mockForespoerselDto().lagreNotNull()
+            val idD = mockForespoerselDto().lagreNotNull()
+            val idE = mockForespoerselDto().lagreNotNull()
+
+            forespoerselDao.oppdaterForespoerslerSomBesvart(
+                MockUuid.vedtaksperiodeId,
+                LocalDateTime.now(),
+                randomUuid()
+            )
+
+            dataSource.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
+            dataSource.hentForespoersel(idB)?.status shouldBe Status.BESVART
+            dataSource.hentForespoersel(idC)?.status shouldBe Status.FORKASTET
+            dataSource.hentForespoersel(idD)?.status shouldBe Status.FORKASTET
+            dataSource.hentForespoersel(idE)?.status shouldBe Status.BESVART
+
+            val forespoerselIdKnyttetTilOppgaveIPortalen =
+                forespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(MockUuid.vedtaksperiodeId)
+            forespoerselIdKnyttetTilOppgaveIPortalen shouldBe dataSource.hentForespoersel(idC)?.forespoerselId
+        }
+
+        test("en besvart forespørsel og flere forkastede") {
+            val idA = mockForespoerselDto().lagreNotNull()
+            val idB = mockForespoerselDto().lagreNotNull()
+            val idC = mockForespoerselDto().lagreNotNull()
+
+            forespoerselDao.oppdaterForespoerslerSomBesvart(
+                MockUuid.vedtaksperiodeId,
+                LocalDateTime.now(),
+                randomUuid()
+            )
+
+            dataSource.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
+            dataSource.hentForespoersel(idB)?.status shouldBe Status.FORKASTET
+            dataSource.hentForespoersel(idC)?.status shouldBe Status.BESVART
+
+            val forespoerselIdKnyttetTilOppgaveIPortalen =
+                forespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(MockUuid.vedtaksperiodeId)
+            forespoerselIdKnyttetTilOppgaveIPortalen shouldBe dataSource.hentForespoersel(idA)?.forespoerselId
+        }
+
+        test("ingen besvarte forespørsler") {
+            val idA = mockForespoerselDto().lagreNotNull()
+            val idB = mockForespoerselDto().lagreNotNull()
+
+            dataSource.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
+            dataSource.hentForespoersel(idB)?.status shouldBe Status.AKTIV
+
+            val forespoerselIdKnyttetTilOppgaveIPortalen =
+                forespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(MockUuid.vedtaksperiodeId)
+            forespoerselIdKnyttetTilOppgaveIPortalen shouldBe dataSource.hentForespoersel(idA)?.forespoerselId
+        }
+
+        test("én aktiv forespoersel") {
+            val idA = mockForespoerselDto().lagreNotNull()
+
+            dataSource.hentForespoersel(idA)?.status shouldBe Status.AKTIV
+
+            val forespoerselIdKnyttetTilOppgaveIPortalen =
+                forespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(MockUuid.vedtaksperiodeId)
+            forespoerselIdKnyttetTilOppgaveIPortalen shouldBe dataSource.hentForespoersel(idA)?.forespoerselId
+        }
+
+        test("kun én besvart forespoersel") {
+            val idA = mockForespoerselDto().lagreNotNull()
+            forespoerselDao.oppdaterForespoerslerSomBesvart(
+                MockUuid.vedtaksperiodeId,
+                LocalDateTime.now(),
+                randomUuid()
+            )
+
+            dataSource.hentForespoersel(idA)?.status shouldBe Status.BESVART
+
+            val forespoerselIdKnyttetTilOppgaveIPortalen =
+                forespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(MockUuid.vedtaksperiodeId)
+            forespoerselIdKnyttetTilOppgaveIPortalen shouldBe dataSource.hentForespoersel(idA)?.forespoerselId
+        }
+
+        test("Finner ingen forespørselId som vi har sendt portalen") {
+            val forespoerselIdKnyttetTilOppgaveIPortalen =
+                forespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(MockUuid.vedtaksperiodeId)
+            forespoerselIdKnyttetTilOppgaveIPortalen shouldBe null
+        }
+    }
+
+    test("Henter alle forespørsler knyttet til en vedtaksperiodeId") {
+        val a = mockForespoerselDto()
+        val b = mockForespoerselDto()
+        val c = mockForespoerselDto()
+        val d = mockForespoerselDto()
+
+        a.lagreNotNull()
+        b.lagreNotNull()
+
+        forespoerselDao.oppdaterForespoerslerSomBesvart(MockUuid.vedtaksperiodeId, LocalDateTime.now(), randomUuid())
+
+        c.lagreNotNull()
+        d.lagreNotNull()
+
+        forespoerselDao.oppdaterForespoerslerSomBesvart(MockUuid.vedtaksperiodeId, LocalDateTime.now(), randomUuid())
+
+        val expected = listOf(a, b, c, d).map { it.forespoerselId }
+        val actual =
+            forespoerselDao.hentAlleForespoerslerKnyttetTil(MockUuid.vedtaksperiodeId).map { it.forespoerselId }
+        expected shouldBe actual
     }
 })
 

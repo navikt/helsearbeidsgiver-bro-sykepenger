@@ -14,6 +14,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.listResult
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.nullableResult
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.splitOnIndex
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.updateAndReturnGeneratedKey
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.fromJson
@@ -174,6 +175,36 @@ class ForespoerselDao(private val dataSource: DataSource) {
                 }
             }
             .maxByOrNull { it.opprettet }
+
+    fun forespoerselIdKnyttetTilOppgaveIPortalen(vedtaksperiodeId: UUID): UUID? {
+        val forespoersler = hentAlleForespoerslerKnyttetTil(vedtaksperiodeId).sortedBy { it.opprettet }
+        val besvarteIndekser = forespoersler.mapIndexedNotNull { index, forespoersel ->
+            if (forespoersel.status == Status.BESVART) {
+                index
+            } else {
+                null
+            }
+        }
+        return besvarteIndekser
+            .fold(listOf(forespoersler)) { acc, cur ->
+                acc.last().splitOnIndex(cur + 1).toList()
+            }
+            .lastOrNull { it.isNotEmpty() }
+            ?.firstOrNull()
+            ?.forespoerselId
+    }
+
+    fun hentAlleForespoerslerKnyttetTil(vedtaksperiodeId: UUID): List<ForespoerselDto> =
+        query(
+            "SELECT * FROM forespoersel f",
+            "LEFT JOIN besvarelse_metadata b ON f.id=b.${Db.FK_FORESPOERSEL_ID}",
+            "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId"
+        )
+            .listResult(
+                params = mapOf("vedtaksperiodeId" to vedtaksperiodeId),
+                dataSource = dataSource,
+                transform = Row::toForespoerselDto
+            )
 
     private fun hentVedtaksperiodeId(forespoerselId: UUID): UUID? =
         "SELECT ${Db.VEDTAKSPERIODE_ID} FROM forespoersel WHERE ${Db.FORESPOERSEL_ID}=:forespoerselId"
