@@ -2,16 +2,13 @@ package no.nav.helsearbeidsgiver.bro.sykepenger
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
-import io.mockk.Called
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.mockkStatic
-import io.mockk.verify
 import io.mockk.verifySequence
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.bro.sykepenger.Env.fromEnv
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
@@ -64,7 +61,6 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
         )
 
         mockkObject(Env) {
-            every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns forespoersel.orgnr.verdi
             every { mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId) } returns null
 
             mockkStatic(::randomUuid) {
@@ -90,30 +86,6 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
             mockPriProducer.send(
                 *expectedPublished.toKeyMap().toList().toTypedArray()
             )
-        }
-    }
-
-    test("Filtrer ut innkommende forespørsel som gjelder organisasjon uten tillatelse til pilot") {
-        val forespoersel = mockForespoerselDto().copy(
-            type = Type.BEGRENSET,
-            skjaeringstidspunkt = null,
-            forespurtData = mockBegrensetForespurtDataListe()
-        )
-
-        mockkObject(Env) {
-            // Ikke tillat noen pilotorganisasjoner
-            every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns ""
-
-            mockkStatic(::randomUuid) {
-                every { randomUuid() } returns forespoersel.forespoerselId
-
-                mockInnkommendeMelding(forespoersel)
-            }
-        }
-
-        verify {
-            mockForespoerselDao wasNot Called
-            mockPriProducer wasNot Called
         }
     }
 })

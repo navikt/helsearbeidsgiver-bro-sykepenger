@@ -1,7 +1,5 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.parseKommaSeparertOrgnrListe
-
 object Env {
     object VarName {
         const val PILOT_TILLATTE_ORGANISASJONER = "PILOT_TILLATTE_ORGANISASJONER"
@@ -21,14 +19,6 @@ object Env {
         val port = "${prefix}_PORT".fromEnv()
         val username = "${prefix}_USERNAME".fromEnv()
         val password = "${prefix}_PASSWORD".fromEnv()
-    }
-
-    object AllowList {
-        // Bruker en get() her for å få testene til å fungere uten for mye knot
-        // En helt OK løsning for kode som ikke skal leve så lenge
-        val organisasjoner get() =
-            VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv()
-                .parseKommaSeparertOrgnrListe()
     }
 
     object AzureAD {

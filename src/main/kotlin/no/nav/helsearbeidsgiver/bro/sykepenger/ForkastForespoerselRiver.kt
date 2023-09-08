@@ -19,7 +19,6 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
-import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 
@@ -62,30 +61,21 @@ internal class ForkastForespoerselRiver(
         val orgnummer = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding)
         val vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding)
 
-        if (orgnummer in Env.AllowList.organisasjoner) {
-            val forespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
+        val forespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
 
-            if (forespoersel != null) {
-                forespoerselDao.oppdaterForespoerselSomForkastet(vedtaksperiodeId)
-                "Oppdaterte status til forkastet for forespørsel ${forespoersel.forespoerselId}.".also {
-                    loggernaut.aapen.info(it)
-                    loggernaut.sikker.info(it)
-                }
-
-                priProducer.send(
-                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FORKASTET.toJson(Pri.NotisType.serializer()),
-                    Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson()
-                )
-                    .ifTrue { loggernaut.aapen.info("Sa ifra om forkastet forespørsel til Simba.") }
-                    .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om forkastet forespørsel til Simba.") }
-            }
-        } else {
-            "Ignorerer forkasting av forespørsel siden den gjelder organisasjon uten tillatelse til pilot.".let {
+        if (forespoersel != null) {
+            forespoerselDao.oppdaterForespoerselSomForkastet(vedtaksperiodeId)
+            "Oppdaterte status til forkastet for forespørsel ${forespoersel.forespoerselId}.".also {
                 loggernaut.aapen.info(it)
-                MdcUtils.withLogFields(Pri.Key.ORGNR.verdi to orgnummer.verdi) {
-                    loggernaut.sikker.info(it)
-                }
+                loggernaut.sikker.info(it)
             }
+
+            priProducer.send(
+                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FORKASTET.toJson(Pri.NotisType.serializer()),
+                Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson()
+            )
+                .ifTrue { loggernaut.aapen.info("Sa ifra om forkastet forespørsel til Simba.") }
+                .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om forkastet forespørsel til Simba.") }
         }
     }
 }

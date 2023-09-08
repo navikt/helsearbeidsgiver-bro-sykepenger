@@ -24,7 +24,6 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
-import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 
@@ -76,40 +75,31 @@ internal class MarkerBesvartForespoerselRiver(
             haandtert = Spleis.Key.OPPRETTET.les(LocalDateTimeSerializer, melding)
         )
 
-        if (inntektsmeldingHaandtert.orgnr in Env.AllowList.organisasjoner) {
-            val forespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
+        val forespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
 
-            forespoerselDao.oppdaterForespoerslerSomBesvart(
-                vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId,
-                besvart = inntektsmeldingHaandtert.haandtert,
-                inntektsmeldingId = inntektsmeldingId
-            )
+        forespoerselDao.oppdaterForespoerslerSomBesvart(
+            vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId,
+            besvart = inntektsmeldingHaandtert.haandtert,
+            inntektsmeldingId = inntektsmeldingId
+        )
 
-            if (forespoersel != null) {
-                "Oppdaterte status til besvart for forespørsel ${forespoersel.forespoerselId}.".also {
-                    loggernaut.aapen.info(it)
-                    loggernaut.sikker.info(it)
-                }
-
-                val forespoerselIdKnyttetTilOppgaveIPortalen = forespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(inntektsmeldingHaandtert.vedtaksperiodeId)
-                if (forespoerselIdKnyttetTilOppgaveIPortalen == null) {
-                    loggernaut.aapen.info("Fant ingen forespørsler for den besvarte inntektsmeldingen")
-                    loggernaut.sikker.info("Fant ingen forespørsler for den besvarte inntektsmeldingen: ${toPretty()}")
-                } else {
-                    priProducer.send(
-                        Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
-                        Pri.Key.FORESPOERSEL_ID to forespoerselIdKnyttetTilOppgaveIPortalen.toJson()
-                    )
-                        .ifTrue { loggernaut.aapen.info("Sa ifra om besvart forespørsel til Simba.") }
-                        .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om besvart forespørsel til Simba.") }
-                }
-            }
-        } else {
-            "Ignorerer besvart forespørsel siden den gjelder organisasjon uten tillatelse til pilot.".let {
+        if (forespoersel != null) {
+            "Oppdaterte status til besvart for forespørsel ${forespoersel.forespoerselId}.".also {
                 loggernaut.aapen.info(it)
-                MdcUtils.withLogFields(Pri.Key.ORGNR.verdi to inntektsmeldingHaandtert.orgnr.verdi) {
-                    loggernaut.sikker.info(it)
-                }
+                loggernaut.sikker.info(it)
+            }
+
+            val forespoerselIdKnyttetTilOppgaveIPortalen = forespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(inntektsmeldingHaandtert.vedtaksperiodeId)
+            if (forespoerselIdKnyttetTilOppgaveIPortalen == null) {
+                loggernaut.aapen.info("Fant ingen forespørsler for den besvarte inntektsmeldingen")
+                loggernaut.sikker.info("Fant ingen forespørsler for den besvarte inntektsmeldingen: ${toPretty()}")
+            } else {
+                priProducer.send(
+                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
+                    Pri.Key.FORESPOERSEL_ID to forespoerselIdKnyttetTilOppgaveIPortalen.toJson()
+                )
+                    .ifTrue { loggernaut.aapen.info("Sa ifra om besvart forespørsel til Simba.") }
+                    .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om besvart forespørsel til Simba.") }
             }
         }
     }

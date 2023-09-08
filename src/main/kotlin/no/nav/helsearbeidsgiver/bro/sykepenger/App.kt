@@ -13,10 +13,6 @@ fun main() {
     val broLogger = "BroLogger".logger()
     broLogger.info("Hello bro!")
 
-    if (Env.AllowList.organisasjoner.isEmpty()) {
-        broLogger.error("Listen med tillatte organisasjoner i pilot er tom!")
-    }
-
     val dataSourceBuilder = DataSourceBuilder()
     val dataSource by lazy { dataSourceBuilder.getDataSource() }
     val forespoerselDao = ForespoerselDao(dataSource)
