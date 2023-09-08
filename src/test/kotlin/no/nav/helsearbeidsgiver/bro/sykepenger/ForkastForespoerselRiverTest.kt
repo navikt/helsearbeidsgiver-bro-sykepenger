@@ -4,11 +4,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkObject
 import io.mockk.verify
 import io.mockk.verifySequence
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.bro.sykepenger.Env.fromEnv
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
@@ -45,10 +43,7 @@ class ForkastForespoerselRiverTest : FunSpec({
     }
 
     test("Innkommende event oppdaterer aktive forespørsler som forkastet") {
-        mockkObject(Env) {
-            every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns orgnummer.verdi
-            mockForkastForespoerselMelding(orgnummer, vedtaksperiodeId)
-        }
+        mockForkastForespoerselMelding(orgnummer, vedtaksperiodeId)
 
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
@@ -63,10 +58,7 @@ class ForkastForespoerselRiverTest : FunSpec({
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
         } returns forespoersel
 
-        mockkObject(Env) {
-            every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns orgnummer.verdi
-            mockForkastForespoerselMelding(orgnummer, vedtaksperiodeId)
-        }
+        mockForkastForespoerselMelding(orgnummer, vedtaksperiodeId)
 
         verifySequence {
             mockPriProducer.send(
@@ -82,10 +74,7 @@ class ForkastForespoerselRiverTest : FunSpec({
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
         } returns null
 
-        mockkObject(Env) {
-            every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns orgnummer.verdi
-            mockForkastForespoerselMelding(orgnummer, vedtaksperiodeId)
-        }
+        mockForkastForespoerselMelding(orgnummer, vedtaksperiodeId)
 
         verify(exactly = 0) {
             mockPriProducer.send(*anyVararg())

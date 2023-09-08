@@ -4,12 +4,10 @@ import io.kotest.core.spec.style.FunSpec
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkObject
 import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.builtins.serializer
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helsearbeidsgiver.bro.sykepenger.Env.fromEnv
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.InntektsmeldingHaandtertDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
@@ -52,10 +50,7 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
     test("Innkommende event oppdaterer aktive forespørsler som er besvart") {
         val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = MockUuid.inntektsmeldingId)
 
-        mockkObject(Env) {
-            every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns inntektsmeldingHaandtert.orgnr.verdi
-            mockInnkommendeMelding(inntektsmeldingHaandtert)
-        }
+        mockInnkommendeMelding(inntektsmeldingHaandtert)
 
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
@@ -67,10 +62,7 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
     test("Tåler at dokumentId mangler på innkommende event") {
         val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = null)
 
-        mockkObject(Env) {
-            every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns inntektsmeldingHaandtert.orgnr.verdi
-            mockInnkommendeMelding(inntektsmeldingHaandtert)
-        }
+        mockInnkommendeMelding(inntektsmeldingHaandtert)
 
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
@@ -90,10 +82,7 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
             mockForespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(inntektsmeldingHaandtert.vedtaksperiodeId)
         } returns forespoersel.forespoerselId
 
-        mockkObject(Env) {
-            every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns inntektsmeldingHaandtert.orgnr.verdi
-            mockInnkommendeMelding(inntektsmeldingHaandtert)
-        }
+        mockInnkommendeMelding(inntektsmeldingHaandtert)
 
         verifySequence {
             mockPriProducer.send(
@@ -110,10 +99,7 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
         } returns null
 
-        mockkObject(Env) {
-            every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns inntektsmeldingHaandtert.orgnr.verdi
-            mockInnkommendeMelding(inntektsmeldingHaandtert)
-        }
+        mockInnkommendeMelding(inntektsmeldingHaandtert)
 
         verify(exactly = 0) {
             mockPriProducer.send(*anyVararg())
@@ -130,10 +116,7 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
             mockForespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(inntektsmeldingHaandtert.vedtaksperiodeId)
         } returns expectedForespoerselId
 
-        mockkObject(Env) {
-            every { Env.VarName.PILOT_TILLATTE_ORGANISASJONER.fromEnv() } returns inntektsmeldingHaandtert.orgnr.verdi
-            mockInnkommendeMelding(inntektsmeldingHaandtert)
-        }
+        mockInnkommendeMelding(inntektsmeldingHaandtert)
 
         verify {
             mockPriProducer.send(

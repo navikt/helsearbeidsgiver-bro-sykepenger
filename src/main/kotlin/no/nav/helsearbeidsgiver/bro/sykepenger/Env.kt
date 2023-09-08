@@ -1,9 +1,6 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
 object Env {
-    object VarName {
-        const val PILOT_TILLATTE_ORGANISASJONER = "PILOT_TILLATTE_ORGANISASJONER"
-    }
 
     object Kafka {
         val brokers = "KAFKA_BROKERS".fromEnv()
