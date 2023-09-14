@@ -125,6 +125,7 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
             )
         }
     }
+
     test("Videresender inntektsmeldingId når forespørsel markeres som besvart") {
         val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = MockUuid.inntektsmeldingId)
         val expectedForespoerselId = randomUuid()
