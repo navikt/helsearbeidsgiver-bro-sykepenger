@@ -94,9 +94,15 @@ internal class MarkerBesvartForespoerselRiver(
                 loggernaut.aapen.info("Fant ingen forespørsler for den besvarte inntektsmeldingen")
                 loggernaut.sikker.info("Fant ingen forespørsler for den besvarte inntektsmeldingen: ${toPretty()}")
             } else {
-                priProducer.send(
+
+                val felter = listOfNotNull(
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
-                    Pri.Key.FORESPOERSEL_ID to forespoerselIdKnyttetTilOppgaveIPortalen.toJson()
+                    Pri.Key.FORESPOERSEL_ID to forespoerselIdKnyttetTilOppgaveIPortalen.toJson(),
+                    inntektsmeldingId?.let { Pri.Key.SPINN_INNTEKTSMELDING_ID to it.toJson() }
+                ).toTypedArray()
+
+                priProducer.send(
+                    *felter
                 )
                     .ifTrue { loggernaut.aapen.info("Sa ifra om besvart forespørsel til Simba.") }
                     .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om besvart forespørsel til Simba.") }
