@@ -125,4 +125,24 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
             )
         }
     }
+    test("videresender dokumentId når forespørsel markeres som besvart") {
+        val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = MockUuid.inntektsmeldingId)
+        val expectedForespoerselId = randomUuid()
+        every {
+            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
+        } returns mockForespoerselDto()
+        every {
+            mockForespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(inntektsmeldingHaandtert.vedtaksperiodeId)
+        } returns expectedForespoerselId
+
+        mockInnkommendeMelding(inntektsmeldingHaandtert)
+
+        verify {
+            mockPriProducer.send(
+                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
+                Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
+                Pri.Key.SPINN_INNTEKTSMELDING_ID to MockUuid.inntektsmeldingId.toJson()
+            )
+        }
+    }
 })
