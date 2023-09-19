@@ -94,7 +94,6 @@ internal class MarkerBesvartForespoerselRiver(
                 loggernaut.aapen.info("Fant ingen forespørsler for den besvarte inntektsmeldingen")
                 loggernaut.sikker.info("Fant ingen forespørsler for den besvarte inntektsmeldingen: ${toPretty()}")
             } else {
-
                 val felter = listOfNotNull(
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to forespoerselIdKnyttetTilOppgaveIPortalen.toJson(),
