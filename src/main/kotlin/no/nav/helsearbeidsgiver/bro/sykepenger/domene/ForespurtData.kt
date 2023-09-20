@@ -9,7 +9,6 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer
 import java.time.LocalDate
-import java.time.YearMonth
 
 @Serializable
 data class ForespurtData(
@@ -50,10 +49,8 @@ data class Refusjon(
 sealed class ForslagInntekt {
     @Serializable
     @SerialName("ForslagInntektGrunnlag")
-    // TODO erstatt med skjæringstidspunkt?
     data class Grunnlag(
-        val beregningsmaaneder: List<YearMonth>,
-        val forrigeInntekt: ForrigeInntekt? = null
+        val forrigeInntekt: ForrigeInntekt?
     ) : ForslagInntekt()
 
     @Serializable
