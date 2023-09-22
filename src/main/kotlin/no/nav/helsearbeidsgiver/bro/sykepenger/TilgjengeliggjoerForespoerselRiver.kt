@@ -96,7 +96,7 @@ class TilgjengeliggjoerForespoerselRiver(
         )
 
         loggernaut.aapen.info("Behov besvart på pri-topic med forespørsel.")
-        loggernaut.sikker.info("Behov besvart på pri-topic med forespørsel: $forespoerselSvarJson")
+        loggernaut.sikker.info("Behov besvart på pri-topic med forespørsel: ${forespoerselSvarJson.toPretty()}")
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
