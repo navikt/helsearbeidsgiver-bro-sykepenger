@@ -188,7 +188,8 @@ fun mockInntektMedForslagGrunnlag(): Inntekt =
                 august(1999),
                 september(1999),
                 oktober(1999)
-            )
+            ),
+            forrigeInntekt = null
         )
     )
 

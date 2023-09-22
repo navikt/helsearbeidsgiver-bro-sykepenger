@@ -73,7 +73,7 @@ class TilgjengeliggjoerForespoerselRiver(
         loggernaut.aapen.info("Mottok melding på pri-topic av type '${Pri.Key.BEHOV.les(String.serializer(), melding)}'.")
         loggernaut.sikker.info("Mottok melding på pri-topic med innhold:\n${toPretty()}")
 
-        val forespoerselSvar = ForespoerselSvar(
+        val forespoerselSvarJson = ForespoerselSvar(
             forespoerselId = forespoerselId,
             boomerang = Pri.Key.BOOMERANG.les(JsonElement.serializer(), melding)
         )
@@ -88,14 +88,15 @@ class TilgjengeliggjoerForespoerselRiver(
                     it.copy(feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET)
                 }
             }
+            .toJson(ForespoerselSvar.serializer())
 
         priProducer.send(
             Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
-            Pri.Key.LØSNING to forespoerselSvar.toJson(ForespoerselSvar.serializer())
+            Pri.Key.LØSNING to forespoerselSvarJson
         )
 
         loggernaut.aapen.info("Behov besvart på pri-topic med forespørsel.")
-        loggernaut.sikker.info("Behov besvart på pri-topic med forespørsel: $forespoerselSvar")
+        loggernaut.sikker.info("Behov besvart på pri-topic med forespørsel: ${forespoerselSvarJson.toPretty()}")
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {

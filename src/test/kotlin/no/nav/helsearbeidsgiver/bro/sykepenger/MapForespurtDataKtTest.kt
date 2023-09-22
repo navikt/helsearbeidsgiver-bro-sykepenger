@@ -87,7 +87,8 @@ class MapForespurtDataKtTest : FunSpec({
                             juni(2010),
                             juli(2010),
                             august(2010)
-                        )
+                        ),
+                        forrigeInntekt = null
                     )
                 ),
                 refusjon = Refusjon.ikkePaakrevd()
