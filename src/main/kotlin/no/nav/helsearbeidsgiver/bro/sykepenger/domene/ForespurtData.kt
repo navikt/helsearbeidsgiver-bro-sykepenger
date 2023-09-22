@@ -53,7 +53,7 @@ sealed class ForslagInntekt {
     // TODO erstatt med skjæringstidspunkt?
     data class Grunnlag(
         val beregningsmaaneder: List<YearMonth>,
-        val forrigeInntekt: ForrigeInntekt? = null
+        val forrigeInntekt: ForrigeInntekt?
     ) : ForslagInntekt()
 
     @Serializable
