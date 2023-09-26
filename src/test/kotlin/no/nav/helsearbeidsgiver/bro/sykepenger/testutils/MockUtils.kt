@@ -32,8 +32,6 @@ import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.november
-import no.nav.helsearbeidsgiver.utils.test.date.oktober
-import no.nav.helsearbeidsgiver.utils.test.date.september
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -65,13 +63,7 @@ fun mockSpleisForespurtDataListe(): List<SpleisForespurtDataDto> =
     listOf(
         SpleisArbeidsgiverperiode,
         SpleisInntekt(
-            forslag = SpleisForslagInntekt(
-                beregningsmåneder = listOf(
-                    august(1999),
-                    september(1999),
-                    oktober(1999)
-                )
-            )
+            forslag = SpleisForslagInntekt()
         ),
         SpleisRefusjon(
             forslag = listOf(
@@ -94,11 +86,6 @@ fun mockSpleisForespurtDataMedForrigeInntektListe(): List<SpleisForespurtDataDto
         SpleisArbeidsgiverperiode,
         SpleisInntekt(
             forslag = SpleisForslagInntekt(
-                beregningsmåneder = listOf(
-                    august(1999),
-                    september(1999),
-                    oktober(1999)
-                ),
                 forrigeInntekt = SpleisForrigeInntekt(
                     skjæringstidspunkt = 1.januar,
                     kilde = "INNTEKTSMELDING",
@@ -125,7 +112,7 @@ fun mockSpleisForespurtDataMedForrigeInntektListe(): List<SpleisForespurtDataDto
 fun mockBegrensetForespurtDataListe(): List<SpleisForespurtDataDto> =
     listOf(
         SpleisArbeidsgiverperiode,
-        SpleisInntekt(forslag = SpleisForslagInntekt(beregningsmåneder = emptyList())),
+        SpleisInntekt(forslag = SpleisForslagInntekt()),
         SpleisRefusjon(forslag = emptyList())
     )
 
@@ -184,11 +171,6 @@ fun mockInntektMedForslagGrunnlag(): Inntekt =
     Inntekt(
         paakrevd = true,
         forslag = ForslagInntekt.Grunnlag(
-            beregningsmaaneder = listOf(
-                august(1999),
-                september(1999),
-                oktober(1999)
-            ),
             forrigeInntekt = null
         )
     )

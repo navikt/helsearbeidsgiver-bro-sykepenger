@@ -5,11 +5,6 @@
   {
     "opplysningstype": "Inntekt",
     "forslag": {
-      "beregningsmåneder": [
-        "1999-08",
-        "1999-09",
-        "1999-10"
-      ],
       "forrigeInntekt": {
         "skjæringstidspunkt": "2018-01-01",
         "kilde": "INNTEKTSMELDING",

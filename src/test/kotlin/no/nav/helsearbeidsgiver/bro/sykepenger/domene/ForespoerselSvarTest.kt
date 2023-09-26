@@ -130,8 +130,7 @@ private fun ForslagInntekt.hardcodedJson(): String =
             """
             {
                 "type": "ForslagInntektGrunnlag",
-                "beregningsmaaneder": [${beregningsmaaneder.joinToString { yearMonth -> "\"$yearMonth\"" }}],
-                "forrigeInntekt": null
+                "forrigeInntekt": ${forrigeInntekt?.hardcodedJson()}
             }
             """
 
@@ -143,6 +142,15 @@ private fun ForslagInntekt.hardcodedJson(): String =
             }
             """
     }
+
+private fun ForrigeInntekt.hardcodedJson(): String =
+    """
+    {
+        "skjæringstidspunkt": "$skjæringstidspunkt",
+        "kilde": "$kilde",
+        "beløp": $beløp
+    }
+    """
 
 private fun ForslagRefusjon.hardcodedJson(): String =
     """
