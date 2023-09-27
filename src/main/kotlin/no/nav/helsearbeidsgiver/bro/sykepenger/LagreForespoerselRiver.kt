@@ -78,9 +78,15 @@ sealed class LagreForespoerselRiver(
             forespoerselDao.lagre(nyForespoersel)
                 .let { id ->
                     if (id != null) {
-                        loggernaut.aapen.info("Forespørsel lagret med id=$id.")
+                        "Forespørsel lagret med id=$id.".also {
+                            loggernaut.aapen.info(it)
+                            loggernaut.sikker.info(it)
+                        }
                     } else {
-                        loggernaut.aapen.error("Forespørsel ble ikke lagret.")
+                        "Forespørsel ble ikke lagret.".also {
+                            loggernaut.aapen.error(it)
+                            loggernaut.sikker.error(it)
+                        }
                     }
                 }
         } else {
