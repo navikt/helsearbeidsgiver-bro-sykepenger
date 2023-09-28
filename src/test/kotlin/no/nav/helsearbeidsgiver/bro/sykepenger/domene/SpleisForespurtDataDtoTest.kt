@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 
-class ForespurtDataDtoTest : FunSpec({
+class SpleisForespurtDataDtoTest : FunSpec({
     listOf(
         row("forespurtDataListe", ::mockSpleisForespurtDataListe),
         row("forespurtDataMedFastsattInntektListe", ::mockForespurtDataMedFastsattInntektListe),

@@ -24,7 +24,15 @@ data class ForespoerselDto(
     val besvarelse: BesvarelseMetadataDto?,
     val opprettet: LocalDateTime = LocalDateTime.now().truncMillis(),
     val oppdatert: LocalDateTime = LocalDateTime.now().truncMillis()
-)
+) {
+    fun erDuplikatAv(other: ForespoerselDto): Boolean =
+        this == other.copy(
+            forespoerselId = forespoerselId,
+            besvarelse = besvarelse,
+            opprettet = opprettet,
+            oppdatert = oppdatert
+        )
+}
 
 data class BesvarelseMetadataDto(
     val forespoerselBesvart: LocalDateTime,

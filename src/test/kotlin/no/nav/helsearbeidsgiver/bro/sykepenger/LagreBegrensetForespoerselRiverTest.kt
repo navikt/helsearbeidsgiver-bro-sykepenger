@@ -5,8 +5,8 @@ import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkObject
 import io.mockk.mockkStatic
+import io.mockk.verify
 import io.mockk.verifySequence
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
@@ -25,6 +25,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.toKeyMap
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.mars
 
 class LagreBegrensetForespoerselRiverTest : FunSpec({
     val testRapid = TestRapid()
@@ -52,22 +53,17 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
         clearAllMocks()
     }
 
-    test("Innkommende forespørsel blir lagret og sender notifikasjon videre") {
-        val forespoersel = mockForespoerselDto().copy(
-            type = Type.BEGRENSET,
-            skjaeringstidspunkt = null,
-            egenmeldingsperioder = emptyList(),
-            forespurtData = mockBegrensetForespurtDataListe()
-        )
+    test("Forespørsel blir lagret og sender notifikasjon") {
+        val forespoersel = mockBegrensetForespoerselDto()
 
-        mockkObject(Env) {
-            every { mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId) } returns null
+        every {
+            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
+        } returns null
 
-            mockkStatic(::randomUuid) {
-                every { randomUuid() } returns forespoersel.forespoerselId
+        mockkStatic(::randomUuid) {
+            every { randomUuid() } returns forespoersel.forespoerselId
 
-                mockInnkommendeMelding(forespoersel)
-            }
+            mockInnkommendeMelding(forespoersel)
         }
 
         val expectedPublished = ForespoerselMottatt(
@@ -75,8 +71,10 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
             orgnr = forespoersel.orgnr,
             fnr = forespoersel.fnr
         )
+
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
+
             mockForespoerselDao.lagre(
                 withArg {
                     it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)
@@ -88,4 +86,68 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
             )
         }
     }
+
+    test("Oppdatert forespørsel (ubesvart) blir lagret uten å sende notifikasjon") {
+        val forespoersel = mockBegrensetForespoerselDto()
+
+        every {
+            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
+        } returns forespoersel.copy(
+            egenmeldingsperioder = listOf(
+                Periode(13.mars(1812), 14.mars(1812))
+            )
+        )
+
+        mockkStatic(::randomUuid) {
+            every { randomUuid() } returns forespoersel.forespoerselId
+
+            mockInnkommendeMelding(forespoersel)
+        }
+
+        verifySequence {
+            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
+
+            mockForespoerselDao.lagre(
+                withArg {
+                    it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)
+                }
+            )
+        }
+
+        verify(exactly = 0) {
+            mockPriProducer.send(any())
+        }
+    }
+
+    test("Duplisert forespørsel blir hverken lagret eller sender notifikasjon") {
+        val forespoersel = mockBegrensetForespoerselDto()
+
+        every {
+            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
+        } returns forespoersel
+
+        mockkStatic(::randomUuid) {
+            every { randomUuid() } returns forespoersel.forespoerselId
+
+            mockInnkommendeMelding(forespoersel)
+        }
+
+        verifySequence {
+            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
+        }
+
+        verify(exactly = 0) {
+            mockForespoerselDao.lagre(any())
+
+            mockPriProducer.send(any())
+        }
+    }
 })
+
+private fun mockBegrensetForespoerselDto(): ForespoerselDto =
+    mockForespoerselDto().copy(
+        type = Type.BEGRENSET,
+        skjaeringstidspunkt = null,
+        egenmeldingsperioder = emptyList(),
+        forespurtData = mockBegrensetForespurtDataListe()
+    )
