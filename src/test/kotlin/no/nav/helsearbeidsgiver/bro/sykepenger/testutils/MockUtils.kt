@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.testutils
 
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Arbeidsgiverperiode
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.BesvarelseMetadataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
@@ -32,8 +31,6 @@ import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.november
-import no.nav.helsearbeidsgiver.utils.test.date.oktober
-import no.nav.helsearbeidsgiver.utils.test.date.september
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -43,13 +40,13 @@ object MockUuid {
     val inntektsmeldingId: UUID = "22efb342-3e72-4880-a449-eb1efcf0f18b".let(UUID::fromString)
 }
 
-fun mockForespoerselDto(besvarelseMetaData: BesvarelseMetadataDto? = null, status: Status = Status.AKTIV): ForespoerselDto =
+fun mockForespoerselDto(): ForespoerselDto =
     ForespoerselDto(
         forespoerselId = randomUuid(),
         type = Type.KOMPLETT,
-        status = status,
+        status = Status.AKTIV,
         orgnr = "123456789".let(::Orgnr),
-        fnr = "123456789",
+        fnr = "11223344556",
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
         skjaeringstidspunkt = 15.januar,
         sykmeldingsperioder = listOf(
@@ -58,20 +55,14 @@ fun mockForespoerselDto(besvarelseMetaData: BesvarelseMetadataDto? = null, statu
         ),
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         forespurtData = mockSpleisForespurtDataListe(),
-        besvarelse = besvarelseMetaData
+        besvarelse = null
     )
 
 fun mockSpleisForespurtDataListe(): List<SpleisForespurtDataDto> =
     listOf(
         SpleisArbeidsgiverperiode,
         SpleisInntekt(
-            forslag = SpleisForslagInntekt(
-                beregningsmåneder = listOf(
-                    august(1999),
-                    september(1999),
-                    oktober(1999)
-                )
-            )
+            forslag = SpleisForslagInntekt()
         ),
         SpleisRefusjon(
             forslag = listOf(
@@ -94,11 +85,6 @@ fun mockSpleisForespurtDataMedForrigeInntektListe(): List<SpleisForespurtDataDto
         SpleisArbeidsgiverperiode,
         SpleisInntekt(
             forslag = SpleisForslagInntekt(
-                beregningsmåneder = listOf(
-                    august(1999),
-                    september(1999),
-                    oktober(1999)
-                ),
                 forrigeInntekt = SpleisForrigeInntekt(
                     skjæringstidspunkt = 1.januar,
                     kilde = "INNTEKTSMELDING",
@@ -125,7 +111,7 @@ fun mockSpleisForespurtDataMedForrigeInntektListe(): List<SpleisForespurtDataDto
 fun mockBegrensetForespurtDataListe(): List<SpleisForespurtDataDto> =
     listOf(
         SpleisArbeidsgiverperiode,
-        SpleisInntekt(forslag = SpleisForslagInntekt(beregningsmåneder = emptyList())),
+        SpleisInntekt(forslag = SpleisForslagInntekt()),
         SpleisRefusjon(forslag = emptyList())
     )
 
@@ -184,11 +170,7 @@ fun mockInntektMedForslagGrunnlag(): Inntekt =
     Inntekt(
         paakrevd = true,
         forslag = ForslagInntekt.Grunnlag(
-            beregningsmaaneder = listOf(
-                august(1999),
-                september(1999),
-                oktober(1999)
-            )
+            forrigeInntekt = null
         )
     )
 

@@ -20,11 +20,8 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockInntektMedForslagFastsatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockSpleisFastsattInntekt
-import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
-import no.nav.helsearbeidsgiver.utils.test.date.juli
-import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 
 class MapForespurtDataKtTest : FunSpec({
@@ -83,11 +80,7 @@ class MapForespurtDataKtTest : FunSpec({
                 inntekt = Inntekt(
                     paakrevd = true,
                     forslag = ForslagInntekt.Grunnlag(
-                        beregningsmaaneder = listOf(
-                            juni(2010),
-                            juli(2010),
-                            august(2010)
-                        )
+                        forrigeInntekt = null
                     )
                 ),
                 refusjon = Refusjon.ikkePaakrevd()
@@ -95,13 +88,7 @@ class MapForespurtDataKtTest : FunSpec({
 
             val spleisForespurtData = listOf(
                 SpleisInntekt(
-                    forslag = SpleisForslagInntekt(
-                        beregningsmåneder = listOf(
-                            juni(2010),
-                            juli(2010),
-                            august(2010)
-                        )
-                    )
+                    forslag = SpleisForslagInntekt()
                 )
             )
 

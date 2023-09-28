@@ -533,7 +533,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
     }
 
     test("Oppdaterer ikke besvart forespørsel til forkastet") {
-        val forespoerselId = mockForespoerselDto(status = Status.BESVART).lagreNotNull()
+        val forespoerselId = mockForespoerselDto().copy(status = Status.BESVART).lagreNotNull()
         forespoerselDao.oppdaterForespoerselSomForkastet(MockUuid.vedtaksperiodeId)
 
         val forespoersel = dataSource.hentForespoersel(forespoerselId)

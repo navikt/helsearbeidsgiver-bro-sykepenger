@@ -39,7 +39,6 @@ private fun List<SpleisForespurtDataDto>.lesInntekt(): Inntekt {
             Inntekt(
                 paakrevd = true,
                 forslag = ForslagInntekt.Grunnlag(
-                    beregningsmaaneder = spleisInntekt.forslag.beregningsmåneder,
                     forrigeInntekt = spleisInntekt.forslag.forrigeInntekt?.let {
                         ForrigeInntekt(
                             it.skjæringstidspunkt,
