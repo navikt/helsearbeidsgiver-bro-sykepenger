@@ -10,9 +10,9 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockSpleisForespurtData
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockSpleisForespurtDataMedForrigeInntektListe
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 
 class SpleisForespurtDataDtoTest : FunSpec({
     listOf(
