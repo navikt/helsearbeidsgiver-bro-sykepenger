@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - preprod/**
+      - dev/**
 
 env:
   TEAM: helsearbeidsgiver
