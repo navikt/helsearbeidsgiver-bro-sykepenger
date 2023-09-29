@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
+import no.nav.helsearbeidsgiver.utils.test.resource.readResource
 
 class SpleisForespurtDataDtoTest : FunSpec({
     listOf(
@@ -44,8 +45,3 @@ class SpleisForespurtDataDtoTest : FunSpec({
             }
         }
 })
-
-private fun String.readResource(): String =
-    ClassLoader.getSystemClassLoader()
-        .getResource(this)
-        ?.readText()!!
