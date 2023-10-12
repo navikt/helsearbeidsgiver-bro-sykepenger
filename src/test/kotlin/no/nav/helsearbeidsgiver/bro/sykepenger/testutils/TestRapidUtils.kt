@@ -27,6 +27,6 @@ private fun <K : Key> Map<Key, JsonElement>.tryToJsonStr(serializer: KSerializer
     (this as? Map<K, JsonElement>)?.toJsonStr(
         MapSerializer(
             serializer,
-            JsonElement.serializer()
-        )
+            JsonElement.serializer(),
+        ),
     )

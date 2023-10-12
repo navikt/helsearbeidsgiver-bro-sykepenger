@@ -17,7 +17,7 @@ abstract class AbstractDatabaseFunSpec(body: FunSpec.(DataSource) -> Unit) : Fun
         sessionOf(dataSource).use {
             "SELECT truncate_tables()".execute(
                 params = emptyMap<String, Nothing>(),
-                session = it
+                session = it,
             )
         }
     }
@@ -83,7 +83,7 @@ private fun DataSource.createTruncateFunction() {
     sessionOf(this).use {
         query.execute(
             params = emptyMap<String, Nothing>(),
-            session = it
+            session = it,
         )
     }
 }

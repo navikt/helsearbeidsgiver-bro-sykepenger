@@ -36,7 +36,7 @@ fun JsonMessage.require(vararg keyAndParserPairs: Pair<Key, (JsonElement) -> Any
 
 private fun JsonMessage.validate(
     validateFn: (JsonMessage, String, (JsonNode) -> Any) -> Unit,
-    keyAndParserPairs: List<Pair<String, (JsonElement) -> Any>>
+    keyAndParserPairs: List<Pair<String, (JsonElement) -> Any>>,
 ) {
     keyAndParserPairs.forEach { (key, block) ->
         validateFn(this, key) {

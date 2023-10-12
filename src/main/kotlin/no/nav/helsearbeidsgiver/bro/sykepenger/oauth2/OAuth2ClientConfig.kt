@@ -20,7 +20,7 @@ fun OAuth2ClientConfig(environment: Env.AzureAD): OAuth2TokenProvider {
         TokenResolver(),
         OnBehalfOfTokenClient(oauth2HttpClient),
         ClientCredentialsTokenClient(oauth2HttpClient),
-        TokenExchangeClient(oauth2HttpClient)
+        TokenExchangeClient(oauth2HttpClient),
     )
     val clientPropertiesConfig = with(environment) {
         ClientProperties(
@@ -32,14 +32,14 @@ fun OAuth2ClientConfig(environment: Env.AzureAD): OAuth2TokenProvider {
                 azureAppClientID,
                 ClientAuthenticationMethod("client_secret_post"),
                 azureAppClientSecret,
-                azureAppJwk
+                azureAppJwk,
             ),
             null,
-            null
+            null,
         )
     }
     return OAuth2TokenProvider(
         oauth2Service,
-        clientPropertiesConfig
+        clientPropertiesConfig,
     )
 }

@@ -5,7 +5,7 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class Loggernaut<T : Any>(
-    loggingClass: T
+    loggingClass: T,
 ) {
     val aapen = loggingClass.logger()
     val sikker = sikkerLogger()

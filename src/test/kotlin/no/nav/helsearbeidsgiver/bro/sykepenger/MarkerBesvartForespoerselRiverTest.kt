@@ -29,7 +29,7 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
     MarkerBesvartForespoerselRiver(
         rapid = testRapid,
         forespoerselDao = mockForespoerselDao,
-        priProducer = mockPriProducer
+        priProducer = mockPriProducer,
     )
 
     fun mockInnkommendeMelding(inntektsmeldingHaandtert: InntektsmeldingHaandtertDto) {
@@ -39,7 +39,7 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
             Spleis.Key.FØDSELSNUMMER to inntektsmeldingHaandtert.fnr.toJson(String.serializer()),
             Spleis.Key.VEDTAKSPERIODE_ID to inntektsmeldingHaandtert.vedtaksperiodeId.toJson(),
             Spleis.Key.DOKUMENT_ID to inntektsmeldingHaandtert.inntektsmeldingId?.toJson(),
-            Spleis.Key.OPPRETTET to inntektsmeldingHaandtert.haandtert.toJson()
+            Spleis.Key.OPPRETTET to inntektsmeldingHaandtert.haandtert.toJson(),
         )
     }
 
@@ -87,7 +87,7 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
         verifySequence {
             mockPriProducer.send(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson()
+                Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
             )
         }
     }
@@ -121,7 +121,7 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
         verify {
             mockPriProducer.send(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson()
+                Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
             )
         }
     }
@@ -142,7 +142,7 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
             mockPriProducer.send(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                 Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
-                Pri.Key.SPINN_INNTEKTSMELDING_ID to MockUuid.inntektsmeldingId.toJson()
+                Pri.Key.SPINN_INNTEKTSMELDING_ID to MockUuid.inntektsmeldingId.toJson(),
             )
         }
     }

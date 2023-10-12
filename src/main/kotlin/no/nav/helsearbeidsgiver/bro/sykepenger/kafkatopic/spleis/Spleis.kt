@@ -19,7 +19,8 @@ object Spleis {
         TOM("tom"),
         FORESPURT_DATA("forespurtData"),
         DOKUMENT_ID("dokumentId"),
-        OPPRETTET("@opprettet");
+        OPPRETTET("@opprettet"),
+        ;
 
         override fun toString(): String =
             verdi
@@ -38,11 +39,11 @@ object Spleis {
         TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER_KOMPLETT,
         TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER_BEGRENSET,
         TRENGER_IKKE_OPPLYSNINGER_FRA_ARBEIDSGIVER,
-        INNTEKTSMELDING_HÅNDTERT
+        INNTEKTSMELDING_HÅNDTERT,
     }
 
     private object KeySerializer : AsStringSerializer<Key>(
         serialName = "helsearbeidsgiver.kotlinx.bro.Spleis.Key",
-        parse = Key::fromJson
+        parse = Key::fromJson,
     )
 }

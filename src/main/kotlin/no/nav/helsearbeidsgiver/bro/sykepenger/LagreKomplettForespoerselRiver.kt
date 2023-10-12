@@ -27,7 +27,7 @@ import java.util.UUID
 class LagreKomplettForespoerselRiver(
     rapid: RapidsConnection,
     forespoerselDao: ForespoerselDao,
-    priProducer: PriProducer
+    priProducer: PriProducer,
 ) : LagreForespoerselRiver(forespoerselDao, priProducer) {
     override val loggernaut = Loggernaut(this)
 
@@ -38,13 +38,13 @@ class LagreKomplettForespoerselRiver(
                 msg.requireArray(Spleis.Key.SYKMELDINGSPERIODER.verdi) {
                     require(
                         Spleis.Key.FOM to { it.fromJson(LocalDateSerializer) },
-                        Spleis.Key.TOM to { it.fromJson(LocalDateSerializer) }
+                        Spleis.Key.TOM to { it.fromJson(LocalDateSerializer) },
                     )
                 }
                 msg.requireArray(Spleis.Key.EGENMELDINGSPERIODER.verdi) {
                     require(
                         Spleis.Key.FOM to { it.fromJson(LocalDateSerializer) },
-                        Spleis.Key.TOM to { it.fromJson(LocalDateSerializer) }
+                        Spleis.Key.TOM to { it.fromJson(LocalDateSerializer) },
                     )
                 }
                 msg.requireKeys(
@@ -52,7 +52,7 @@ class LagreKomplettForespoerselRiver(
                     Spleis.Key.FØDSELSNUMMER,
                     Spleis.Key.VEDTAKSPERIODE_ID,
                     Spleis.Key.SKJÆRINGSTIDSPUNKT,
-                    Spleis.Key.FORESPURT_DATA
+                    Spleis.Key.FORESPURT_DATA,
                 )
             }
         }.register(this)
@@ -70,6 +70,6 @@ class LagreKomplettForespoerselRiver(
             sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),
             egenmeldingsperioder = Spleis.Key.EGENMELDINGSPERIODER.les(Periode.serializer().list(), melding),
             forespurtData = Spleis.Key.FORESPURT_DATA.les(SpleisForespurtDataDto.serializer().list(), melding),
-            besvarelse = null
+            besvarelse = null,
         )
 }

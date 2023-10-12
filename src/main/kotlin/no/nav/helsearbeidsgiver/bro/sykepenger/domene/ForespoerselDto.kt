@@ -23,26 +23,26 @@ data class ForespoerselDto(
     val forespurtData: List<SpleisForespurtDataDto>,
     val besvarelse: BesvarelseMetadataDto?,
     val opprettet: LocalDateTime = LocalDateTime.now().truncMillis(),
-    val oppdatert: LocalDateTime = LocalDateTime.now().truncMillis()
+    val oppdatert: LocalDateTime = LocalDateTime.now().truncMillis(),
 ) {
     fun erDuplikatAv(other: ForespoerselDto): Boolean =
         this == other.copy(
             forespoerselId = forespoerselId,
             besvarelse = besvarelse,
             opprettet = opprettet,
-            oppdatert = oppdatert
+            oppdatert = oppdatert,
         )
 }
 
 data class BesvarelseMetadataDto(
     val forespoerselBesvart: LocalDateTime,
-    val inntektsmeldingId: UUID?
+    val inntektsmeldingId: UUID?,
 )
 
 enum class Status {
     AKTIV,
     BESVART,
-    FORKASTET
+    FORKASTET,
 }
 
 enum class Type {
@@ -65,11 +65,11 @@ enum class Type {
      * Slike perioder trenger ingen arbeidsgiveropplysninger, men skal tillate å motta opplysninger fra arbeidsgiver
      * fordi de kan ha opplysninger som gjør at perioden strekker seg forbi arbeidsgiverperioden.
      */
-    POTENSIELL
+    POTENSIELL,
 }
 
 @Serializable
 data class Periode(
     val fom: LocalDate,
-    val tom: LocalDate
+    val tom: LocalDate,
 )

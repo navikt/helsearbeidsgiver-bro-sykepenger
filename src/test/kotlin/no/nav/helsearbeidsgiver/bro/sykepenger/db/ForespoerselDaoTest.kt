@@ -55,7 +55,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             forespoersel1,
             forespoersel2,
             forespoersel3,
-            forespoersel4
+            forespoersel4,
         ) = listOf(id1, id2, id3, id4)
             .map(dataSource::hentForespoersel)
             .map { it.shouldNotBeNull() }
@@ -230,7 +230,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
         val (
             forespoersel1,
-            forespoersel2
+            forespoersel2,
         ) = listOf(id1, id2)
             .map(dataSource::hentForespoersel)
             .map { it.shouldNotBeNull() }
@@ -246,7 +246,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
     test("Lagre forespørsel med begrenset forespurt data i databasen") {
         val forespoersel = mockForespoerselDto().copy(
             type = BEGRENSET,
-            forespurtData = mockBegrensetForespurtDataListe()
+            forespurtData = mockBegrensetForespurtDataListe(),
         )
 
         val id = forespoersel.lagreNotNull()
@@ -259,7 +259,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
     test("Lagre forespørsel uten skjæringstidspunkt i databasen") {
         val forespoersel = mockForespoerselDto().copy(
             type = BEGRENSET,
-            skjaeringstidspunkt = null
+            skjaeringstidspunkt = null,
         )
 
         val id = forespoersel.lagreNotNull()
@@ -277,7 +277,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         forespoerselDao.oppdaterForespoerslerSomBesvart(
             MockUuid.vedtaksperiodeId,
             forespoerselBesvart,
-            MockUuid.inntektsmeldingId
+            MockUuid.inntektsmeldingId,
         )
 
         val forespoersel1 = dataSource.hentForespoersel(id1)
@@ -289,7 +289,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         forespoersel2?.status shouldBe Status.BESVART
         forespoersel2?.besvarelse?.inntektsmeldingId shouldBe MockUuid.inntektsmeldingId
         forespoersel2?.besvarelse?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe forespoerselBesvart.truncatedTo(
-            ChronoUnit.MILLIS
+            ChronoUnit.MILLIS,
         )
     }
 
@@ -308,7 +308,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
         forespoersel2?.status shouldBe Status.BESVART
         forespoersel2?.besvarelse?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe forespoerselBesvart.truncatedTo(
-            ChronoUnit.MILLIS
+            ChronoUnit.MILLIS,
         )
         forespoersel2?.besvarelse?.inntektsmeldingId shouldBe null
     }
@@ -322,12 +322,12 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         forespoerselDao.oppdaterForespoerslerSomBesvart(
             MockUuid.vedtaksperiodeId,
             1.januar.atStartOfDay(),
-            inntektsmeldingId = inntektsmeldingId1
+            inntektsmeldingId = inntektsmeldingId1,
         )
         forespoerselDao.oppdaterForespoerslerSomBesvart(
             MockUuid.vedtaksperiodeId,
             2.januar.atStartOfDay(),
-            inntektsmeldingId = inntektsmeldingId2
+            inntektsmeldingId = inntektsmeldingId2,
         )
 
         val forespoersel = dataSource.hentForespoersel(forespoerselId)
@@ -346,12 +346,12 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         forespoerselDao.oppdaterForespoerslerSomBesvart(
             MockUuid.vedtaksperiodeId,
             1.januar.atStartOfDay(),
-            inntektsmeldingId = inntektsmeldingId1
+            inntektsmeldingId = inntektsmeldingId1,
         )
         forespoerselDao.oppdaterForespoerslerSomBesvart(
             MockUuid.vedtaksperiodeId,
             2.januar.atStartOfDay(),
-            inntektsmeldingId = null
+            inntektsmeldingId = null,
         )
 
         val forespoersel = dataSource.hentForespoersel(forespoerselId)
@@ -403,7 +403,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             forespoerselDao.oppdaterForespoerslerSomBesvart(
                 MockUuid.vedtaksperiodeId,
                 LocalDateTime.now(),
-                randomUuid()
+                randomUuid(),
             )
 
             val idC = mockForespoerselDto().lagreNotNull()
@@ -413,7 +413,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             forespoerselDao.oppdaterForespoerslerSomBesvart(
                 MockUuid.vedtaksperiodeId,
                 LocalDateTime.now(),
-                randomUuid()
+                randomUuid(),
             )
 
             dataSource.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
@@ -435,7 +435,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             forespoerselDao.oppdaterForespoerslerSomBesvart(
                 MockUuid.vedtaksperiodeId,
                 LocalDateTime.now(),
-                randomUuid()
+                randomUuid(),
             )
 
             dataSource.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
@@ -474,7 +474,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             forespoerselDao.oppdaterForespoerslerSomBesvart(
                 MockUuid.vedtaksperiodeId,
                 LocalDateTime.now(),
-                randomUuid()
+                randomUuid(),
             )
 
             dataSource.hentForespoersel(idA)?.status shouldBe Status.BESVART
@@ -519,14 +519,14 @@ private fun DataSource.hentForespoersel(id: Long): ForespoerselDto? =
         .nullableResult(
             params = mapOf("id" to id),
             dataSource = this,
-            transform = Row::toForespoerselDto
+            transform = Row::toForespoerselDto,
         )
 
 private fun DataSource.antallBesvarelser(): Int =
     "SELECT COUNT(1) FROM besvarelse_metadata"
         .nullableResult(
             params = emptyMap<String, Nothing>(),
-            dataSource = this
+            dataSource = this,
         ) { int(1) }
         .shouldNotBeNull()
 
@@ -534,7 +534,7 @@ private fun DataSource.antallForespoersler(): Int =
     "SELECT COUNT(1) FROM forespoersel"
         .nullableResult(
             params = emptyMap<String, Nothing>(),
-            dataSource = this
+            dataSource = this,
         ) { int(1) }
         .shouldNotBeNull()
 
@@ -544,9 +544,9 @@ private fun DataSource.oppdaterStatus(forespoerselId: Long, status: Status): Boo
             .execute(
                 params = mapOf(
                     "id" to forespoerselId,
-                    "status" to status.name
+                    "status" to status.name,
                 ),
-                session = it
+                session = it,
             )
             .shouldNotBeNull()
     }
