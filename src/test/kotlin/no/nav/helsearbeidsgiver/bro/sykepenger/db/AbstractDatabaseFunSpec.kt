@@ -17,7 +17,7 @@ abstract class AbstractDatabaseFunSpec(body: FunSpec.(DataSource) -> Unit) : Fun
         sessionOf(dataSource).use {
             "SELECT truncate_tables()".execute(
                 params = emptyMap<String, Nothing>(),
-                session = it
+                session = it,
             )
         }
     }
@@ -50,7 +50,10 @@ private fun postgres(): PostgreSQLContainer<Nothing> =
         withReuse(true)
         withLabel("app-navn", "helsearbeidsgiver-bro-sykepenger")
         start()
-        println("🎩 Databasen er startet opp, portnummer: $firstMappedPort, jdbcUrl: jdbc:postgresql://localhost:$firstMappedPort/test, credentials: test og test")
+        println(
+            "🎩 Databasen er startet opp, portnummer: $firstMappedPort, " +
+                "jdbcUrl: jdbc:postgresql://localhost:$firstMappedPort/test, credentials: test og test",
+        )
     }
 
 private fun DataSource.configureFlyway() {
@@ -83,7 +86,7 @@ private fun DataSource.createTruncateFunction() {
     sessionOf(this).use {
         query.execute(
             params = emptyMap<String, Nothing>(),
-            session = it
+            session = it,
         )
     }
 }

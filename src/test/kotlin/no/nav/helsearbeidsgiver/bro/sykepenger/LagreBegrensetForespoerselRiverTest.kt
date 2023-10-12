@@ -35,7 +35,7 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
     LagreBegrensetForespoerselRiver(
         rapid = testRapid,
         forespoerselDao = mockForespoerselDao,
-        priProducer = mockPriProducer
+        priProducer = mockPriProducer,
     )
 
     fun mockInnkommendeMelding(forespoersel: ForespoerselDto) {
@@ -45,7 +45,7 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
             Spleis.Key.FØDSELSNUMMER to forespoersel.fnr.toJson(),
             Spleis.Key.VEDTAKSPERIODE_ID to forespoersel.vedtaksperiodeId.toJson(),
             Spleis.Key.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJson(Periode.serializer().list()),
-            Spleis.Key.FORESPURT_DATA to forespoersel.forespurtData.toJson(SpleisForespurtDataDto.serializer().list())
+            Spleis.Key.FORESPURT_DATA to forespoersel.forespurtData.toJson(SpleisForespurtDataDto.serializer().list()),
         )
     }
 
@@ -66,11 +66,12 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
             mockInnkommendeMelding(forespoersel)
         }
 
-        val expectedPublished = ForespoerselMottatt(
-            forespoerselId = forespoersel.forespoerselId,
-            orgnr = forespoersel.orgnr,
-            fnr = forespoersel.fnr
-        )
+        val expectedPublished =
+            ForespoerselMottatt(
+                forespoerselId = forespoersel.forespoerselId,
+                orgnr = forespoersel.orgnr,
+                fnr = forespoersel.fnr,
+            )
 
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
@@ -78,11 +79,11 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
             mockForespoerselDao.lagre(
                 withArg {
                     it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)
-                }
+                },
             )
 
             mockPriProducer.send(
-                *expectedPublished.toKeyMap().toList().toTypedArray()
+                *expectedPublished.toKeyMap().toList().toTypedArray(),
             )
         }
     }
@@ -92,11 +93,13 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
 
         every {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
-        } returns forespoersel.copy(
-            egenmeldingsperioder = listOf(
-                Periode(13.mars(1812), 14.mars(1812))
+        } returns
+            forespoersel.copy(
+                egenmeldingsperioder =
+                    listOf(
+                        Periode(13.mars(1812), 14.mars(1812)),
+                    ),
             )
-        )
 
         mockkStatic(::randomUuid) {
             every { randomUuid() } returns forespoersel.forespoerselId
@@ -110,7 +113,7 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
             mockForespoerselDao.lagre(
                 withArg {
                     it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)
-                }
+                },
             )
         }
 
@@ -149,5 +152,5 @@ private fun mockBegrensetForespoerselDto(): ForespoerselDto =
         type = Type.BEGRENSET,
         skjaeringstidspunkt = null,
         egenmeldingsperioder = emptyList(),
-        forespurtData = mockBegrensetForespurtDataListe()
+        forespurtData = mockBegrensetForespurtDataListe(),
     )

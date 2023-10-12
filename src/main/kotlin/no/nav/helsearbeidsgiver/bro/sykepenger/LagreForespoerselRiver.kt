@@ -28,18 +28,24 @@ import java.util.UUID
 
 sealed class LagreForespoerselRiver(
     private val forespoerselDao: ForespoerselDao,
-    private val priProducer: PriProducer
+    private val priProducer: PriProducer,
 ) : River.PacketListener {
     abstract val loggernaut: Loggernaut<*>
 
-    abstract fun lesForespoersel(forespoerselId: UUID, melding: Map<Spleis.Key, JsonElement>): ForespoerselDto
+    abstract fun lesForespoersel(
+        forespoerselId: UUID,
+        melding: Map<Spleis.Key, JsonElement>,
+    ): ForespoerselDto
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         val forespoerselId = randomUuid()
 
         MdcUtils.withLogFields(
             Log.klasse(this),
-            Log.forespoerselId(forespoerselId)
+            Log.forespoerselId(forespoerselId),
         ) {
             runCatching {
                 packet.toJson()
@@ -65,7 +71,7 @@ sealed class LagreForespoerselRiver(
 
         MdcUtils.withLogFields(
             Log.type(nyForespoersel.type),
-            Log.vedtaksperiodeId(nyForespoersel.vedtaksperiodeId)
+            Log.vedtaksperiodeId(nyForespoersel.vedtaksperiodeId),
         ) {
             lagreForespoersel(nyForespoersel)
         }
@@ -102,7 +108,7 @@ sealed class LagreForespoerselRiver(
                 Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(Pri.NotisType.serializer()),
                 Pri.Key.FORESPOERSEL_ID to nyForespoersel.forespoerselId.toJson(),
                 Pri.Key.ORGNR to nyForespoersel.orgnr.toJson(Orgnr.serializer()),
-                Pri.Key.FNR to nyForespoersel.fnr.toJson()
+                Pri.Key.FNR to nyForespoersel.fnr.toJson(),
             )
                 .ifTrue { loggernaut.aapen.info("Sa ifra om mottatt forespørsel til Simba.") }
                 .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
@@ -111,7 +117,10 @@ sealed class LagreForespoerselRiver(
         }
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext) {
+    override fun onError(
+        problems: MessageProblems,
+        context: MessageContext,
+    ) {
         loggernaut.innkommendeMeldingFeil(problems)
     }
 }

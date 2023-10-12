@@ -20,8 +20,8 @@ class ForespoerselDtoTest : FunSpec({
                     it.copy(besvarelse = BesvarelseMetadataDto(LocalDateTime.now(), UUID.randomUUID()))
                 },
                 "Ignorerer 'opprettet'" to { it.copy(opprettet = LocalDateTime.now().minusDays(5)) },
-                "Ignorerer 'oppdatert'" to { it.copy(oppdatert = LocalDateTime.now().plusDays(10)) }
-            )
+                "Ignorerer 'oppdatert'" to { it.copy(oppdatert = LocalDateTime.now().plusDays(10)) },
+            ),
         ) { endreFn ->
             val original = mockForespoerselDto()
 
@@ -46,20 +46,23 @@ class ForespoerselDtoTest : FunSpec({
                 },
                 "Oppdager ulik 'forespurtData'" to {
                     it.copy(
-                        forespurtData = listOf(
-                            SpleisInntekt(
-                                forslag = SpleisForslagInntekt(
-                                    forrigeInntekt = SpleisForrigeInntekt(
-                                        skjæringstidspunkt = LocalDate.now().minusDays(62),
-                                        kilde = "Farris",
-                                        beløp = 12.1
-                                    )
-                                )
-                            )
-                        )
+                        forespurtData =
+                            listOf(
+                                SpleisInntekt(
+                                    forslag =
+                                        SpleisForslagInntekt(
+                                            forrigeInntekt =
+                                                SpleisForrigeInntekt(
+                                                    skjæringstidspunkt = LocalDate.now().minusDays(62),
+                                                    kilde = "Farris",
+                                                    beløp = 12.1,
+                                                ),
+                                        ),
+                                ),
+                            ),
                     )
-                }
-            )
+                },
+            ),
         ) { endreFn ->
             val original = mockForespoerselDto()
 

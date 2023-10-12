@@ -27,7 +27,7 @@ import java.util.UUID
 class LagreBegrensetForespoerselRiver(
     rapid: RapidsConnection,
     forespoerselDao: ForespoerselDao,
-    priProducer: PriProducer
+    priProducer: PriProducer,
 ) : LagreForespoerselRiver(forespoerselDao, priProducer) {
     override val loggernaut = Loggernaut(this)
 
@@ -38,30 +38,34 @@ class LagreBegrensetForespoerselRiver(
                 msg.requireArray(Spleis.Key.SYKMELDINGSPERIODER.verdi) {
                     require(
                         Spleis.Key.FOM to { it.fromJson(LocalDateSerializer) },
-                        Spleis.Key.TOM to { it.fromJson(LocalDateSerializer) }
+                        Spleis.Key.TOM to { it.fromJson(LocalDateSerializer) },
                     )
                 }
                 msg.requireKeys(
                     Spleis.Key.ORGANISASJONSNUMMER,
                     Spleis.Key.FØDSELSNUMMER,
                     Spleis.Key.VEDTAKSPERIODE_ID,
-                    Spleis.Key.FORESPURT_DATA
+                    Spleis.Key.FORESPURT_DATA,
                 )
             }
         }.register(this)
     }
 
-    override fun lesForespoersel(forespoerselId: UUID, melding: Map<Spleis.Key, JsonElement>): ForespoerselDto = ForespoerselDto(
-        forespoerselId = forespoerselId,
-        type = Type.BEGRENSET,
-        status = Status.AKTIV,
-        orgnr = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding),
-        fnr = Spleis.Key.FØDSELSNUMMER.les(String.serializer(), melding),
-        vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
-        skjaeringstidspunkt = null,
-        sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),
-        egenmeldingsperioder = emptyList(),
-        forespurtData = Spleis.Key.FORESPURT_DATA.les(SpleisForespurtDataDto.serializer().list(), melding),
-        besvarelse = null
-    )
+    override fun lesForespoersel(
+        forespoerselId: UUID,
+        melding: Map<Spleis.Key, JsonElement>,
+    ): ForespoerselDto =
+        ForespoerselDto(
+            forespoerselId = forespoerselId,
+            type = Type.BEGRENSET,
+            status = Status.AKTIV,
+            orgnr = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding),
+            fnr = Spleis.Key.FØDSELSNUMMER.les(String.serializer(), melding),
+            vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
+            skjaeringstidspunkt = null,
+            sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),
+            egenmeldingsperioder = emptyList(),
+            forespurtData = Spleis.Key.FORESPURT_DATA.les(SpleisForespurtDataDto.serializer().list(), melding),
+            besvarelse = null,
+        )
 }

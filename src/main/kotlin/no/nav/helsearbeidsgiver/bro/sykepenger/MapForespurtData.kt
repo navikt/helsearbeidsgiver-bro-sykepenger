@@ -24,42 +24,47 @@ fun List<SpleisForespurtDataDto>.tilForespurtData(): ForespurtData =
     ForespurtData(
         arbeidsgiverperiode = lesArbeidsgiverperiode(),
         inntekt = lesInntekt(),
-        refusjon = lesRefusjon()
+        refusjon = lesRefusjon(),
     )
 
 private fun List<SpleisForespurtDataDto>.lesArbeidsgiverperiode(): Arbeidsgiverperiode =
     Arbeidsgiverperiode(
-        paakrevd = contains(SpleisArbeidsgiverperiode)
+        paakrevd = contains(SpleisArbeidsgiverperiode),
     )
 
 private fun List<SpleisForespurtDataDto>.lesInntekt(): Inntekt {
-    val inntekt = filterIsInstance<SpleisInntekt>()
-        .firstOrNull()
-        ?.let { spleisInntekt ->
-            Inntekt(
-                paakrevd = true,
-                forslag = ForslagInntekt.Grunnlag(
-                    forrigeInntekt = spleisInntekt.forslag.forrigeInntekt?.let {
-                        ForrigeInntekt(
-                            it.skjæringstidspunkt,
-                            it.kilde,
-                            it.beløp
-                        )
-                    }
+    val inntekt =
+        filterIsInstance<SpleisInntekt>()
+            .firstOrNull()
+            ?.let { spleisInntekt ->
+                Inntekt(
+                    paakrevd = true,
+                    forslag =
+                        ForslagInntekt.Grunnlag(
+                            forrigeInntekt =
+                                spleisInntekt.forslag.forrigeInntekt?.let {
+                                    ForrigeInntekt(
+                                        it.skjæringstidspunkt,
+                                        it.kilde,
+                                        it.beløp,
+                                    )
+                                },
+                        ),
                 )
-            )
-        }
+            }
 
-    val fastsattInntekt = filterIsInstance<SpleisFastsattInntekt>()
-        .firstOrNull()
-        ?.let {
-            Inntekt(
-                paakrevd = false,
-                forslag = ForslagInntekt.Fastsatt(
-                    fastsattInntekt = it.fastsattInntekt
+    val fastsattInntekt =
+        filterIsInstance<SpleisFastsattInntekt>()
+            .firstOrNull()
+            ?.let {
+                Inntekt(
+                    paakrevd = false,
+                    forslag =
+                        ForslagInntekt.Fastsatt(
+                            fastsattInntekt = it.fastsattInntekt,
+                        ),
                 )
-            )
-        }
+            }
 
     return inntekt
         ?: fastsattInntekt
@@ -72,7 +77,7 @@ private fun List<SpleisForespurtDataDto>.lesRefusjon(): Refusjon =
         ?.let {
             Refusjon(
                 paakrevd = true,
-                forslag = it.forslag.tilForslagRefusjon()
+                forslag = it.forslag.tilForslagRefusjon(),
             )
         }
         ?: Refusjon.ikkePaakrevd()
@@ -83,10 +88,11 @@ private fun List<SpleisForslagRefusjon>.tilForslagRefusjon(): ForslagRefusjon =
         .leadingAndLast()
         ?.let { (leading, last) ->
             ForslagRefusjon(
-                perioder = leading.plus(last).map {
-                    ForslagRefusjon.Periode(it.fom, it.beløp)
-                },
-                opphoersdato = last.tom
+                perioder =
+                    leading.plus(last).map {
+                        ForslagRefusjon.Periode(it.fom, it.beløp)
+                    },
+                opphoersdato = last.tom,
             )
         }
         ?: ForslagRefusjon(emptyList(), null)
@@ -133,21 +139,22 @@ private fun List<SpleisForslagRefusjon>.tilForslagRefusjon(): ForslagRefusjon =
  * De opprinnelige periodene er uendrede, men en ny periode er satt inn som dekker tidsgapet mellom dem.
  */
 private fun List<SpleisForslagRefusjon>.medEksplisitteRefusjonsopphold(): List<SpleisForslagRefusjon> {
-    val nyRefusjonsforslag = mapWithNext { current, next ->
-        if (next == null || current.tom == null || current.tom.isDayBefore(next.fom)) {
-            listOf(current)
-        } else {
-            listOf(
-                current,
-                SpleisForslagRefusjon(
-                    fom = current.tom.plusDays(1),
-                    tom = next.fom.minusDays(1),
-                    beløp = 0.0
+    val nyRefusjonsforslag =
+        mapWithNext { current, next ->
+            if (next == null || current.tom == null || current.tom.isDayBefore(next.fom)) {
+                listOf(current)
+            } else {
+                listOf(
+                    current,
+                    SpleisForslagRefusjon(
+                        fom = current.tom.plusDays(1),
+                        tom = next.fom.minusDays(1),
+                        beløp = 0.0,
+                    ),
                 )
-            )
+            }
         }
-    }
-        .flatten()
+            .flatten()
 
     if (isNotEmpty() && size != nyRefusjonsforslag.size) {
         loggernaut.sikker.info("Refusjonsforslag endret fra $this til $nyRefusjonsforslag.")
