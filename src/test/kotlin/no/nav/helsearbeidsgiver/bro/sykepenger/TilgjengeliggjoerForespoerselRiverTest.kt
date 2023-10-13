@@ -34,53 +34,56 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
 
         every { mockForespoerselDao.hentForespoerselForForespoerselId(any(), any()) } returns forespoersel
 
-        val expectedPublished = ForespoerselSvar(
-            forespoerselId = forespoersel.forespoerselId,
-            resultat = ForespoerselSvar.Suksess(forespoersel),
-            boomerang = mockJsonElement()
-        )
+        val expectedPublished =
+            ForespoerselSvar(
+                forespoerselId = forespoersel.forespoerselId,
+                resultat = ForespoerselSvar.Suksess(forespoersel),
+                boomerang = mockJsonElement(),
+            )
 
         testRapid.sendJson(
             Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
             Pri.Key.FORESPOERSEL_ID to expectedPublished.forespoerselId.toJson(),
-            Pri.Key.BOOMERANG to expectedPublished.boomerang
+            Pri.Key.BOOMERANG to expectedPublished.boomerang,
         )
 
         verifySequence {
             mockForespoerselDao.hentForespoerselForForespoerselId(any(), setOf(Status.AKTIV, Status.BESVART))
             mockPriProducer.send(
                 Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer())
+                Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer()),
             )
         }
     }
 
     test("Ved innkommende event, svar ut korrekt ForespoerselSvar med begrenset forespurtData og uten skjæringstidspunkt") {
-        val forespoersel = mockForespoerselDto().copy(
-            type = Type.BEGRENSET,
-            skjaeringstidspunkt = null,
-            forespurtData = mockBegrensetForespurtDataListe()
-        )
+        val forespoersel =
+            mockForespoerselDto().copy(
+                type = Type.BEGRENSET,
+                skjaeringstidspunkt = null,
+                forespurtData = mockBegrensetForespurtDataListe(),
+            )
 
         every { mockForespoerselDao.hentForespoerselForForespoerselId(any(), any()) } returns forespoersel
 
-        val expectedPublished = ForespoerselSvar(
-            forespoerselId = forespoersel.forespoerselId,
-            resultat = ForespoerselSvar.Suksess(forespoersel),
-            boomerang = mockJsonElement()
-        )
+        val expectedPublished =
+            ForespoerselSvar(
+                forespoerselId = forespoersel.forespoerselId,
+                resultat = ForespoerselSvar.Suksess(forespoersel),
+                boomerang = mockJsonElement(),
+            )
 
         testRapid.sendJson(
             Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
             Pri.Key.FORESPOERSEL_ID to expectedPublished.forespoerselId.toJson(),
-            Pri.Key.BOOMERANG to expectedPublished.boomerang
+            Pri.Key.BOOMERANG to expectedPublished.boomerang,
         )
 
         verifySequence {
             mockForespoerselDao.hentForespoerselForForespoerselId(any(), setOf(Status.AKTIV, Status.BESVART))
             mockPriProducer.send(
                 Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer())
+                Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer()),
             )
         }
     }
@@ -89,23 +92,24 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         every { mockForespoerselDao.hentForespoerselForForespoerselId(any(), any()) } returns null
 
         val forespoersel = mockForespoerselDto()
-        val expectedPublished = ForespoerselSvar(
-            forespoerselId = forespoersel.forespoerselId,
-            feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET,
-            boomerang = mockJsonElement()
-        )
+        val expectedPublished =
+            ForespoerselSvar(
+                forespoerselId = forespoersel.forespoerselId,
+                feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET,
+                boomerang = mockJsonElement(),
+            )
 
         testRapid.sendJson(
             Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
             Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
-            Pri.Key.BOOMERANG to expectedPublished.boomerang
+            Pri.Key.BOOMERANG to expectedPublished.boomerang,
         )
 
         verifySequence {
             mockForespoerselDao.hentForespoerselForForespoerselId(any(), setOf(Status.AKTIV, Status.BESVART))
             mockPriProducer.send(
                 Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer())
+                Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer()),
             )
         }
     }

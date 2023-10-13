@@ -9,27 +9,45 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import javax.sql.DataSource
 
-fun String.updateAndReturnGeneratedKey(params: Map<String, Any?>, session: Session): Long? =
+fun String.updateAndReturnGeneratedKey(
+    params: Map<String, Any?>,
+    session: Session,
+): Long? =
     runQuery(params, session) {
         asUpdateAndReturnGeneratedKey
     }
 
-fun String.execute(params: Map<String, Any>, session: Session): Boolean =
+fun String.execute(
+    params: Map<String, Any>,
+    session: Session,
+): Boolean =
     runQuery(params, session) {
         asExecute
     }
 
-fun <T : Any> String.listResult(params: Map<String, Any>, dataSource: DataSource, transform: Row.() -> T): List<T> =
+fun <T : Any> String.listResult(
+    params: Map<String, Any>,
+    dataSource: DataSource,
+    transform: Row.() -> T,
+): List<T> =
     runQuery(params, dataSource) {
         map(transform).asList
     }
 
-fun <T : Any> String.listResult(params: Map<String, Any>, session: TransactionalSession, transform: Row.() -> T): List<T> =
+fun <T : Any> String.listResult(
+    params: Map<String, Any>,
+    session: TransactionalSession,
+    transform: Row.() -> T,
+): List<T> =
     runQuery(params, session) {
         map(transform).asList
     }
 
-fun <T : Any> String.nullableResult(params: Map<String, Any>, dataSource: DataSource, transform: Row.() -> T): T? =
+fun <T : Any> String.nullableResult(
+    params: Map<String, Any>,
+    dataSource: DataSource,
+    transform: Row.() -> T,
+): T? =
     runQuery(params, dataSource) {
         map(transform).asSingle
     }
@@ -37,7 +55,7 @@ fun <T : Any> String.nullableResult(params: Map<String, Any>, dataSource: DataSo
 private fun <T> String.runQuery(
     params: Map<String, *>,
     dataSource: DataSource,
-    transform: Query.() -> QueryAction<T>
+    transform: Query.() -> QueryAction<T>,
 ): T =
     sessionOf(dataSource).use {
         runQuery(params, it, transform)
@@ -46,7 +64,7 @@ private fun <T> String.runQuery(
 private fun <T> String.runQuery(
     params: Map<String, *>,
     session: Session,
-    transform: Query.() -> QueryAction<T>
+    transform: Query.() -> QueryAction<T>,
 ): T =
     queryOf(this, params)
         .transform()

@@ -31,13 +31,19 @@ fun main() {
     rapid.start()
 }
 
-private fun RapidsConnection.registerDatasource(dataSourceBuilder: DataSourceBuilder, dataSource: HikariDataSource) {
-    register(object : RapidsConnection.StatusListener {
-        override fun onStartup(rapidsConnection: RapidsConnection) {
-            dataSourceBuilder.migrate()
-        }
-        override fun onShutdown(rapidsConnection: RapidsConnection) {
-            dataSource.close()
-        }
-    })
+private fun RapidsConnection.registerDatasource(
+    dataSourceBuilder: DataSourceBuilder,
+    dataSource: HikariDataSource,
+) {
+    register(
+        object : RapidsConnection.StatusListener {
+            override fun onStartup(rapidsConnection: RapidsConnection) {
+                dataSourceBuilder.migrate()
+            }
+
+            override fun onShutdown(rapidsConnection: RapidsConnection) {
+                dataSource.close()
+            }
+        },
+    )
 }

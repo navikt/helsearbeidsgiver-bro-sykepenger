@@ -18,9 +18,10 @@ import org.apache.kafka.common.errors.TimeoutException
 class PriProducerTest : FunSpec({
     val mockProducer = mockk<KafkaProducer<String, String>>()
 
-    val priProducer = PriProducer(
-        producer = mockProducer
-    )
+    val priProducer =
+        PriProducer(
+            producer = mockProducer,
+        )
 
     beforeEach {
         clearAllMocks()
@@ -31,16 +32,18 @@ class PriProducerTest : FunSpec({
 
         val forespoerselMottatt = mockForespoerselMottatt()
 
-        val bleMeldingSendt = priProducer.send(
-            *forespoerselMottatt.toKeyMap().toList().toTypedArray()
-        )
+        val bleMeldingSendt =
+            priProducer.send(
+                *forespoerselMottatt.toKeyMap().toList().toTypedArray(),
+            )
 
         bleMeldingSendt.shouldBeTrue()
 
-        val expected = ProducerRecord<String, String>(
-            Pri.TOPIC,
-            forespoerselMottatt.toKeyMap().toJsonStr()
-        )
+        val expected =
+            ProducerRecord<String, String>(
+                Pri.TOPIC,
+                forespoerselMottatt.toKeyMap().toJsonStr(),
+            )
 
         verifySequence { mockProducer.send(expected) }
     }
@@ -50,9 +53,10 @@ class PriProducerTest : FunSpec({
 
         val forespoerselMottatt = mockForespoerselMottatt()
 
-        val bleMeldingSendt = priProducer.send(
-            *forespoerselMottatt.toKeyMap().toList().toTypedArray()
-        )
+        val bleMeldingSendt =
+            priProducer.send(
+                *forespoerselMottatt.toKeyMap().toList().toTypedArray(),
+            )
 
         bleMeldingSendt.shouldBeFalse()
 
@@ -60,5 +64,4 @@ class PriProducerTest : FunSpec({
     }
 })
 
-private fun mockRecordMetadata(): RecordMetadata =
-    RecordMetadata(null, 0, 0, 0, 0, 0)
+private fun mockRecordMetadata(): RecordMetadata = RecordMetadata(null, 0, 0, 0, 0, 0)

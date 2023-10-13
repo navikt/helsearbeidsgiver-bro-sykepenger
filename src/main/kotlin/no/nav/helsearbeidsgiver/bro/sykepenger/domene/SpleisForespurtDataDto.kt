@@ -34,19 +34,19 @@ data class SpleisRefusjon(val forslag: List<SpleisForslagRefusjon>) : SpleisFore
 
 @Serializable
 data class SpleisForslagInntekt(
-    val forrigeInntekt: SpleisForrigeInntekt? = null
+    val forrigeInntekt: SpleisForrigeInntekt? = null,
 )
 
 @Serializable
 data class SpleisForslagRefusjon(
     val fom: LocalDate,
     val tom: LocalDate?,
-    val beløp: Double
+    val beløp: Double,
 )
 
 @Serializable
 data class SpleisForrigeInntekt(
     val skjæringstidspunkt: LocalDate,
     val kilde: String,
-    val beløp: Double
+    val beløp: Double,
 )

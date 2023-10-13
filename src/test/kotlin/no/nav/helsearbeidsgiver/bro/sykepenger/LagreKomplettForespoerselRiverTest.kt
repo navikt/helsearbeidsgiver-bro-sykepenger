@@ -33,7 +33,7 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
     LagreKomplettForespoerselRiver(
         rapid = testRapid,
         forespoerselDao = mockForespoerselDao,
-        priProducer = mockPriProducer
+        priProducer = mockPriProducer,
     )
 
     fun mockInnkommendeMelding(forespoersel: ForespoerselDto) {
@@ -45,7 +45,7 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
             Spleis.Key.SKJÆRINGSTIDSPUNKT to forespoersel.skjaeringstidspunkt?.toJson(),
             Spleis.Key.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJson(Periode.serializer().list()),
             Spleis.Key.EGENMELDINGSPERIODER to forespoersel.egenmeldingsperioder.toJson(Periode.serializer().list()),
-            Spleis.Key.FORESPURT_DATA to forespoersel.forespurtData.toJson(SpleisForespurtDataDto.serializer().list())
+            Spleis.Key.FORESPURT_DATA to forespoersel.forespurtData.toJson(SpleisForespurtDataDto.serializer().list()),
         )
     }
 
@@ -64,22 +64,23 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
             mockInnkommendeMelding(forespoersel)
         }
 
-        val expectedPublished = ForespoerselMottatt(
-            forespoerselId = forespoersel.forespoerselId,
-            orgnr = forespoersel.orgnr,
-            fnr = forespoersel.fnr
-        )
+        val expectedPublished =
+            ForespoerselMottatt(
+                forespoerselId = forespoersel.forespoerselId,
+                orgnr = forespoersel.orgnr,
+                fnr = forespoersel.fnr,
+            )
 
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
             mockForespoerselDao.lagre(
                 withArg {
                     it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)
-                }
+                },
             )
 
             mockPriProducer.send(
-                *expectedPublished.toKeyMap().toList().toTypedArray()
+                *expectedPublished.toKeyMap().toList().toTypedArray(),
             )
         }
     }
@@ -89,11 +90,13 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
 
         every {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
-        } returns forespoersel.copy(
-            egenmeldingsperioder = listOf(
-                Periode(13.mars(1812), 14.mars(1812))
+        } returns
+            forespoersel.copy(
+                egenmeldingsperioder =
+                    listOf(
+                        Periode(13.mars(1812), 14.mars(1812)),
+                    ),
             )
-        )
 
         mockkStatic(::randomUuid) {
             every { randomUuid() } returns forespoersel.forespoerselId
@@ -107,7 +110,7 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
             mockForespoerselDao.lagre(
                 withArg {
                     it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)
-                }
+                },
             )
         }
 
