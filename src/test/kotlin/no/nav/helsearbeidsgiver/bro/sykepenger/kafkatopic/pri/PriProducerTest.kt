@@ -19,7 +19,7 @@ class PriProducerTest : FunSpec({
     val mockProducer = mockk<KafkaProducer<String, String>>()
 
     val priProducer = PriProducer(
-        producer = mockProducer
+        producer = mockProducer,
     )
 
     beforeEach {
@@ -32,14 +32,14 @@ class PriProducerTest : FunSpec({
         val forespoerselMottatt = mockForespoerselMottatt()
 
         val bleMeldingSendt = priProducer.send(
-            *forespoerselMottatt.toKeyMap().toList().toTypedArray()
+            *forespoerselMottatt.toKeyMap().toList().toTypedArray(),
         )
 
         bleMeldingSendt.shouldBeTrue()
 
         val expected = ProducerRecord<String, String>(
             Pri.TOPIC,
-            forespoerselMottatt.toKeyMap().toJsonStr()
+            forespoerselMottatt.toKeyMap().toJsonStr(),
         )
 
         verifySequence { mockProducer.send(expected) }
@@ -51,7 +51,7 @@ class PriProducerTest : FunSpec({
         val forespoerselMottatt = mockForespoerselMottatt()
 
         val bleMeldingSendt = priProducer.send(
-            *forespoerselMottatt.toKeyMap().toList().toTypedArray()
+            *forespoerselMottatt.toKeyMap().toList().toTypedArray(),
         )
 
         bleMeldingSendt.shouldBeFalse()

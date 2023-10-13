@@ -16,8 +16,8 @@ class ForespoerselSvarTest : FunSpec({
     withData(
         mapOf<String, ForespoerselSvar.() -> ForespoerselSvar>(
             "ForespoerselSvar med suksess serialiseres korrekt" to ForespoerselSvar::medSuksess,
-            "ForespoerselSvar med feil serialiseres korrekt" to ForespoerselSvar::medFeil
-        )
+            "ForespoerselSvar med feil serialiseres korrekt" to ForespoerselSvar::medFeil,
+        ),
     ) { medSuksessEllerFeil ->
         val forespoerselSvar = mockForespoerselSvarUtenSuksessEllerFeil()
             .medSuksessEllerFeil()
@@ -32,8 +32,8 @@ class ForespoerselSvarTest : FunSpec({
     withData(
         mapOf<String, ForespoerselSvar.() -> ForespoerselSvar>(
             "ForespoerselSvar med suksess deserialiseres korrekt" to ForespoerselSvar::medSuksess,
-            "ForespoerselSvar med feil deserialiseres korrekt" to ForespoerselSvar::medFeil
-        )
+            "ForespoerselSvar med feil deserialiseres korrekt" to ForespoerselSvar::medFeil,
+        ),
     ) { medSuksessEllerFeil ->
         val expectedInstance = mockForespoerselSvarUtenSuksessEllerFeil()
             .medSuksessEllerFeil()
@@ -52,9 +52,9 @@ private fun mockForespoerselSvarUtenSuksessEllerFeil(): ForespoerselSvar =
     ForespoerselSvar(
         forespoerselId = randomUuid(),
         boomerang = mapOf(
-            "boom" to "shakalaka".toJson()
+            "boom" to "shakalaka".toJson(),
         )
-            .toJson()
+            .toJson(),
     )
 
 private fun ForespoerselSvar.medSuksess(): ForespoerselSvar =

@@ -30,7 +30,7 @@ import java.util.UUID
 class TilgjengeliggjoerForespoerselRiver(
     rapid: RapidsConnection,
     private val forespoerselDao: ForespoerselDao,
-    private val priProducer: PriProducer
+    private val priProducer: PriProducer,
 ) : River.PacketListener {
     private val loggernaut = Loggernaut(this)
 
@@ -38,10 +38,10 @@ class TilgjengeliggjoerForespoerselRiver(
         River(rapid).apply {
             validate { msg ->
                 msg.demandValues(
-                    Pri.Key.BEHOV to ForespoerselSvar.behovType.name
+                    Pri.Key.BEHOV to ForespoerselSvar.behovType.name,
                 )
                 msg.require(
-                    Pri.Key.FORESPOERSEL_ID to { it.fromJson(UuidSerializer) }
+                    Pri.Key.FORESPOERSEL_ID to { it.fromJson(UuidSerializer) },
                 )
                 msg.requireKeys(Pri.Key.BOOMERANG)
                 msg.rejectKeys(Pri.Key.LØSNING)
@@ -54,11 +54,11 @@ class TilgjengeliggjoerForespoerselRiver(
 
         val forespoerselId = Pri.Key.FORESPOERSEL_ID.les(
             UuidSerializer,
-            json.fromJsonMapFiltered(Pri.Key.serializer())
+            json.fromJsonMapFiltered(Pri.Key.serializer()),
         )
 
         MdcUtils.withLogFields(
-            "forespoerselId" to forespoerselId.toString()
+            "forespoerselId" to forespoerselId.toString(),
         ) {
             runCatching {
                 json.sendSvar(forespoerselId)
@@ -75,7 +75,7 @@ class TilgjengeliggjoerForespoerselRiver(
 
         val forespoerselSvarJson = ForespoerselSvar(
             forespoerselId = forespoerselId,
-            boomerang = Pri.Key.BOOMERANG.les(JsonElement.serializer(), melding)
+            boomerang = Pri.Key.BOOMERANG.les(JsonElement.serializer(), melding),
         )
             .let {
                 val forespoersel = forespoerselDao.hentAktivForespoerselForForespoerselId(it.forespoerselId)
@@ -92,7 +92,7 @@ class TilgjengeliggjoerForespoerselRiver(
 
         priProducer.send(
             Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
-            Pri.Key.LØSNING to forespoerselSvarJson
+            Pri.Key.LØSNING to forespoerselSvarJson,
         )
 
         loggernaut.aapen.info("Behov besvart på pri-topic med forespørsel.")

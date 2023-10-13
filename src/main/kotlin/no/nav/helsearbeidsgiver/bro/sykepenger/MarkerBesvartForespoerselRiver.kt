@@ -30,7 +30,7 @@ import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 internal class MarkerBesvartForespoerselRiver(
     rapid: RapidsConnection,
     private val forespoerselDao: ForespoerselDao,
-    private val priProducer: PriProducer
+    private val priProducer: PriProducer,
 ) : River.PacketListener {
     private val loggernaut = Loggernaut(this)
 
@@ -42,7 +42,7 @@ internal class MarkerBesvartForespoerselRiver(
                     Spleis.Key.ORGANISASJONSNUMMER,
                     Spleis.Key.FØDSELSNUMMER,
                     Spleis.Key.VEDTAKSPERIODE_ID,
-                    Spleis.Key.OPPRETTET
+                    Spleis.Key.OPPRETTET,
                 )
                 msg.interestedKeys(Spleis.Key.DOKUMENT_ID)
             }
@@ -72,7 +72,7 @@ internal class MarkerBesvartForespoerselRiver(
             fnr = Spleis.Key.FØDSELSNUMMER.les(String.serializer(), melding),
             vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
             inntektsmeldingId = inntektsmeldingId,
-            haandtert = Spleis.Key.OPPRETTET.les(LocalDateTimeSerializer, melding)
+            haandtert = Spleis.Key.OPPRETTET.les(LocalDateTimeSerializer, melding),
         )
 
         val forespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
@@ -80,7 +80,7 @@ internal class MarkerBesvartForespoerselRiver(
         forespoerselDao.oppdaterForespoerslerSomBesvart(
             vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId,
             besvart = inntektsmeldingHaandtert.haandtert,
-            inntektsmeldingId = inntektsmeldingId
+            inntektsmeldingId = inntektsmeldingId,
         )
 
         if (forespoersel != null) {
@@ -97,11 +97,11 @@ internal class MarkerBesvartForespoerselRiver(
                 val felter = listOfNotNull(
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to forespoerselIdKnyttetTilOppgaveIPortalen.toJson(),
-                    inntektsmeldingId?.let { Pri.Key.SPINN_INNTEKTSMELDING_ID to it.toJson() }
+                    inntektsmeldingId?.let { Pri.Key.SPINN_INNTEKTSMELDING_ID to it.toJson() },
                 ).toTypedArray()
 
                 priProducer.send(
-                    *felter
+                    *felter,
                 )
                     .ifTrue { loggernaut.aapen.info("Sa ifra om besvart forespørsel til Simba.") }
                     .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om besvart forespørsel til Simba.") }

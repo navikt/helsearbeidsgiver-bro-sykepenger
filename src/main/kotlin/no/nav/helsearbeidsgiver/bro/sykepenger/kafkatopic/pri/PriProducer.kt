@@ -14,7 +14,7 @@ import org.apache.kafka.common.serialization.StringSerializer
 import java.util.Properties
 
 class PriProducer(
-    private val producer: KafkaProducer<String, String> = createProducer()
+    private val producer: KafkaProducer<String, String> = createProducer(),
 ) {
     private val topic = Pri.TOPIC
 
@@ -35,15 +35,15 @@ fun Map<Pri.Key, JsonElement>.toJsonStr() =
     toJsonStr(
         MapSerializer(
             Pri.Key.serializer(),
-            JsonElement.serializer()
-        )
+            JsonElement.serializer(),
+        ),
     )
 
 private fun createProducer(): KafkaProducer<String, String> =
     KafkaProducer(
         kafkaProperties(),
         StringSerializer(),
-        StringSerializer()
+        StringSerializer(),
     )
 
 private fun kafkaProperties(): Properties =
@@ -61,7 +61,7 @@ private fun kafkaProperties(): Properties =
                 SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to Env.Kafka.keystorePath,
                 SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to Env.Kafka.credstorePassword,
 
-                ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION to "1"
-            )
+                ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION to "1",
+            ),
         )
     }

@@ -24,12 +24,12 @@ fun List<SpleisForespurtDataDto>.tilForespurtData(): ForespurtData =
     ForespurtData(
         arbeidsgiverperiode = lesArbeidsgiverperiode(),
         inntekt = lesInntekt(),
-        refusjon = lesRefusjon()
+        refusjon = lesRefusjon(),
     )
 
 private fun List<SpleisForespurtDataDto>.lesArbeidsgiverperiode(): Arbeidsgiverperiode =
     Arbeidsgiverperiode(
-        paakrevd = contains(SpleisArbeidsgiverperiode)
+        paakrevd = contains(SpleisArbeidsgiverperiode),
     )
 
 private fun List<SpleisForespurtDataDto>.lesInntekt(): Inntekt {
@@ -43,10 +43,10 @@ private fun List<SpleisForespurtDataDto>.lesInntekt(): Inntekt {
                         ForrigeInntekt(
                             it.skjæringstidspunkt,
                             it.kilde,
-                            it.beløp
+                            it.beløp,
                         )
-                    }
-                )
+                    },
+                ),
             )
         }
 
@@ -56,8 +56,8 @@ private fun List<SpleisForespurtDataDto>.lesInntekt(): Inntekt {
             Inntekt(
                 paakrevd = false,
                 forslag = ForslagInntekt.Fastsatt(
-                    fastsattInntekt = it.fastsattInntekt
-                )
+                    fastsattInntekt = it.fastsattInntekt,
+                ),
             )
         }
 
@@ -72,7 +72,7 @@ private fun List<SpleisForespurtDataDto>.lesRefusjon(): Refusjon =
         ?.let {
             Refusjon(
                 paakrevd = true,
-                forslag = it.forslag.tilForslagRefusjon()
+                forslag = it.forslag.tilForslagRefusjon(),
             )
         }
         ?: Refusjon.ikkePaakrevd()
@@ -86,7 +86,7 @@ private fun List<SpleisForslagRefusjon>.tilForslagRefusjon(): ForslagRefusjon =
                 perioder = leading.plus(last).map {
                     ForslagRefusjon.Periode(it.fom, it.beløp)
                 },
-                opphoersdato = last.tom
+                opphoersdato = last.tom,
             )
         }
         ?: ForslagRefusjon(emptyList(), null)
@@ -142,8 +142,8 @@ private fun List<SpleisForslagRefusjon>.medEksplisitteRefusjonsopphold(): List<S
                 SpleisForslagRefusjon(
                     fom = current.tom.plusDays(1),
                     tom = next.fom.minusDays(1),
-                    beløp = 0.0
-                )
+                    beløp = 0.0,
+                ),
             )
         }
     }

@@ -17,7 +17,7 @@ data class ForespoerselSvar(
     val forespoerselId: UUID,
     val resultat: Suksess? = null,
     val feil: Feil? = null,
-    val boomerang: JsonElement
+    val boomerang: JsonElement,
 ) {
     companion object {
         val behovType = Pri.BehovType.TRENGER_FORESPØRSEL
@@ -32,7 +32,7 @@ data class ForespoerselSvar(
         val sykmeldingsperioder: List<Periode>,
         val egenmeldingsperioder: List<Periode>,
         val forespurtData: ForespurtData,
-        val erBesvart: Boolean
+        val erBesvart: Boolean,
     ) {
         constructor(forespoersel: ForespoerselDto) : this(
             type = forespoersel.type,
@@ -42,11 +42,11 @@ data class ForespoerselSvar(
             sykmeldingsperioder = forespoersel.sykmeldingsperioder,
             egenmeldingsperioder = forespoersel.egenmeldingsperioder,
             forespurtData = forespoersel.forespurtData.tilForespurtData(),
-            erBesvart = forespoersel.status == Status.BESVART
+            erBesvart = forespoersel.status == Status.BESVART,
         )
     }
 
     enum class Feil {
-        FORESPOERSEL_IKKE_FUNNET
+        FORESPOERSEL_IKKE_FUNNET,
     }
 }

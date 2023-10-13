@@ -37,7 +37,7 @@ fun <T : Any> String.nullableResult(params: Map<String, Any>, dataSource: DataSo
 private fun <T> String.runQuery(
     params: Map<String, *>,
     dataSource: DataSource,
-    transform: Query.() -> QueryAction<T>
+    transform: Query.() -> QueryAction<T>,
 ): T =
     sessionOf(dataSource).use {
         runQuery(params, it, transform)
@@ -46,7 +46,7 @@ private fun <T> String.runQuery(
 private fun <T> String.runQuery(
     params: Map<String, *>,
     session: Session,
-    transform: Query.() -> QueryAction<T>
+    transform: Query.() -> QueryAction<T>,
 ): T =
     queryOf(this, params)
         .transform()

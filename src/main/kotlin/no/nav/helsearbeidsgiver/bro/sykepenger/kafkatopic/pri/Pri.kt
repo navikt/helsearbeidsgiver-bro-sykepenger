@@ -19,7 +19,8 @@ object Pri {
         ORGNR("orgnr"),
         FNR("fnr"),
         FORESPOERSEL_ID("forespoerselId"),
-        SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId");
+        SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
+        ;
 
         override fun toString(): String =
             verdi
@@ -35,18 +36,18 @@ object Pri {
 
     @Serializable
     enum class BehovType {
-        TRENGER_FORESPØRSEL
+        TRENGER_FORESPØRSEL,
     }
 
     @Serializable
     enum class NotisType {
         FORESPØRSEL_MOTTATT,
         FORESPOERSEL_BESVART,
-        FORESPOERSEL_FORKASTET
+        FORESPOERSEL_FORKASTET,
     }
 
     private object KeySerializer : AsStringSerializer<Key>(
         serialName = "helsearbeidsgiver.kotlinx.bro.Pri.Key",
-        parse = Key::fromJson
+        parse = Key::fromJson,
     )
 }
