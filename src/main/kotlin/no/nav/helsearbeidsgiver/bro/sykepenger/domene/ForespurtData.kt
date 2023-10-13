@@ -37,10 +37,11 @@ data class Refusjon(
         fun ikkePaakrevd(): Refusjon =
             Refusjon(
                 paakrevd = false,
-                forslag = ForslagRefusjon(
-                    perioder = emptyList(),
-                    opphoersdato = null,
-                ),
+                forslag =
+                    ForslagRefusjon(
+                        perioder = emptyList(),
+                        opphoersdato = null,
+                    ),
             )
     }
 }

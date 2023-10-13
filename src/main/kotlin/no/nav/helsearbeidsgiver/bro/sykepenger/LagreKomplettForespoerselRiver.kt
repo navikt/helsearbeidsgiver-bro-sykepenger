@@ -58,7 +58,10 @@ class LagreKomplettForespoerselRiver(
         }.register(this)
     }
 
-    override fun lesForespoersel(forespoerselId: UUID, melding: Map<Spleis.Key, JsonElement>): ForespoerselDto =
+    override fun lesForespoersel(
+        forespoerselId: UUID,
+        melding: Map<Spleis.Key, JsonElement>,
+    ): ForespoerselDto =
         ForespoerselDto(
             forespoerselId = forespoerselId,
             type = Type.KOMPLETT,

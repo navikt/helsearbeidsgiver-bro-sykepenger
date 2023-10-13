@@ -27,8 +27,7 @@ class PriProducer(
             }
             .isSuccess
 
-    private fun String.toRecord(): ProducerRecord<String, String> =
-        ProducerRecord(topic, this)
+    private fun String.toRecord(): ProducerRecord<String, String> = ProducerRecord(topic, this)
 }
 
 fun Map<Pri.Key, JsonElement>.toJsonStr() =
@@ -52,7 +51,6 @@ private fun kafkaProperties(): Properties =
             mapOf(
                 CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to Env.Kafka.brokers,
                 CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to SecurityProtocol.SSL.name,
-
                 SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG to "",
                 SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG to "jks",
                 SslConfigs.SSL_KEYSTORE_TYPE_CONFIG to "PKCS12",
@@ -60,7 +58,6 @@ private fun kafkaProperties(): Properties =
                 SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to Env.Kafka.credstorePassword,
                 SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to Env.Kafka.keystorePath,
                 SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to Env.Kafka.credstorePassword,
-
                 ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION to "1",
             ),
         )

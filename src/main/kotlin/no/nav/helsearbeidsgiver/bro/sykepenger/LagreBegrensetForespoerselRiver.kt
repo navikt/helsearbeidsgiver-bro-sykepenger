@@ -51,17 +51,21 @@ class LagreBegrensetForespoerselRiver(
         }.register(this)
     }
 
-    override fun lesForespoersel(forespoerselId: UUID, melding: Map<Spleis.Key, JsonElement>): ForespoerselDto = ForespoerselDto(
-        forespoerselId = forespoerselId,
-        type = Type.BEGRENSET,
-        status = Status.AKTIV,
-        orgnr = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding),
-        fnr = Spleis.Key.FØDSELSNUMMER.les(String.serializer(), melding),
-        vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
-        skjaeringstidspunkt = null,
-        sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),
-        egenmeldingsperioder = emptyList(),
-        forespurtData = Spleis.Key.FORESPURT_DATA.les(SpleisForespurtDataDto.serializer().list(), melding),
-        besvarelse = null,
-    )
+    override fun lesForespoersel(
+        forespoerselId: UUID,
+        melding: Map<Spleis.Key, JsonElement>,
+    ): ForespoerselDto =
+        ForespoerselDto(
+            forespoerselId = forespoerselId,
+            type = Type.BEGRENSET,
+            status = Status.AKTIV,
+            orgnr = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding),
+            fnr = Spleis.Key.FØDSELSNUMMER.les(String.serializer(), melding),
+            vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
+            skjaeringstidspunkt = null,
+            sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),
+            egenmeldingsperioder = emptyList(),
+            forespurtData = Spleis.Key.FORESPURT_DATA.les(SpleisForespurtDataDto.serializer().list(), melding),
+            besvarelse = null,
+        )
 }

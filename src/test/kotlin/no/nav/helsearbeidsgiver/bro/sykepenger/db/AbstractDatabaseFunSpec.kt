@@ -50,7 +50,10 @@ private fun postgres(): PostgreSQLContainer<Nothing> =
         withReuse(true)
         withLabel("app-navn", "helsearbeidsgiver-bro-sykepenger")
         start()
-        println("🎩 Databasen er startet opp, portnummer: $firstMappedPort, jdbcUrl: jdbc:postgresql://localhost:$firstMappedPort/test, credentials: test og test")
+        println(
+            "🎩 Databasen er startet opp, portnummer: $firstMappedPort, " +
+                "jdbcUrl: jdbc:postgresql://localhost:$firstMappedPort/test, credentials: test og test",
+        )
     }
 
 private fun DataSource.configureFlyway() {

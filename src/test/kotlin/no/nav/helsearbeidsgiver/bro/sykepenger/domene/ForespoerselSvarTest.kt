@@ -19,8 +19,9 @@ class ForespoerselSvarTest : FunSpec({
             "ForespoerselSvar med feil serialiseres korrekt" to ForespoerselSvar::medFeil,
         ),
     ) { medSuksessEllerFeil ->
-        val forespoerselSvar = mockForespoerselSvarUtenSuksessEllerFeil()
-            .medSuksessEllerFeil()
+        val forespoerselSvar =
+            mockForespoerselSvarUtenSuksessEllerFeil()
+                .medSuksessEllerFeil()
 
         val expectedJson = forespoerselSvar.hardcodedJson()
 
@@ -35,14 +36,16 @@ class ForespoerselSvarTest : FunSpec({
             "ForespoerselSvar med feil deserialiseres korrekt" to ForespoerselSvar::medFeil,
         ),
     ) { medSuksessEllerFeil ->
-        val expectedInstance = mockForespoerselSvarUtenSuksessEllerFeil()
-            .medSuksessEllerFeil()
+        val expectedInstance =
+            mockForespoerselSvarUtenSuksessEllerFeil()
+                .medSuksessEllerFeil()
 
         val expectedJson = expectedInstance.hardcodedJson()
 
-        val actualInstance = shouldNotThrowAny {
-            expectedJson.parseJson().fromJson(ForespoerselSvar.serializer())
-        }
+        val actualInstance =
+            shouldNotThrowAny {
+                expectedJson.parseJson().fromJson(ForespoerselSvar.serializer())
+            }
 
         actualInstance shouldBe expectedInstance
     }
@@ -51,17 +54,16 @@ class ForespoerselSvarTest : FunSpec({
 private fun mockForespoerselSvarUtenSuksessEllerFeil(): ForespoerselSvar =
     ForespoerselSvar(
         forespoerselId = randomUuid(),
-        boomerang = mapOf(
-            "boom" to "shakalaka".toJson(),
-        )
-            .toJson(),
+        boomerang =
+            mapOf(
+                "boom" to "shakalaka".toJson(),
+            )
+                .toJson(),
     )
 
-private fun ForespoerselSvar.medSuksess(): ForespoerselSvar =
-    copy(resultat = mockForespoerselSvarSuksess())
+private fun ForespoerselSvar.medSuksess(): ForespoerselSvar = copy(resultat = mockForespoerselSvarSuksess())
 
-private fun ForespoerselSvar.medFeil(): ForespoerselSvar =
-    copy(feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET)
+private fun ForespoerselSvar.medFeil(): ForespoerselSvar = copy(feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET)
 
 private fun ForespoerselSvar.hardcodedJson(): String =
     """
@@ -176,5 +178,4 @@ private fun Periode.hardcodedJson(): String =
     }
     """
 
-private fun <T : Any> T?.jsonStrOrNull(): String? =
-    this?.let { "\"$it\"" }
+private fun <T : Any> T?.jsonStrOrNull(): String? = this?.let { "\"$it\"" }

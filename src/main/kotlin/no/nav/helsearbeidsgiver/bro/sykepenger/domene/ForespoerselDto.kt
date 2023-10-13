@@ -26,12 +26,13 @@ data class ForespoerselDto(
     val oppdatert: LocalDateTime = LocalDateTime.now().truncMillis(),
 ) {
     fun erDuplikatAv(other: ForespoerselDto): Boolean =
-        this == other.copy(
-            forespoerselId = forespoerselId,
-            besvarelse = besvarelse,
-            opprettet = opprettet,
-            oppdatert = oppdatert,
-        )
+        this ==
+            other.copy(
+                forespoerselId = forespoerselId,
+                besvarelse = besvarelse,
+                opprettet = opprettet,
+                oppdatert = oppdatert,
+            )
 }
 
 data class BesvarelseMetadataDto(
@@ -46,7 +47,6 @@ enum class Status {
 }
 
 enum class Type {
-
     /** En komplett forespørsel tilhører en vanlig vedtaksperiode og kjenner til hvilke opplysninger vedtaksperioden trenger fra arbeidsgiver. */
     KOMPLETT,
 

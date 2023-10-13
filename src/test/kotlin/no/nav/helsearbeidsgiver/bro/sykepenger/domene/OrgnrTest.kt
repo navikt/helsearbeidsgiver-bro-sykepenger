@@ -23,16 +23,15 @@ class OrgnrTest : FunSpec({
 
         val expectedJson = expectedInstance.hardcodedJson()
 
-        val actualInstance = shouldNotThrowAny {
-            expectedJson.parseJson().fromJson(Orgnr.serializer())
-        }
+        val actualInstance =
+            shouldNotThrowAny {
+                expectedJson.parseJson().fromJson(Orgnr.serializer())
+            }
 
         actualInstance shouldBe expectedInstance
     }
 })
 
-private fun mockOrgnr(): Orgnr =
-    Orgnr("885927409")
+private fun mockOrgnr(): Orgnr = Orgnr("885927409")
 
-private fun Orgnr.hardcodedJson(): String =
-    "\"$verdi\""
+private fun Orgnr.hardcodedJson(): String = "\"$verdi\""

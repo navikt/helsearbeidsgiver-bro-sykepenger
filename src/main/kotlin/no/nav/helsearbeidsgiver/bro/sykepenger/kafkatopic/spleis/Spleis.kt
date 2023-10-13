@@ -22,8 +22,7 @@ object Spleis {
         OPPRETTET("@opprettet"),
         ;
 
-        override fun toString(): String =
-            verdi
+        override fun toString(): String = verdi
 
         companion object {
             fun fromJson(json: String): Key =

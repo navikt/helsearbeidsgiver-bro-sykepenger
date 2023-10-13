@@ -49,7 +49,10 @@ internal class MarkerBesvartForespoerselRiver(
         }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         runCatching {
             packet.toJson()
                 .parseJson()
@@ -67,13 +70,14 @@ internal class MarkerBesvartForespoerselRiver(
 
         val inntektsmeldingId = Spleis.Key.DOKUMENT_ID.lesOrNull(UuidSerializer, melding)
 
-        val inntektsmeldingHaandtert = InntektsmeldingHaandtertDto(
-            orgnr = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding),
-            fnr = Spleis.Key.FØDSELSNUMMER.les(String.serializer(), melding),
-            vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
-            inntektsmeldingId = inntektsmeldingId,
-            haandtert = Spleis.Key.OPPRETTET.les(LocalDateTimeSerializer, melding),
-        )
+        val inntektsmeldingHaandtert =
+            InntektsmeldingHaandtertDto(
+                orgnr = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding),
+                fnr = Spleis.Key.FØDSELSNUMMER.les(String.serializer(), melding),
+                vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
+                inntektsmeldingId = inntektsmeldingId,
+                haandtert = Spleis.Key.OPPRETTET.les(LocalDateTimeSerializer, melding),
+            )
 
         val forespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
 
@@ -89,16 +93,20 @@ internal class MarkerBesvartForespoerselRiver(
                 loggernaut.sikker.info(it)
             }
 
-            val forespoerselIdKnyttetTilOppgaveIPortalen = forespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(inntektsmeldingHaandtert.vedtaksperiodeId)
+            val forespoerselIdKnyttetTilOppgaveIPortalen =
+                forespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(
+                    inntektsmeldingHaandtert.vedtaksperiodeId,
+                )
             if (forespoerselIdKnyttetTilOppgaveIPortalen == null) {
                 loggernaut.aapen.info("Fant ingen forespørsler for den besvarte inntektsmeldingen")
                 loggernaut.sikker.info("Fant ingen forespørsler for den besvarte inntektsmeldingen: ${toPretty()}")
             } else {
-                val felter = listOfNotNull(
-                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
-                    Pri.Key.FORESPOERSEL_ID to forespoerselIdKnyttetTilOppgaveIPortalen.toJson(),
-                    inntektsmeldingId?.let { Pri.Key.SPINN_INNTEKTSMELDING_ID to it.toJson() },
-                ).toTypedArray()
+                val felter =
+                    listOfNotNull(
+                        Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
+                        Pri.Key.FORESPOERSEL_ID to forespoerselIdKnyttetTilOppgaveIPortalen.toJson(),
+                        inntektsmeldingId?.let { Pri.Key.SPINN_INNTEKTSMELDING_ID to it.toJson() },
+                    ).toTypedArray()
 
                 priProducer.send(
                     *felter,

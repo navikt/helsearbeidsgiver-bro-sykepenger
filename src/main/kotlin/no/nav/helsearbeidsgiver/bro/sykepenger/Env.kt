@@ -1,7 +1,6 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
 object Env {
-
     object Kafka {
         val brokers = "KAFKA_BROKERS".fromEnv()
         val keystorePath = "KAFKA_KEYSTORE_PATH".fromEnv()
@@ -10,12 +9,12 @@ object Env {
     }
 
     object Database {
-        private const val prefix: String = "NAIS_DATABASE_HELSEARBEIDSGIVER_BRO_SYKEPENGER_HELSEARBEIDSGIVER_BRO_SYKEPENGER"
-        val name = "${prefix}_DATABASE".fromEnv()
-        val host = "${prefix}_HOST".fromEnv()
-        val port = "${prefix}_PORT".fromEnv()
-        val username = "${prefix}_USERNAME".fromEnv()
-        val password = "${prefix}_PASSWORD".fromEnv()
+        private const val PREFIX: String = "NAIS_DATABASE_HELSEARBEIDSGIVER_BRO_SYKEPENGER_HELSEARBEIDSGIVER_BRO_SYKEPENGER"
+        val name = "${PREFIX}_DATABASE".fromEnv()
+        val host = "${PREFIX}_HOST".fromEnv()
+        val port = "${PREFIX}_PORT".fromEnv()
+        val username = "${PREFIX}_USERNAME".fromEnv()
+        val password = "${PREFIX}_PASSWORD".fromEnv()
     }
 
     object AzureAD {

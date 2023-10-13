@@ -26,9 +26,10 @@ class ForespoerselMottattTest : FunSpec({
 
         val expectedJson = expectedInstance.hardcodedJson()
 
-        val actualInstance = shouldNotThrowAny {
-            expectedJson.parseJson().fromJson(ForespoerselMottatt.serializer())
-        }
+        val actualInstance =
+            shouldNotThrowAny {
+                expectedJson.parseJson().fromJson(ForespoerselMottatt.serializer())
+            }
 
         actualInstance shouldBe expectedInstance
     }

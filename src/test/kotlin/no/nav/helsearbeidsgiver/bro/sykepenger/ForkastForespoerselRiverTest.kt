@@ -30,7 +30,10 @@ class ForkastForespoerselRiverTest : FunSpec({
         priProducer = mockPriProducer,
     )
 
-    fun mockForkastForespoerselMelding(orgnummer: Orgnr, vedtaksperiodeId: UUID) {
+    fun mockForkastForespoerselMelding(
+        orgnummer: Orgnr,
+        vedtaksperiodeId: UUID,
+    ) {
         testRapid.sendJson(
             Spleis.Key.TYPE to Spleis.Event.TRENGER_IKKE_OPPLYSNINGER_FRA_ARBEIDSGIVER.toJson(Spleis.Event.serializer()),
             Spleis.Key.ORGANISASJONSNUMMER to orgnummer.toJson(Orgnr.serializer()),

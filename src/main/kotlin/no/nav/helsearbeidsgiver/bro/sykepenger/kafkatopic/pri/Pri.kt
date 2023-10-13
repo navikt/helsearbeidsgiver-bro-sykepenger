@@ -22,8 +22,7 @@ object Pri {
         SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
         ;
 
-        override fun toString(): String =
-            verdi
+        override fun toString(): String = verdi
 
         companion object {
             fun fromJson(json: String): Key =

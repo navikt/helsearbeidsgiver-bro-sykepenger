@@ -49,10 +49,11 @@ fun mockForespoerselDto(): ForespoerselDto =
         fnr = "11223344556",
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
         skjaeringstidspunkt = 15.januar,
-        sykmeldingsperioder = listOf(
-            Periode(2.januar, 10.januar),
-            Periode(15.januar, 20.januar),
-        ),
+        sykmeldingsperioder =
+            listOf(
+                Periode(2.januar, 10.januar),
+                Periode(15.januar, 20.januar),
+            ),
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         forespurtData = mockSpleisForespurtDataListe(),
         besvarelse = null,
@@ -65,18 +66,19 @@ fun mockSpleisForespurtDataListe(): List<SpleisForespurtDataDto> =
             forslag = SpleisForslagInntekt(),
         ),
         SpleisRefusjon(
-            forslag = listOf(
-                SpleisForslagRefusjon(
-                    fom = 12.juni,
-                    tom = null,
-                    beløp = 21.31,
+            forslag =
+                listOf(
+                    SpleisForslagRefusjon(
+                        fom = 12.juni,
+                        tom = null,
+                        beløp = 21.31,
+                    ),
+                    SpleisForslagRefusjon(
+                        fom = 2.august,
+                        tom = 15.august,
+                        beløp = 44.77,
+                    ),
                 ),
-                SpleisForslagRefusjon(
-                    fom = 2.august,
-                    tom = 15.august,
-                    beløp = 44.77,
-                ),
-            ),
         ),
     )
 
@@ -84,27 +86,30 @@ fun mockSpleisForespurtDataMedForrigeInntektListe(): List<SpleisForespurtDataDto
     listOf(
         SpleisArbeidsgiverperiode,
         SpleisInntekt(
-            forslag = SpleisForslagInntekt(
-                forrigeInntekt = SpleisForrigeInntekt(
-                    skjæringstidspunkt = 1.januar,
-                    kilde = "INNTEKTSMELDING",
-                    beløp = 10000.0,
+            forslag =
+                SpleisForslagInntekt(
+                    forrigeInntekt =
+                        SpleisForrigeInntekt(
+                            skjæringstidspunkt = 1.januar,
+                            kilde = "INNTEKTSMELDING",
+                            beløp = 10000.0,
+                        ),
                 ),
-            ),
         ),
         SpleisRefusjon(
-            forslag = listOf(
-                SpleisForslagRefusjon(
-                    fom = 12.juni,
-                    tom = null,
-                    beløp = 21.31,
+            forslag =
+                listOf(
+                    SpleisForslagRefusjon(
+                        fom = 12.juni,
+                        tom = null,
+                        beløp = 21.31,
+                    ),
+                    SpleisForslagRefusjon(
+                        fom = 2.august,
+                        tom = 15.august,
+                        beløp = 44.77,
+                    ),
                 ),
-                SpleisForslagRefusjon(
-                    fom = 2.august,
-                    tom = 15.august,
-                    beløp = 44.77,
-                ),
-            ),
         ),
     )
 
@@ -120,13 +125,14 @@ fun mockForespurtDataMedFastsattInntektListe(): List<SpleisForespurtDataDto> =
         SpleisArbeidsgiverperiode,
         mockSpleisFastsattInntekt(),
         SpleisRefusjon(
-            forslag = listOf(
-                SpleisForslagRefusjon(
-                    fom = 1.januar,
-                    tom = null,
-                    beløp = 31415.92,
+            forslag =
+                listOf(
+                    SpleisForslagRefusjon(
+                        fom = 1.januar,
+                        tom = null,
+                        beløp = 31415.92,
+                    ),
                 ),
-            ),
         ),
     )
 
@@ -169,35 +175,39 @@ fun mockArbeidsgiverperiode(): Arbeidsgiverperiode =
 fun mockInntektMedForslagGrunnlag(): Inntekt =
     Inntekt(
         paakrevd = true,
-        forslag = ForslagInntekt.Grunnlag(
-            forrigeInntekt = null,
-        ),
+        forslag =
+            ForslagInntekt.Grunnlag(
+                forrigeInntekt = null,
+            ),
     )
 
 fun mockInntektMedForslagFastsatt(): Inntekt =
     Inntekt(
         paakrevd = false,
-        forslag = ForslagInntekt.Fastsatt(
-            fastsattInntekt = 31415.92,
-        ),
+        forslag =
+            ForslagInntekt.Fastsatt(
+                fastsattInntekt = 31415.92,
+            ),
     )
 
 fun mockRefusjon(): Refusjon =
     Refusjon(
         paakrevd = true,
-        forslag = ForslagRefusjon(
-            perioder = listOf(
-                ForslagRefusjon.Periode(
-                    fom = 12.juni,
-                    beloep = 21.31,
-                ),
-                ForslagRefusjon.Periode(
-                    fom = 2.august,
-                    beloep = 44.77,
-                ),
+        forslag =
+            ForslagRefusjon(
+                perioder =
+                    listOf(
+                        ForslagRefusjon.Periode(
+                            fom = 12.juni,
+                            beloep = 21.31,
+                        ),
+                        ForslagRefusjon.Periode(
+                            fom = 2.august,
+                            beloep = 44.77,
+                        ),
+                    ),
+                opphoersdato = 15.august,
             ),
-            opphoersdato = 15.august,
-        ),
     )
 
 fun mockInntektsmeldingHaandtertDto(dokumentId: UUID? = MockUuid.inntektsmeldingId): InntektsmeldingHaandtertDto =
@@ -209,8 +219,7 @@ fun mockInntektsmeldingHaandtertDto(dokumentId: UUID? = MockUuid.inntektsmelding
         haandtert = LocalDateTime.MAX,
     )
 
-fun mockJsonElement(): JsonElement =
-    """{"aTestKey":"aTestValue"}""".parseJson()
+fun mockJsonElement(): JsonElement = """{"aTestKey":"aTestValue"}""".parseJson()
 
 fun ForespoerselMottatt.toKeyMap() =
     mapOf(

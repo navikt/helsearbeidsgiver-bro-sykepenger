@@ -54,7 +54,11 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
 
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
-            mockForespoerselDao.oppdaterForespoerslerSomBesvart(inntektsmeldingHaandtert.vedtaksperiodeId, inntektsmeldingHaandtert.haandtert, inntektsmeldingHaandtert.inntektsmeldingId)
+            mockForespoerselDao.oppdaterForespoerslerSomBesvart(
+                inntektsmeldingHaandtert.vedtaksperiodeId,
+                inntektsmeldingHaandtert.haandtert,
+                inntektsmeldingHaandtert.inntektsmeldingId,
+            )
             mockForespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(inntektsmeldingHaandtert.vedtaksperiodeId)
         }
     }
@@ -66,7 +70,11 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
 
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
-            mockForespoerselDao.oppdaterForespoerslerSomBesvart(inntektsmeldingHaandtert.vedtaksperiodeId, inntektsmeldingHaandtert.haandtert, inntektsmeldingHaandtert.inntektsmeldingId)
+            mockForespoerselDao.oppdaterForespoerslerSomBesvart(
+                inntektsmeldingHaandtert.vedtaksperiodeId,
+                inntektsmeldingHaandtert.haandtert,
+                inntektsmeldingHaandtert.inntektsmeldingId,
+            )
             mockForespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(inntektsmeldingHaandtert.vedtaksperiodeId)
         }
     }

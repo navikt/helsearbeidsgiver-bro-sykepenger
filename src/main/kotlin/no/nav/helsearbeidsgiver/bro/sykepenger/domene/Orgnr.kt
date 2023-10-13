@@ -11,9 +11,7 @@ value class Orgnr(val verdi: String) {
         require(verdi.erGyldigOrgnr())
     }
 
-    override fun toString(): String =
-        verdi
+    override fun toString(): String = verdi
 }
 
-private fun String.erGyldigOrgnr(): Boolean =
-    matches(orgnrRgx)
+private fun String.erGyldigOrgnr(): Boolean = matches(orgnrRgx)

@@ -22,7 +22,7 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 
-/* Lytter på event om at forespørsel ikke er nødvendig lenger og forkaster forespørselen */
+// Lytter på event om at forespørsel ikke er nødvendig lenger og forkaster forespørselen
 internal class ForkastForespoerselRiver(
     rapid: RapidsConnection,
     private val forespoerselDao: ForespoerselDao,
@@ -42,7 +42,10 @@ internal class ForkastForespoerselRiver(
         }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         runCatching {
             packet.toJson()
                 .parseJson()
@@ -55,7 +58,9 @@ internal class ForkastForespoerselRiver(
     private fun JsonElement.oppdaterForespoersel() {
         val melding = fromJsonMapFiltered(Spleis.Key.serializer())
 
-        loggernaut.aapen.info("Mottok melding på arbeidsgiveropplysninger-topic av type '${Spleis.Event.TRENGER_IKKE_OPPLYSNINGER_FRA_ARBEIDSGIVER}'.")
+        loggernaut.aapen.info(
+            "Mottok melding på arbeidsgiveropplysninger-topic av type '${Spleis.Event.TRENGER_IKKE_OPPLYSNINGER_FRA_ARBEIDSGIVER}'.",
+        )
         loggernaut.sikker.info("Mottok melding på arbeidsgiveropplysninger-topic med innhold:\n${toPretty()}")
 
         val orgnummer = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding)

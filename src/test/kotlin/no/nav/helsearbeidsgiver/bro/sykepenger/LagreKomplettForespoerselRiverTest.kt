@@ -64,11 +64,12 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
             mockInnkommendeMelding(forespoersel)
         }
 
-        val expectedPublished = ForespoerselMottatt(
-            forespoerselId = forespoersel.forespoerselId,
-            orgnr = forespoersel.orgnr,
-            fnr = forespoersel.fnr,
-        )
+        val expectedPublished =
+            ForespoerselMottatt(
+                forespoerselId = forespoersel.forespoerselId,
+                orgnr = forespoersel.orgnr,
+                fnr = forespoersel.fnr,
+            )
 
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
@@ -89,11 +90,13 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
 
         every {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
-        } returns forespoersel.copy(
-            egenmeldingsperioder = listOf(
-                Periode(13.mars(1812), 14.mars(1812)),
-            ),
-        )
+        } returns
+            forespoersel.copy(
+                egenmeldingsperioder =
+                    listOf(
+                        Periode(13.mars(1812), 14.mars(1812)),
+                    ),
+            )
 
         mockkStatic(::randomUuid) {
             every { randomUuid() } returns forespoersel.forespoerselId

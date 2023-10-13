@@ -32,9 +32,15 @@ sealed class LagreForespoerselRiver(
 ) : River.PacketListener {
     abstract val loggernaut: Loggernaut<*>
 
-    abstract fun lesForespoersel(forespoerselId: UUID, melding: Map<Spleis.Key, JsonElement>): ForespoerselDto
+    abstract fun lesForespoersel(
+        forespoerselId: UUID,
+        melding: Map<Spleis.Key, JsonElement>,
+    ): ForespoerselDto
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         val forespoerselId = randomUuid()
 
         MdcUtils.withLogFields(
@@ -111,7 +117,10 @@ sealed class LagreForespoerselRiver(
         }
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext) {
+    override fun onError(
+        problems: MessageProblems,
+        context: MessageContext,
+    ) {
         loggernaut.innkommendeMeldingFeil(problems)
     }
 }
