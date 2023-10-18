@@ -95,7 +95,7 @@ class ForespoerselDao(private val dataSource: DataSource) {
         inntektsmeldingId: UUID?,
     ) = sessionOf(dataSource = dataSource).use { session ->
         session.transaction { transaction ->
-            val oppdaterteForespoersler = oppdaterAktiveOgBesvarteStatuser(transaction, vedtaksperiodeId, Status.BESVART)
+            val oppdaterteForespoersler = oppdaterAktiveOgBesvarteStatuser(transaction, vedtaksperiodeId, Status.BESVART_SPLEIS)
             if (oppdaterteForespoersler.isEmpty()) {
                 val msg =
                     "Fant ingen aktive eller besvarte forespørsler for vedtaksperioden $vedtaksperiodeId. " +
@@ -119,7 +119,8 @@ class ForespoerselDao(private val dataSource: DataSource) {
     ) = query(
         "UPDATE forespoersel",
         "SET ${Db.STATUS}=:nyStatus",
-        "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS} in ('${Status.AKTIV.name}', '${Status.BESVART.name}')",
+        "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS} in",
+        "('${Status.AKTIV.name}', '${Status.BESVART.name}', '${Status.BESVART_SPLEIS.name}')",
         "RETURNING id",
     )
         .listResult(
@@ -201,7 +202,7 @@ class ForespoerselDao(private val dataSource: DataSource) {
         val forespoersler = hentAlleForespoerslerKnyttetTil(vedtaksperiodeId).sortedBy { it.opprettet }
         val besvarteIndekser =
             forespoersler.mapIndexedNotNull { index, forespoersel ->
-                if (forespoersel.status == Status.BESVART) {
+                if (forespoersel.status in listOf(Status.BESVART, Status.BESVART_SPLEIS)) {
                     index
                 } else {
                     null

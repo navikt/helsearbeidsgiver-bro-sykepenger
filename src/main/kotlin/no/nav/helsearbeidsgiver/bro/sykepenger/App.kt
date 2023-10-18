@@ -21,7 +21,7 @@ fun main() {
 
     LagreKomplettForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
     TilgjengeliggjoerForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
-    MarkerBesvartForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
+    MarkerBesvartFraSpleisRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
     ForkastForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
     // NB! Denne skal ikke registreres før portalen er klar for å vise begrensede forespørsler
     LagreBegrensetForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
