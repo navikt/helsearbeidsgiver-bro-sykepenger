@@ -120,7 +120,7 @@ class ForespoerselDao(private val dataSource: DataSource) {
         "UPDATE forespoersel",
         "SET ${Db.STATUS}=:nyStatus",
         "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS} in",
-        "('${Status.AKTIV.name}', '${Status.BESVART.name}', '${Status.BESVART_SPLEIS.name}')",
+        "('${Status.AKTIV.name}', '${Status.BESVART_SPLEIS.name}')",
         "RETURNING id",
     )
         .listResult(
@@ -202,7 +202,7 @@ class ForespoerselDao(private val dataSource: DataSource) {
         val forespoersler = hentAlleForespoerslerKnyttetTil(vedtaksperiodeId).sortedBy { it.opprettet }
         val besvarteIndekser =
             forespoersler.mapIndexedNotNull { index, forespoersel ->
-                if (forespoersel.status in listOf(Status.BESVART, Status.BESVART_SPLEIS)) {
+                if (forespoersel.status in listOf(Status.BESVART_SPLEIS)) {
                     index
                 } else {
                     null
