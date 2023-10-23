@@ -42,7 +42,10 @@ data class BesvarelseMetadataDto(
 
 enum class Status {
     AKTIV,
+
+    @Deprecated("Bruk 'BESVART_SPLEIS'.")
     BESVART,
+    BESVART_SPLEIS,
     FORKASTET,
 }
 

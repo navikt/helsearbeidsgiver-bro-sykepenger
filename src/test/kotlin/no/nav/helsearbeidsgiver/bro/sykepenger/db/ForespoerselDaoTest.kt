@@ -139,7 +139,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                     .copy(sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)))
                     .let(ForespoerselDto::lagreNotNull)
 
-            dataSource.oppdaterStatus(id, Status.BESVART)
+            dataSource.oppdaterStatus(id, Status.BESVART_SPLEIS)
 
             dataSource.antallForespoersler() shouldBeExactly 2
 
@@ -219,7 +219,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                     .copy(sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)))
                     .let(ForespoerselDto::lagreNotNull)
 
-            dataSource.oppdaterStatus(id, Status.BESVART)
+            dataSource.oppdaterStatus(id, Status.BESVART_SPLEIS)
 
             dataSource.antallForespoersler() shouldBeExactly 2
 
@@ -302,7 +302,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         forespoersel1?.status shouldBe Status.FORKASTET
         forespoersel1?.besvarelse shouldBe null
 
-        forespoersel2?.status shouldBe Status.BESVART
+        forespoersel2?.status shouldBe Status.BESVART_SPLEIS
         forespoersel2?.besvarelse?.inntektsmeldingId shouldBe MockUuid.inntektsmeldingId
         forespoersel2?.besvarelse?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe
             forespoerselBesvart.truncatedTo(
@@ -323,7 +323,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         forespoersel1?.status shouldBe Status.FORKASTET
         forespoersel1?.besvarelse shouldBe null
 
-        forespoersel2?.status shouldBe Status.BESVART
+        forespoersel2?.status shouldBe Status.BESVART_SPLEIS
         forespoersel2?.besvarelse?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe
             forespoerselBesvart.truncatedTo(
                 ChronoUnit.MILLIS,
@@ -349,7 +349,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         )
 
         val forespoersel = dataSource.hentForespoersel(forespoerselId)
-        forespoersel?.status shouldBe Status.BESVART
+        forespoersel?.status shouldBe Status.BESVART_SPLEIS
         forespoersel?.besvarelse?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe
             2.januar.atStartOfDay()
                 .truncatedTo(ChronoUnit.MILLIS)
@@ -374,7 +374,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         )
 
         val forespoersel = dataSource.hentForespoersel(forespoerselId)
-        forespoersel?.status shouldBe Status.BESVART
+        forespoersel?.status shouldBe Status.BESVART_SPLEIS
         forespoersel?.besvarelse?.forespoerselBesvart?.truncatedTo(ChronoUnit.MILLIS) shouldBe
             2.januar.atStartOfDay()
                 .truncatedTo(ChronoUnit.MILLIS)
@@ -388,12 +388,12 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
         val foerOppdatering = dataSource.hentForespoersel(id).shouldNotBeNull()
 
-        dataSource.oppdaterStatus(id, Status.BESVART)
+        dataSource.oppdaterStatus(id, Status.BESVART_SPLEIS)
 
         val etterOppdatering = dataSource.hentForespoersel(id).shouldNotBeNull()
 
         foerOppdatering.status shouldBe Status.AKTIV
-        etterOppdatering.status shouldBe Status.BESVART
+        etterOppdatering.status shouldBe Status.BESVART_SPLEIS
         foerOppdatering.oppdatert shouldNotBe etterOppdatering.oppdatert
     }
 
@@ -407,11 +407,11 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
     }
 
     test("Oppdaterer ikke besvart forespørsel til forkastet") {
-        val forespoerselId = mockForespoerselDto().copy(status = Status.BESVART).lagreNotNull()
+        val forespoerselId = mockForespoerselDto().copy(status = Status.BESVART_SPLEIS).lagreNotNull()
         forespoerselDao.oppdaterForespoerselSomForkastet(MockUuid.vedtaksperiodeId)
 
         val forespoersel = dataSource.hentForespoersel(forespoerselId)
-        forespoersel?.status shouldBe Status.BESVART
+        forespoersel?.status shouldBe Status.BESVART_SPLEIS
     }
 
     context("Henter siste forespørselId som er sendt til portalen") {
@@ -437,10 +437,10 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             )
 
             dataSource.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
-            dataSource.hentForespoersel(idB)?.status shouldBe Status.BESVART
+            dataSource.hentForespoersel(idB)?.status shouldBe Status.BESVART_SPLEIS
             dataSource.hentForespoersel(idC)?.status shouldBe Status.FORKASTET
             dataSource.hentForespoersel(idD)?.status shouldBe Status.FORKASTET
-            dataSource.hentForespoersel(idE)?.status shouldBe Status.BESVART
+            dataSource.hentForespoersel(idE)?.status shouldBe Status.BESVART_SPLEIS
 
             val forespoerselIdKnyttetTilOppgaveIPortalen =
                 forespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(MockUuid.vedtaksperiodeId)
@@ -460,7 +460,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
             dataSource.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
             dataSource.hentForespoersel(idB)?.status shouldBe Status.FORKASTET
-            dataSource.hentForespoersel(idC)?.status shouldBe Status.BESVART
+            dataSource.hentForespoersel(idC)?.status shouldBe Status.BESVART_SPLEIS
 
             val forespoerselIdKnyttetTilOppgaveIPortalen =
                 forespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(MockUuid.vedtaksperiodeId)
@@ -497,7 +497,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 randomUuid(),
             )
 
-            dataSource.hentForespoersel(idA)?.status shouldBe Status.BESVART
+            dataSource.hentForespoersel(idA)?.status shouldBe Status.BESVART_SPLEIS
 
             val forespoerselIdKnyttetTilOppgaveIPortalen =
                 forespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(MockUuid.vedtaksperiodeId)

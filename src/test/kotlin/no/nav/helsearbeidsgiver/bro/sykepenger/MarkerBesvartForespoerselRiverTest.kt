@@ -26,7 +26,7 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
     val mockForespoerselDao = mockk<ForespoerselDao>(relaxed = true)
     val mockPriProducer = mockk<PriProducer>(relaxed = true)
 
-    MarkerBesvartForespoerselRiver(
+    MarkerBesvartFraSpleisRiver(
         rapid = testRapid,
         forespoerselDao = mockForespoerselDao,
         priProducer = mockPriProducer,
