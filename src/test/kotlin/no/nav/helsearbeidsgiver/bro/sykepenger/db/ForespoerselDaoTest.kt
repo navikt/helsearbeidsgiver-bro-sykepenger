@@ -244,7 +244,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 actualForespoersel shouldBe aktivForespoersel
             }
 
-            test("inneholder aktiv, aktiv (skal ikke skje) - ønsker aktiv") {
+            test("inneholder 2 aktive (skal ikke skje) - henter nyeste aktive") {
                 val gammelForespoersel =
                     mockForespoerselDto()
                         .copy(sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)))
