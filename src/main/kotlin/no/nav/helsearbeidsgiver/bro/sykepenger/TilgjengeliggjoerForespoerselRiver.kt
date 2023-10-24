@@ -9,6 +9,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
@@ -83,7 +84,11 @@ class TilgjengeliggjoerForespoerselRiver(
                 boomerang = Pri.Key.BOOMERANG.les(JsonElement.serializer(), melding),
             )
                 .let {
-                    val forespoersel = forespoerselDao.hentAktivForespoerselForForespoerselId(it.forespoerselId)
+                    val forespoersel =
+                        forespoerselDao.hentForespoerselForForespoerselId(
+                            forespoerselId = it.forespoerselId,
+                            statuser = setOf(Status.AKTIV, Status.BESVART_SPLEIS),
+                        )
 
                     if (forespoersel != null) {
                         loggernaut.aapen.info("Forespørsel funnet.")

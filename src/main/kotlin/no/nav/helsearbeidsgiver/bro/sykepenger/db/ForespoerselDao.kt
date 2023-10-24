@@ -140,7 +140,7 @@ class ForespoerselDao(private val dataSource: DataSource) {
     ) = query(
         "UPDATE forespoersel",
         "SET ${Db.STATUS}=:nyStatus",
-        "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS}='${Status.AKTIV.name}'",
+        "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS}='${Status.AKTIV}'",
     ).execute(
         params =
             mutableMapOf(
@@ -173,21 +173,20 @@ class ForespoerselDao(private val dataSource: DataSource) {
                 session = session,
             )
 
-    fun hentAktivForespoerselForForespoerselId(forespoerselId: UUID): ForespoerselDto? =
-        hentVedtaksperiodeId(forespoerselId)
-            ?.let(::hentAktivForespoerselForVedtaksperiodeId)
+    fun hentForespoerselForForespoerselId(
+        forespoerselId: UUID,
+        statuser: Set<Status>,
+    ): ForespoerselDto? =
+        hentVedtaksperiodeId(forespoerselId)?.let { vedtaksperiodeId ->
+            hentForespoerselForVedtaksperiodeId(
+                vedtaksperiodeId = vedtaksperiodeId,
+                statuser = statuser,
+            )
+                .maxByOrNull { it.opprettet }
+        }
 
     fun hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId: UUID): ForespoerselDto? =
-        query(
-            "SELECT * FROM forespoersel f",
-            "LEFT JOIN besvarelse_metadata b ON f.id=b.${Db.FK_FORESPOERSEL_ID}",
-            "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS}='AKTIV'",
-        )
-            .listResult(
-                params = mapOf("vedtaksperiodeId" to vedtaksperiodeId),
-                dataSource = dataSource,
-                transform = Row::toForespoerselDto,
-            )
+        hentForespoerselForVedtaksperiodeId(vedtaksperiodeId, setOf(Status.AKTIV))
             .also { forespoersler ->
                 if (forespoersler.size > 1) {
                     "Fant flere aktive forespørsler for vedtaksperiode: $vedtaksperiodeId".also {
@@ -197,6 +196,21 @@ class ForespoerselDao(private val dataSource: DataSource) {
                 }
             }
             .maxByOrNull { it.opprettet }
+
+    private fun hentForespoerselForVedtaksperiodeId(
+        vedtaksperiodeId: UUID,
+        statuser: Set<Status>,
+    ): List<ForespoerselDto> =
+        query(
+            "SELECT * FROM forespoersel f",
+            "LEFT JOIN besvarelse_metadata b ON f.id=b.${Db.FK_FORESPOERSEL_ID}",
+            "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS} in (${statuser.joinToString { "'$it'" }})",
+        )
+            .listResult(
+                params = mapOf("vedtaksperiodeId" to vedtaksperiodeId),
+                dataSource = dataSource,
+                transform = Row::toForespoerselDto,
+            )
 
     fun forespoerselIdKnyttetTilOppgaveIPortalen(vedtaksperiodeId: UUID): UUID? {
         val forespoersler = hentAlleForespoerslerKnyttetTil(vedtaksperiodeId).sortedBy { it.opprettet }
