@@ -87,7 +87,7 @@ class TilgjengeliggjoerForespoerselRiver(
                     val forespoersel =
                         forespoerselDao.hentForespoerselForForespoerselId(
                             forespoerselId = it.forespoerselId,
-                            statuser = setOf(Status.AKTIV, Status.BESVART),
+                            statuser = setOf(Status.AKTIV, Status.BESVART_SPLEIS),
                         )
 
                     if (forespoersel != null) {

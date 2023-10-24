@@ -48,7 +48,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         )
 
         verifySequence {
-            mockForespoerselDao.hentForespoerselForForespoerselId(any(), setOf(Status.AKTIV, Status.BESVART))
+            mockForespoerselDao.hentForespoerselForForespoerselId(any(), setOf(Status.AKTIV, Status.BESVART_SPLEIS))
             mockPriProducer.send(
                 Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
                 Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer()),
@@ -80,7 +80,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         )
 
         verifySequence {
-            mockForespoerselDao.hentForespoerselForForespoerselId(any(), setOf(Status.AKTIV, Status.BESVART))
+            mockForespoerselDao.hentForespoerselForForespoerselId(any(), setOf(Status.AKTIV, Status.BESVART_SPLEIS))
             mockPriProducer.send(
                 Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
                 Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer()),
@@ -106,7 +106,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         )
 
         verifySequence {
-            mockForespoerselDao.hentForespoerselForForespoerselId(any(), setOf(Status.AKTIV, Status.BESVART))
+            mockForespoerselDao.hentForespoerselForForespoerselId(any(), setOf(Status.AKTIV, Status.BESVART_SPLEIS))
             mockPriProducer.send(
                 Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
                 Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer()),
