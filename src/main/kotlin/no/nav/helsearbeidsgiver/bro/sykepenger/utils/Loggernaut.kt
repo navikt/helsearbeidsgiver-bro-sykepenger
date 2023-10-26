@@ -12,6 +12,21 @@ class Loggernaut<T : Any>(
 
     private val seSikkerLogg = "Se sikker logg for mer info."
 
+    fun info(melding: String) {
+        aapen.info(melding)
+        sikker.info(melding)
+    }
+
+    fun warn(melding: String) {
+        aapen.warn(melding)
+        sikker.warn(melding)
+    }
+
+    fun error(melding: String) {
+        aapen.error(melding)
+        sikker.error(melding)
+    }
+
     fun ukjentFeil(feil: Throwable) {
         "Ukjent feil.".let {
             aapen.error("$it $seSikkerLogg")

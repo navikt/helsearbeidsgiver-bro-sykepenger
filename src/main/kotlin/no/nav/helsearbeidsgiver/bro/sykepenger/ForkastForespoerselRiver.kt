@@ -69,7 +69,7 @@ internal class ForkastForespoerselRiver(
         val forespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
 
         if (forespoersel != null) {
-            forespoerselDao.oppdaterForespoerselSomForkastet(vedtaksperiodeId)
+            forespoerselDao.oppdaterForespoerslerSomForkastet(vedtaksperiodeId)
             "Oppdaterte status til forkastet for forespørsel ${forespoersel.forespoerselId}.".also {
                 loggernaut.aapen.info(it)
                 loggernaut.sikker.info(it)

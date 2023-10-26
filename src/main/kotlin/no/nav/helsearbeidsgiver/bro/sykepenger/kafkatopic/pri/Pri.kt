@@ -42,6 +42,7 @@ object Pri {
     enum class NotisType {
         FORESPØRSEL_MOTTATT,
         FORESPOERSEL_BESVART,
+        FORESPOERSEL_BESVART_SIMBA,
         FORESPOERSEL_FORKASTET,
     }
 

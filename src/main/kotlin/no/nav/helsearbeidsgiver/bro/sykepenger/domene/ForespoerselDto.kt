@@ -42,6 +42,7 @@ data class BesvarelseMetadataDto(
 
 enum class Status {
     AKTIV,
+    BESVART_SIMBA,
     BESVART_SPLEIS,
     FORKASTET,
 }
