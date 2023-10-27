@@ -246,6 +246,11 @@ class ForespoerselDao(private val dataSource: DataSource) {
                 session = session,
                 transform = Row::toId,
             )
+            .also {
+                val msg = "Oppdaterte ${it.size} rader med ny status '$nyStatus'. ids=$it"
+                logger.info(msg)
+                sikkerLogger.info(msg)
+            }
 
     private fun insertOrUpdateBesvarelse(
         session: TransactionalSession,
