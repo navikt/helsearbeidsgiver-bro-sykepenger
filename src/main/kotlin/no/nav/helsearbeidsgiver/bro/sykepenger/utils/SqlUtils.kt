@@ -3,10 +3,11 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.utils
 import kotliquery.Query
 import kotliquery.Row
 import kotliquery.Session
-import kotliquery.TransactionalSession
 import kotliquery.action.QueryAction
 import kotliquery.queryOf
 import kotliquery.sessionOf
+import org.postgresql.util.PSQLException
+import org.postgresql.util.PSQLState
 import javax.sql.DataSource
 
 fun String.updateAndReturnGeneratedKey(
@@ -34,13 +35,22 @@ fun <T : Any> String.listResult(
         map(transform).asList
     }
 
-fun <T : Any> String.listResult(
+fun <T : Any> String.updateResult(
     params: Map<String, Any>,
-    session: TransactionalSession,
+    session: Session,
     transform: Row.() -> T,
 ): List<T> =
-    runQuery(params, session) {
-        map(transform).asList
+    try {
+        runQuery(params, session) {
+            map(transform).asList
+        }
+    } catch (e: PSQLException) {
+        // Query gir exception ved tomt resultat, men vi vil ha tom liste
+        if (e.sqlState == PSQLState.NO_DATA.state) {
+            emptyList()
+        } else {
+            throw e
+        }
     }
 
 fun <T : Any> String.nullableResult(

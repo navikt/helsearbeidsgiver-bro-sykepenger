@@ -50,7 +50,7 @@ class ForkastForespoerselRiverTest : FunSpec({
 
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
-            mockForespoerselDao.oppdaterForespoerselSomForkastet(vedtaksperiodeId)
+            mockForespoerselDao.oppdaterForespoerslerSomForkastet(vedtaksperiodeId)
         }
     }
 

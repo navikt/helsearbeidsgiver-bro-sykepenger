@@ -33,6 +33,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.november
 import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.random.Random
 
 object MockUuid {
     val vedtaksperiodeId: UUID = "01234567-abcd-0123-abcd-012345678901".let(UUID::fromString)
@@ -45,8 +46,8 @@ fun mockForespoerselDto(): ForespoerselDto =
         forespoerselId = randomUuid(),
         type = Type.KOMPLETT,
         status = Status.AKTIV,
-        orgnr = "123456789".let(::Orgnr),
-        fnr = "11223344556",
+        orgnr = randomDigitString(9).let(::Orgnr),
+        fnr = randomDigitString(11),
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
         skjaeringstidspunkt = 15.januar,
         sykmeldingsperioder =
@@ -228,3 +229,7 @@ fun ForespoerselMottatt.toKeyMap() =
         Pri.Key.ORGNR to orgnr.toJson(Orgnr.serializer()),
         Pri.Key.FNR to fnr.toJson(),
     )
+
+private fun randomDigitString(length: Int): String =
+    List(length) { Random.nextInt(10) }
+        .joinToString(separator = "")

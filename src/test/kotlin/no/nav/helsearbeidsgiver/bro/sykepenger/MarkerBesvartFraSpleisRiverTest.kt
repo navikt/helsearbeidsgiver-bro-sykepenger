@@ -15,13 +15,12 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockInntektsmeldingHaandtertDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
-class MarkerBesvartForespoerselRiverTest : FunSpec({
+class MarkerBesvartFraSpleisRiverTest : FunSpec({
     val testRapid = TestRapid()
     val mockForespoerselDao = mockk<ForespoerselDao>(relaxed = true)
     val mockPriProducer = mockk<PriProducer>(relaxed = true)
@@ -50,62 +49,63 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
     test("Innkommende event oppdaterer aktive forespørsler som er besvart") {
         val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = MockUuid.inntektsmeldingId)
 
+        every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(any(), any(), any()) } returns 1
+
         mockInnkommendeMelding(inntektsmeldingHaandtert)
 
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
-            mockForespoerselDao.oppdaterForespoerslerSomBesvart(
+            mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
                 inntektsmeldingHaandtert.vedtaksperiodeId,
                 inntektsmeldingHaandtert.haandtert,
                 inntektsmeldingHaandtert.inntektsmeldingId,
             )
-            mockForespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(inntektsmeldingHaandtert.vedtaksperiodeId)
+            mockForespoerselDao.forespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
         }
     }
 
     test("Tåler at dokumentId mangler på innkommende event") {
         val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = null)
 
+        every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(any(), any(), any()) } returns 1
+
         mockInnkommendeMelding(inntektsmeldingHaandtert)
 
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
-            mockForespoerselDao.oppdaterForespoerslerSomBesvart(
+            mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
                 inntektsmeldingHaandtert.vedtaksperiodeId,
                 inntektsmeldingHaandtert.haandtert,
                 inntektsmeldingHaandtert.inntektsmeldingId,
             )
-            mockForespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(inntektsmeldingHaandtert.vedtaksperiodeId)
+            mockForespoerselDao.forespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
         }
     }
 
-    test("Sier ifra til Simba om besvart forespørsel") {
-        val forespoersel = mockForespoerselDto()
+    test("Sier ifra til Simba om besvart forespørsel dersom minst én forespørsel oppdateres") {
         val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = null)
+        val expectedForespoerselId = randomUuid()
+
+        every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(any(), any(), any()) } returns 1
 
         every {
-            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
-        } returns forespoersel
-        every {
-            mockForespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(inntektsmeldingHaandtert.vedtaksperiodeId)
-        } returns forespoersel.forespoerselId
+            mockForespoerselDao.forespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
+        } returns expectedForespoerselId
 
         mockInnkommendeMelding(inntektsmeldingHaandtert)
 
         verifySequence {
             mockPriProducer.send(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
+                Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
             )
         }
     }
 
-    test("Sier _ikke_ ifra til Simba om besvart forespørsel dersom forespørselen allerede er besvart") {
+    test("Sier _ikke_ ifra til Simba om besvart forespørsel dersom ingen forespørsler oppdateres") {
         val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = null)
 
-        every {
-            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
-        } returns null
+        every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(any(), any(), any()) } returns 0
 
         mockInnkommendeMelding(inntektsmeldingHaandtert)
 
@@ -114,14 +114,20 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
         }
     }
 
-    test("Sender forespørselId-en portalen forventer når forespørsel markeres som besvart") {
+    test("Sender forespørselId-en Simba forventer når forespørsel markeres som besvart") {
         val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = null)
         val expectedForespoerselId = randomUuid()
+
         every {
-            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
-        } returns mockForespoerselDto()
+            mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
+                inntektsmeldingHaandtert.vedtaksperiodeId,
+                any(),
+                any(),
+            )
+        } returns 1
+
         every {
-            mockForespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(inntektsmeldingHaandtert.vedtaksperiodeId)
+            mockForespoerselDao.forespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
         } returns expectedForespoerselId
 
         mockInnkommendeMelding(inntektsmeldingHaandtert)
@@ -137,11 +143,17 @@ class MarkerBesvartForespoerselRiverTest : FunSpec({
     test("Videresender inntektsmeldingId når forespørsel markeres som besvart") {
         val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = MockUuid.inntektsmeldingId)
         val expectedForespoerselId = randomUuid()
+
         every {
-            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
-        } returns mockForespoerselDto()
+            mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
+                inntektsmeldingHaandtert.vedtaksperiodeId,
+                any(),
+                any(),
+            )
+        } returns 1
+
         every {
-            mockForespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(inntektsmeldingHaandtert.vedtaksperiodeId)
+            mockForespoerselDao.forespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
         } returns expectedForespoerselId
 
         mockInnkommendeMelding(inntektsmeldingHaandtert)
