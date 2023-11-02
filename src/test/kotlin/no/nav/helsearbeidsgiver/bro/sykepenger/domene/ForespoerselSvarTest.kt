@@ -8,19 +8,20 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselSvarSuk
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 
 class ForespoerselSvarTest : FunSpec({
     withData(
         mapOf<String, ForespoerselSvar.() -> ForespoerselSvar>(
             "ForespoerselSvar med suksess serialiseres korrekt" to ForespoerselSvar::medSuksess,
-            "ForespoerselSvar med feil serialiseres korrekt" to ForespoerselSvar::medFeil
-        )
+            "ForespoerselSvar med feil serialiseres korrekt" to ForespoerselSvar::medFeil,
+        ),
     ) { medSuksessEllerFeil ->
-        val forespoerselSvar = mockForespoerselSvarUtenSuksessEllerFeil()
-            .medSuksessEllerFeil()
+        val forespoerselSvar =
+            mockForespoerselSvarUtenSuksessEllerFeil()
+                .medSuksessEllerFeil()
 
         val expectedJson = forespoerselSvar.hardcodedJson()
 
@@ -32,17 +33,19 @@ class ForespoerselSvarTest : FunSpec({
     withData(
         mapOf<String, ForespoerselSvar.() -> ForespoerselSvar>(
             "ForespoerselSvar med suksess deserialiseres korrekt" to ForespoerselSvar::medSuksess,
-            "ForespoerselSvar med feil deserialiseres korrekt" to ForespoerselSvar::medFeil
-        )
+            "ForespoerselSvar med feil deserialiseres korrekt" to ForespoerselSvar::medFeil,
+        ),
     ) { medSuksessEllerFeil ->
-        val expectedInstance = mockForespoerselSvarUtenSuksessEllerFeil()
-            .medSuksessEllerFeil()
+        val expectedInstance =
+            mockForespoerselSvarUtenSuksessEllerFeil()
+                .medSuksessEllerFeil()
 
         val expectedJson = expectedInstance.hardcodedJson()
 
-        val actualInstance = shouldNotThrowAny {
-            expectedJson.parseJson().fromJson(ForespoerselSvar.serializer())
-        }
+        val actualInstance =
+            shouldNotThrowAny {
+                expectedJson.parseJson().fromJson(ForespoerselSvar.serializer())
+            }
 
         actualInstance shouldBe expectedInstance
     }
@@ -51,17 +54,16 @@ class ForespoerselSvarTest : FunSpec({
 private fun mockForespoerselSvarUtenSuksessEllerFeil(): ForespoerselSvar =
     ForespoerselSvar(
         forespoerselId = randomUuid(),
-        boomerang = mapOf(
-            "boom" to "shakalaka".toJson()
-        )
-            .toJson()
+        boomerang =
+            mapOf(
+                "boom" to "shakalaka".toJson(),
+            )
+                .toJson(),
     )
 
-private fun ForespoerselSvar.medSuksess(): ForespoerselSvar =
-    copy(resultat = mockForespoerselSvarSuksess())
+private fun ForespoerselSvar.medSuksess(): ForespoerselSvar = copy(resultat = mockForespoerselSvarSuksess())
 
-private fun ForespoerselSvar.medFeil(): ForespoerselSvar =
-    copy(feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET)
+private fun ForespoerselSvar.medFeil(): ForespoerselSvar = copy(feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET)
 
 private fun ForespoerselSvar.hardcodedJson(): String =
     """
@@ -130,7 +132,7 @@ private fun ForslagInntekt.hardcodedJson(): String =
             """
             {
                 "type": "ForslagInntektGrunnlag",
-                "beregningsmaaneder": [${beregningsmaaneder.joinToString { yearMonth -> "\"$yearMonth\"" }}]
+                "forrigeInntekt": ${forrigeInntekt?.hardcodedJson()}
             }
             """
 
@@ -142,6 +144,15 @@ private fun ForslagInntekt.hardcodedJson(): String =
             }
             """
     }
+
+private fun ForrigeInntekt.hardcodedJson(): String =
+    """
+    {
+        "skjæringstidspunkt": "$skjæringstidspunkt",
+        "kilde": "$kilde",
+        "beløp": $beløp
+    }
+    """
 
 private fun ForslagRefusjon.hardcodedJson(): String =
     """
@@ -167,5 +178,4 @@ private fun Periode.hardcodedJson(): String =
     }
     """
 
-private fun <T : Any> T?.jsonStrOrNull(): String? =
-    this?.let { "\"$it\"" }
+private fun <T : Any> T?.jsonStrOrNull(): String? = this?.let { "\"$it\"" }

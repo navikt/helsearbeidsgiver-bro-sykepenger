@@ -5,12 +5,27 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 
 class Loggernaut<T : Any>(
-    loggingClass: T
+    loggingClass: T,
 ) {
     val aapen = loggingClass.logger()
     val sikker = sikkerLogger()
 
     private val seSikkerLogg = "Se sikker logg for mer info."
+
+    fun info(melding: String) {
+        aapen.info(melding)
+        sikker.info(melding)
+    }
+
+    fun warn(melding: String) {
+        aapen.warn(melding)
+        sikker.warn(melding)
+    }
+
+    fun error(melding: String) {
+        aapen.error(melding)
+        sikker.error(melding)
+    }
 
     fun ukjentFeil(feil: Throwable) {
         "Ukjent feil.".let {

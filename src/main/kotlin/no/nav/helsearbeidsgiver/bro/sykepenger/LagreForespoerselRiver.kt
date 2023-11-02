@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Log
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.les
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
@@ -27,17 +28,24 @@ import java.util.UUID
 
 sealed class LagreForespoerselRiver(
     private val forespoerselDao: ForespoerselDao,
-    private val priProducer: PriProducer
+    private val priProducer: PriProducer,
 ) : River.PacketListener {
     abstract val loggernaut: Loggernaut<*>
 
-    abstract fun lesForespoersel(forespoerselId: UUID, melding: Map<Spleis.Key, JsonElement>): ForespoerselDto
+    abstract fun lesForespoersel(
+        forespoerselId: UUID,
+        melding: Map<Spleis.Key, JsonElement>,
+    ): ForespoerselDto
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         val forespoerselId = randomUuid()
 
         MdcUtils.withLogFields(
-            "forespoerselId" to forespoerselId.toString()
+            Log.klasse(this),
+            Log.forespoerselId(forespoerselId),
         ) {
             runCatching {
                 packet.toJson()
@@ -58,25 +66,49 @@ sealed class LagreForespoerselRiver(
         loggernaut.aapen.info("Mottok melding av type '${Spleis.Key.TYPE.les(String.serializer(), melding)}'")
         loggernaut.sikker.info("Mottok melding med innhold:\n${toPretty()}")
 
-        val forespoersel = lesForespoersel(forespoerselId, melding)
-        loggernaut.sikker.info("Forespoersel lest: $forespoersel")
+        val nyForespoersel = lesForespoersel(forespoerselId, melding)
+        loggernaut.sikker.info("Forespoersel lest: $nyForespoersel")
 
-        val erNyForespoerselForVedtaksperiode = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId) == null
-        forespoerselDao.lagre(forespoersel)
-            .let { id ->
-                if (id != null) {
-                    loggernaut.aapen.info("Forespørsel lagret med id=$id.")
-                } else {
-                    loggernaut.aapen.error("Forespørsel ble ikke lagret.")
+        MdcUtils.withLogFields(
+            Log.type(nyForespoersel.type),
+            Log.vedtaksperiodeId(nyForespoersel.vedtaksperiodeId),
+        ) {
+            lagreForespoersel(nyForespoersel)
+        }
+    }
+
+    private fun lagreForespoersel(nyForespoersel: ForespoerselDto) {
+        val aktivForespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(nyForespoersel.vedtaksperiodeId)
+
+        if (aktivForespoersel == null || !nyForespoersel.erDuplikatAv(aktivForespoersel)) {
+            forespoerselDao.lagre(nyForespoersel)
+                .let { id ->
+                    if (id != null) {
+                        "Forespørsel lagret med id=$id.".also {
+                            loggernaut.aapen.info(it)
+                            loggernaut.sikker.info(it)
+                        }
+                    } else {
+                        "Forespørsel ble ikke lagret.".also {
+                            loggernaut.aapen.error(it)
+                            loggernaut.sikker.error(it)
+                        }
+                    }
                 }
+        } else {
+            "Lagret ikke duplikatforespørsel.".also {
+                loggernaut.aapen.info(it)
+                loggernaut.sikker.info(it)
             }
+        }
 
-        if (erNyForespoerselForVedtaksperiode) {
+        // Ikke send notis ved oppdatering av forespørsel som er ubesvart
+        if (aktivForespoersel == null) {
             priProducer.send(
                 Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(Pri.NotisType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
-                Pri.Key.ORGNR to forespoersel.orgnr.toJson(Orgnr.serializer()),
-                Pri.Key.FNR to forespoersel.fnr.toJson()
+                Pri.Key.FORESPOERSEL_ID to nyForespoersel.forespoerselId.toJson(),
+                Pri.Key.ORGNR to nyForespoersel.orgnr.toJson(Orgnr.serializer()),
+                Pri.Key.FNR to nyForespoersel.fnr.toJson(),
             )
                 .ifTrue { loggernaut.aapen.info("Sa ifra om mottatt forespørsel til Simba.") }
                 .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
@@ -85,7 +117,10 @@ sealed class LagreForespoerselRiver(
         }
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext) {
+    override fun onError(
+        problems: MessageProblems,
+        context: MessageContext,
+    ) {
         loggernaut.innkommendeMeldingFeil(problems)
     }
 }

@@ -27,10 +27,10 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 
-internal class MarkerBesvartForespoerselRiver(
+class MarkerBesvartFraSpleisRiver(
     rapid: RapidsConnection,
     private val forespoerselDao: ForespoerselDao,
-    private val priProducer: PriProducer
+    private val priProducer: PriProducer,
 ) : River.PacketListener {
     private val loggernaut = Loggernaut(this)
 
@@ -42,14 +42,17 @@ internal class MarkerBesvartForespoerselRiver(
                     Spleis.Key.ORGANISASJONSNUMMER,
                     Spleis.Key.FØDSELSNUMMER,
                     Spleis.Key.VEDTAKSPERIODE_ID,
-                    Spleis.Key.OPPRETTET
+                    Spleis.Key.OPPRETTET,
                 )
                 msg.interestedKeys(Spleis.Key.DOKUMENT_ID)
             }
         }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         runCatching {
             packet.toJson()
                 .parseJson()
@@ -67,44 +70,49 @@ internal class MarkerBesvartForespoerselRiver(
 
         val inntektsmeldingId = Spleis.Key.DOKUMENT_ID.lesOrNull(UuidSerializer, melding)
 
-        val inntektsmeldingHaandtert = InntektsmeldingHaandtertDto(
-            orgnr = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding),
-            fnr = Spleis.Key.FØDSELSNUMMER.les(String.serializer(), melding),
-            vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
-            inntektsmeldingId = inntektsmeldingId,
-            haandtert = Spleis.Key.OPPRETTET.les(LocalDateTimeSerializer, melding)
-        )
+        val inntektsmeldingHaandtert =
+            InntektsmeldingHaandtertDto(
+                orgnr = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding),
+                fnr = Spleis.Key.FØDSELSNUMMER.les(String.serializer(), melding),
+                vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
+                inntektsmeldingId = inntektsmeldingId,
+                haandtert = Spleis.Key.OPPRETTET.les(LocalDateTimeSerializer, melding),
+            )
 
-        val forespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
+        val aktivForespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
 
-        forespoerselDao.oppdaterForespoerslerSomBesvart(
-            vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId,
-            besvart = inntektsmeldingHaandtert.haandtert,
-            inntektsmeldingId = inntektsmeldingId
-        )
+        val antallOppdaterte =
+            forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
+                vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId,
+                besvart = inntektsmeldingHaandtert.haandtert,
+                inntektsmeldingId = inntektsmeldingId,
+            )
 
-        if (forespoersel != null) {
-            "Oppdaterte status til besvart for forespørsel ${forespoersel.forespoerselId}.".also {
-                loggernaut.aapen.info(it)
-                loggernaut.sikker.info(it)
+        if (antallOppdaterte > 0) {
+            if (aktivForespoersel != null) {
+                loggernaut.info("Oppdaterte status til besvart fra Spleis for forespørsel ${aktivForespoersel.forespoerselId}.")
             }
 
-            val forespoerselIdKnyttetTilOppgaveIPortalen = forespoerselDao.forespoerselIdKnyttetTilOppgaveIPortalen(inntektsmeldingHaandtert.vedtaksperiodeId)
-            if (forespoerselIdKnyttetTilOppgaveIPortalen == null) {
-                loggernaut.aapen.info("Fant ingen forespørsler for den besvarte inntektsmeldingen")
-                loggernaut.sikker.info("Fant ingen forespørsler for den besvarte inntektsmeldingen: ${toPretty()}")
+            val forespoerselIdEksponertTilSimba =
+                forespoerselDao.forespoerselIdEksponertTilSimba(
+                    inntektsmeldingHaandtert.vedtaksperiodeId,
+                )
+            if (forespoerselIdEksponertTilSimba == null) {
+                loggernaut.aapen.warn("Fant ingen forespørsler for den besvarte inntektsmeldingen")
+                loggernaut.sikker.warn("Fant ingen forespørsler for den besvarte inntektsmeldingen: ${toPretty()}")
             } else {
-                val felter = listOfNotNull(
-                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
-                    Pri.Key.FORESPOERSEL_ID to forespoerselIdKnyttetTilOppgaveIPortalen.toJson(),
-                    inntektsmeldingId?.let { Pri.Key.SPINN_INNTEKTSMELDING_ID to it.toJson() }
-                ).toTypedArray()
+                val felter =
+                    listOfNotNull(
+                        Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
+                        Pri.Key.FORESPOERSEL_ID to forespoerselIdEksponertTilSimba.toJson(),
+                        inntektsmeldingId?.let { Pri.Key.SPINN_INNTEKTSMELDING_ID to it.toJson() },
+                    ).toTypedArray()
 
                 priProducer.send(
-                    *felter
+                    *felter,
                 )
-                    .ifTrue { loggernaut.aapen.info("Sa ifra om besvart forespørsel til Simba.") }
-                    .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om besvart forespørsel til Simba.") }
+                    .ifTrue { loggernaut.info("Sa ifra om besvart forespørsel til Simba.") }
+                    .ifFalse { loggernaut.error("Klarte ikke si ifra om besvart forespørsel til Simba.") }
             }
         }
     }

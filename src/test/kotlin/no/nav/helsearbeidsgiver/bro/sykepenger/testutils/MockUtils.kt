@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.testutils
 
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Arbeidsgiverperiode
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.BesvarelseMetadataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
@@ -32,10 +31,9 @@ import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.november
-import no.nav.helsearbeidsgiver.utils.test.date.oktober
-import no.nav.helsearbeidsgiver.utils.test.date.september
 import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.random.Random
 
 object MockUuid {
     val vedtaksperiodeId: UUID = "01234567-abcd-0123-abcd-012345678901".let(UUID::fromString)
@@ -43,90 +41,84 @@ object MockUuid {
     val inntektsmeldingId: UUID = "22efb342-3e72-4880-a449-eb1efcf0f18b".let(UUID::fromString)
 }
 
-fun mockForespoerselDto(besvarelseMetaData: BesvarelseMetadataDto? = null, status: Status = Status.AKTIV): ForespoerselDto =
+fun mockForespoerselDto(): ForespoerselDto =
     ForespoerselDto(
         forespoerselId = randomUuid(),
         type = Type.KOMPLETT,
-        status = status,
-        orgnr = "123456789".let(::Orgnr),
-        fnr = "123456789",
+        status = Status.AKTIV,
+        orgnr = randomDigitString(9).let(::Orgnr),
+        fnr = randomDigitString(11),
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
         skjaeringstidspunkt = 15.januar,
-        sykmeldingsperioder = listOf(
-            Periode(2.januar, 10.januar),
-            Periode(15.januar, 20.januar)
-        ),
+        sykmeldingsperioder =
+            listOf(
+                Periode(2.januar, 10.januar),
+                Periode(15.januar, 20.januar),
+            ),
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         forespurtData = mockSpleisForespurtDataListe(),
-        besvarelse = besvarelseMetaData
+        besvarelse = null,
     )
 
 fun mockSpleisForespurtDataListe(): List<SpleisForespurtDataDto> =
     listOf(
         SpleisArbeidsgiverperiode,
         SpleisInntekt(
-            forslag = SpleisForslagInntekt(
-                beregningsmåneder = listOf(
-                    august(1999),
-                    september(1999),
-                    oktober(1999)
-                )
-            )
+            forslag = SpleisForslagInntekt(),
         ),
         SpleisRefusjon(
-            forslag = listOf(
-                SpleisForslagRefusjon(
-                    fom = 12.juni,
-                    tom = null,
-                    beløp = 21.31
+            forslag =
+                listOf(
+                    SpleisForslagRefusjon(
+                        fom = 12.juni,
+                        tom = null,
+                        beløp = 21.31,
+                    ),
+                    SpleisForslagRefusjon(
+                        fom = 2.august,
+                        tom = 15.august,
+                        beløp = 44.77,
+                    ),
                 ),
-                SpleisForslagRefusjon(
-                    fom = 2.august,
-                    tom = 15.august,
-                    beløp = 44.77
-                )
-            )
-        )
+        ),
     )
 
 fun mockSpleisForespurtDataMedForrigeInntektListe(): List<SpleisForespurtDataDto> =
     listOf(
         SpleisArbeidsgiverperiode,
         SpleisInntekt(
-            forslag = SpleisForslagInntekt(
-                beregningsmåneder = listOf(
-                    august(1999),
-                    september(1999),
-                    oktober(1999)
+            forslag =
+                SpleisForslagInntekt(
+                    forrigeInntekt =
+                        SpleisForrigeInntekt(
+                            skjæringstidspunkt = 1.januar,
+                            kilde = "INNTEKTSMELDING",
+                            beløp = 10000.0,
+                        ),
                 ),
-                forrigeInntekt = SpleisForrigeInntekt(
-                    skjæringstidspunkt = 1.januar,
-                    kilde = "INNTEKTSMELDING",
-                    beløp = 10000.0
-                )
-            )
         ),
         SpleisRefusjon(
-            forslag = listOf(
-                SpleisForslagRefusjon(
-                    fom = 12.juni,
-                    tom = null,
-                    beløp = 21.31
+            forslag =
+                listOf(
+                    SpleisForslagRefusjon(
+                        fom = 12.juni,
+                        tom = null,
+                        beløp = 21.31,
+                    ),
+                    SpleisForslagRefusjon(
+                        fom = 2.august,
+                        tom = 15.august,
+                        beløp = 44.77,
+                    ),
                 ),
-                SpleisForslagRefusjon(
-                    fom = 2.august,
-                    tom = 15.august,
-                    beløp = 44.77
-                )
-            )
-        )
+        ),
     )
 
 fun mockBegrensetForespurtDataListe(): List<SpleisForespurtDataDto> =
     listOf(
         SpleisArbeidsgiverperiode,
-        SpleisInntekt(forslag = SpleisForslagInntekt(beregningsmåneder = emptyList())),
-        SpleisRefusjon(forslag = emptyList())
+        SpleisInntekt(forslag = SpleisForslagInntekt()),
+        SpleisRefusjon(forslag = emptyList()),
     )
 
 fun mockForespurtDataMedFastsattInntektListe(): List<SpleisForespurtDataDto> =
@@ -134,26 +126,27 @@ fun mockForespurtDataMedFastsattInntektListe(): List<SpleisForespurtDataDto> =
         SpleisArbeidsgiverperiode,
         mockSpleisFastsattInntekt(),
         SpleisRefusjon(
-            forslag = listOf(
-                SpleisForslagRefusjon(
-                    fom = 1.januar,
-                    tom = null,
-                    beløp = 31415.92
-                )
-            )
-        )
+            forslag =
+                listOf(
+                    SpleisForslagRefusjon(
+                        fom = 1.januar,
+                        tom = null,
+                        beløp = 31415.92,
+                    ),
+                ),
+        ),
     )
 
 fun mockSpleisFastsattInntekt(): SpleisFastsattInntekt =
     SpleisFastsattInntekt(
-        fastsattInntekt = 31415.92
+        fastsattInntekt = 31415.92,
     )
 
 fun mockForespoerselMottatt(): ForespoerselMottatt =
     ForespoerselMottatt(
         forespoerselId = randomUuid(),
         orgnr = "287429436".let(::Orgnr),
-        fnr = "abc"
+        fnr = "abc",
     )
 
 fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
@@ -165,57 +158,57 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
         sykmeldingsperioder = listOf(Periode(2.januar, 16.januar)),
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         forespurtData = mockForespurtData(),
-        erBesvart = false
+        erBesvart = false,
     )
 
 fun mockForespurtData(): ForespurtData =
     ForespurtData(
         arbeidsgiverperiode = mockArbeidsgiverperiode(),
         inntekt = mockInntektMedForslagGrunnlag(),
-        refusjon = mockRefusjon()
+        refusjon = mockRefusjon(),
     )
 
 fun mockArbeidsgiverperiode(): Arbeidsgiverperiode =
     Arbeidsgiverperiode(
-        paakrevd = true
+        paakrevd = true,
     )
 
 fun mockInntektMedForslagGrunnlag(): Inntekt =
     Inntekt(
         paakrevd = true,
-        forslag = ForslagInntekt.Grunnlag(
-            beregningsmaaneder = listOf(
-                august(1999),
-                september(1999),
-                oktober(1999)
-            )
-        )
+        forslag =
+            ForslagInntekt.Grunnlag(
+                forrigeInntekt = null,
+            ),
     )
 
 fun mockInntektMedForslagFastsatt(): Inntekt =
     Inntekt(
         paakrevd = false,
-        forslag = ForslagInntekt.Fastsatt(
-            fastsattInntekt = 31415.92
-        )
+        forslag =
+            ForslagInntekt.Fastsatt(
+                fastsattInntekt = 31415.92,
+            ),
     )
 
 fun mockRefusjon(): Refusjon =
     Refusjon(
         paakrevd = true,
-        forslag = ForslagRefusjon(
-            perioder = listOf(
-                ForslagRefusjon.Periode(
-                    fom = 12.juni,
-                    beloep = 21.31
-                ),
-                ForslagRefusjon.Periode(
-                    fom = 2.august,
-                    beloep = 44.77
-                )
+        forslag =
+            ForslagRefusjon(
+                perioder =
+                    listOf(
+                        ForslagRefusjon.Periode(
+                            fom = 12.juni,
+                            beloep = 21.31,
+                        ),
+                        ForslagRefusjon.Periode(
+                            fom = 2.august,
+                            beloep = 44.77,
+                        ),
+                    ),
+                opphoersdato = 15.august,
             ),
-            opphoersdato = 15.august
-        )
     )
 
 fun mockInntektsmeldingHaandtertDto(dokumentId: UUID? = MockUuid.inntektsmeldingId): InntektsmeldingHaandtertDto =
@@ -224,16 +217,19 @@ fun mockInntektsmeldingHaandtertDto(dokumentId: UUID? = MockUuid.inntektsmelding
         fnr = "fnr",
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
         inntektsmeldingId = dokumentId,
-        haandtert = LocalDateTime.MAX
+        haandtert = LocalDateTime.MAX,
     )
 
-fun mockJsonElement(): JsonElement =
-    """{"aTestKey":"aTestValue"}""".parseJson()
+fun mockJsonElement(): JsonElement = """{"aTestKey":"aTestValue"}""".parseJson()
 
 fun ForespoerselMottatt.toKeyMap() =
     mapOf(
         Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(Pri.NotisType.serializer()),
         Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         Pri.Key.ORGNR to orgnr.toJson(Orgnr.serializer()),
-        Pri.Key.FNR to fnr.toJson()
+        Pri.Key.FNR to fnr.toJson(),
     )
+
+private fun randomDigitString(length: Int): String =
+    List(length) { Random.nextInt(10) }
+        .joinToString(separator = "")

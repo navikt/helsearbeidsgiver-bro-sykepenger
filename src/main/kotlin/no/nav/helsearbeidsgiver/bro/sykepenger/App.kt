@@ -21,7 +21,8 @@ fun main() {
 
     LagreKomplettForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
     TilgjengeliggjoerForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
-    MarkerBesvartForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
+    MarkerBesvartFraSimbaRiver(rapid = rapid, forespoerselDao = forespoerselDao)
+    MarkerBesvartFraSpleisRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
     ForkastForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
     // NB! Denne skal ikke registreres før portalen er klar for å vise begrensede forespørsler
     LagreBegrensetForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
@@ -31,13 +32,19 @@ fun main() {
     rapid.start()
 }
 
-private fun RapidsConnection.registerDatasource(dataSourceBuilder: DataSourceBuilder, dataSource: HikariDataSource) {
-    register(object : RapidsConnection.StatusListener {
-        override fun onStartup(rapidsConnection: RapidsConnection) {
-            dataSourceBuilder.migrate()
-        }
-        override fun onShutdown(rapidsConnection: RapidsConnection) {
-            dataSource.close()
-        }
-    })
+private fun RapidsConnection.registerDatasource(
+    dataSourceBuilder: DataSourceBuilder,
+    dataSource: HikariDataSource,
+) {
+    register(
+        object : RapidsConnection.StatusListener {
+            override fun onStartup(rapidsConnection: RapidsConnection) {
+                dataSourceBuilder.migrate()
+            }
+
+            override fun onShutdown(rapidsConnection: RapidsConnection) {
+                dataSource.close()
+            }
+        },
+    )
 }

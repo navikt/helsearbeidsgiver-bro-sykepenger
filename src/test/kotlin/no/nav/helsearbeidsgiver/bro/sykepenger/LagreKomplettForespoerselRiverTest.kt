@@ -5,8 +5,8 @@ import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkObject
 import io.mockk.mockkStatic
+import io.mockk.verify
 import io.mockk.verifySequence
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
@@ -23,6 +23,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.toKeyMap
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.date.mars
 
 class LagreKomplettForespoerselRiverTest : FunSpec({
     val testRapid = TestRapid()
@@ -32,7 +33,7 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
     LagreKomplettForespoerselRiver(
         rapid = testRapid,
         forespoerselDao = mockForespoerselDao,
-        priProducer = mockPriProducer
+        priProducer = mockPriProducer,
     )
 
     fun mockInnkommendeMelding(forespoersel: ForespoerselDto) {
@@ -44,7 +45,7 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
             Spleis.Key.SKJÆRINGSTIDSPUNKT to forespoersel.skjaeringstidspunkt?.toJson(),
             Spleis.Key.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJson(Periode.serializer().list()),
             Spleis.Key.EGENMELDINGSPERIODER to forespoersel.egenmeldingsperioder.toJson(Periode.serializer().list()),
-            Spleis.Key.FORESPURT_DATA to forespoersel.forespurtData.toJson(SpleisForespurtDataDto.serializer().list())
+            Spleis.Key.FORESPURT_DATA to forespoersel.forespurtData.toJson(SpleisForespurtDataDto.serializer().list()),
         )
     }
 
@@ -52,78 +53,93 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
         clearAllMocks()
     }
 
-    test("Innkommende forespørsel blir lagret og sender notifikasjon videre") {
+    test("Forespørsel blir lagret og sender notifikasjon") {
         val forespoersel = mockForespoerselDto()
 
-        mockkObject(Env) {
-            every { mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId) } returns null
+        every { mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId) } returns null
 
-            mockkStatic(::randomUuid) {
-                every { randomUuid() } returns forespoersel.forespoerselId
+        mockkStatic(::randomUuid) {
+            every { randomUuid() } returns forespoersel.forespoerselId
 
-                mockInnkommendeMelding(forespoersel)
-            }
+            mockInnkommendeMelding(forespoersel)
         }
 
-        val expectedPublished = ForespoerselMottatt(
-            forespoerselId = forespoersel.forespoerselId,
-            orgnr = forespoersel.orgnr,
-            fnr = forespoersel.fnr
-        )
+        val expectedPublished =
+            ForespoerselMottatt(
+                forespoerselId = forespoersel.forespoerselId,
+                orgnr = forespoersel.orgnr,
+                fnr = forespoersel.fnr,
+            )
 
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
             mockForespoerselDao.lagre(
                 withArg {
                     it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)
-                }
+                },
             )
 
             mockPriProducer.send(
-                *expectedPublished.toKeyMap().toList().toTypedArray()
+                *expectedPublished.toKeyMap().toList().toTypedArray(),
             )
         }
     }
 
-    test("Sender ikke notifikasjon til simba når en forespørsel oppdateres") {
+    test("Oppdatert forespørsel (ubesvart) blir lagret uten notifikasjon") {
         val forespoersel = mockForespoerselDto()
 
-        mockkObject(Env) {
-            every { mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId) } returns null andThen forespoersel
+        every {
+            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
+        } returns
+            forespoersel.copy(
+                egenmeldingsperioder =
+                    listOf(
+                        Periode(13.mars(1812), 14.mars(1812)),
+                    ),
+            )
 
-            mockkStatic(::randomUuid) {
-                every { randomUuid() } returns forespoersel.forespoerselId
+        mockkStatic(::randomUuid) {
+            every { randomUuid() } returns forespoersel.forespoerselId
 
-                mockInnkommendeMelding(forespoersel)
-                mockInnkommendeMelding(forespoersel)
-            }
+            mockInnkommendeMelding(forespoersel)
         }
 
-        val expectedPublished = ForespoerselMottatt(
-            forespoerselId = forespoersel.forespoerselId,
-            orgnr = forespoersel.orgnr,
-            fnr = forespoersel.fnr
-        )
-
-        // Forventer at priProducer.send _ikke_ skal bli kalt ved andre forespørsel
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
+
             mockForespoerselDao.lagre(
                 withArg {
                     it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)
-                }
+                },
             )
+        }
 
-            mockPriProducer.send(
-                *expectedPublished.toKeyMap().toList().toTypedArray()
-            )
+        verify(exactly = 0) {
+            mockPriProducer.send(any())
+        }
+    }
 
+    test("Duplisert forespørsel blir hverken lagret eller sender notifikasjon") {
+        val forespoersel = mockForespoerselDto()
+
+        every {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
-            mockForespoerselDao.lagre(
-                withArg {
-                    it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)
-                }
-            )
+        } returns forespoersel
+
+        mockkStatic(::randomUuid) {
+            every { randomUuid() } returns forespoersel.forespoerselId
+
+            mockInnkommendeMelding(forespoersel)
+        }
+
+        verifySequence {
+            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
+        }
+
+        verify(exactly = 0) {
+            mockForespoerselDao.lagre(any())
+
+            mockPriProducer.send(any())
         }
     }
 })

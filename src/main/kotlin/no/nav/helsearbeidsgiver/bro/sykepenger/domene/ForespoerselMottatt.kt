@@ -12,7 +12,7 @@ import java.util.UUID
 data class ForespoerselMottatt(
     val forespoerselId: UUID,
     val orgnr: Orgnr,
-    val fnr: String
+    val fnr: String,
 ) {
     companion object {
         val notisType = Pri.NotisType.FORESPØRSEL_MOTTATT

@@ -8,6 +8,7 @@ import io.mockk.verifySequence
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
@@ -31,80 +32,93 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
     test("Ved innkommende event, svar ut korrekt ForespoerselSvar") {
         val forespoersel = mockForespoerselDto()
 
-        every { mockForespoerselDao.hentAktivForespoerselForForespoerselId(any()) } returns forespoersel
+        every { mockForespoerselDao.hentNyesteForespoerselForForespoerselId(any(), any()) } returns forespoersel
 
-        val expectedPublished = ForespoerselSvar(
-            forespoerselId = forespoersel.forespoerselId,
-            resultat = ForespoerselSvar.Suksess(forespoersel),
-            boomerang = mockJsonElement()
-        )
+        val expectedPublished =
+            ForespoerselSvar(
+                forespoerselId = forespoersel.forespoerselId,
+                resultat = ForespoerselSvar.Suksess(forespoersel),
+                boomerang = mockJsonElement(),
+            )
 
         testRapid.sendJson(
             Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
             Pri.Key.FORESPOERSEL_ID to expectedPublished.forespoerselId.toJson(),
-            Pri.Key.BOOMERANG to expectedPublished.boomerang
+            Pri.Key.BOOMERANG to expectedPublished.boomerang,
         )
 
         verifySequence {
-            mockForespoerselDao.hentAktivForespoerselForForespoerselId(any())
+            mockForespoerselDao.hentNyesteForespoerselForForespoerselId(
+                any(),
+                setOf(Status.AKTIV, Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
+            )
             mockPriProducer.send(
                 Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer())
+                Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer()),
             )
         }
     }
 
     test("Ved innkommende event, svar ut korrekt ForespoerselSvar med begrenset forespurtData og uten skjæringstidspunkt") {
-        val forespoersel = mockForespoerselDto().copy(
-            type = Type.BEGRENSET,
-            skjaeringstidspunkt = null,
-            forespurtData = mockBegrensetForespurtDataListe()
-        )
+        val forespoersel =
+            mockForespoerselDto().copy(
+                type = Type.BEGRENSET,
+                skjaeringstidspunkt = null,
+                forespurtData = mockBegrensetForespurtDataListe(),
+            )
 
-        every { mockForespoerselDao.hentAktivForespoerselForForespoerselId(any()) } returns forespoersel
+        every { mockForespoerselDao.hentNyesteForespoerselForForespoerselId(any(), any()) } returns forespoersel
 
-        val expectedPublished = ForespoerselSvar(
-            forespoerselId = forespoersel.forespoerselId,
-            resultat = ForespoerselSvar.Suksess(forespoersel),
-            boomerang = mockJsonElement()
-        )
+        val expectedPublished =
+            ForespoerselSvar(
+                forespoerselId = forespoersel.forespoerselId,
+                resultat = ForespoerselSvar.Suksess(forespoersel),
+                boomerang = mockJsonElement(),
+            )
 
         testRapid.sendJson(
             Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
             Pri.Key.FORESPOERSEL_ID to expectedPublished.forespoerselId.toJson(),
-            Pri.Key.BOOMERANG to expectedPublished.boomerang
+            Pri.Key.BOOMERANG to expectedPublished.boomerang,
         )
 
         verifySequence {
-            mockForespoerselDao.hentAktivForespoerselForForespoerselId(any())
+            mockForespoerselDao.hentNyesteForespoerselForForespoerselId(
+                any(),
+                setOf(Status.AKTIV, Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
+            )
             mockPriProducer.send(
                 Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer())
+                Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer()),
             )
         }
     }
 
     test("Når forespørsel ikke finnes skal det sendes ForespoerselSvar med error") {
-        every { mockForespoerselDao.hentAktivForespoerselForForespoerselId(any()) } returns null
+        every { mockForespoerselDao.hentNyesteForespoerselForForespoerselId(any(), any()) } returns null
 
         val forespoersel = mockForespoerselDto()
-        val expectedPublished = ForespoerselSvar(
-            forespoerselId = forespoersel.forespoerselId,
-            feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET,
-            boomerang = mockJsonElement()
-        )
+        val expectedPublished =
+            ForespoerselSvar(
+                forespoerselId = forespoersel.forespoerselId,
+                feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET,
+                boomerang = mockJsonElement(),
+            )
 
         testRapid.sendJson(
             Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
             Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
-            Pri.Key.BOOMERANG to expectedPublished.boomerang
+            Pri.Key.BOOMERANG to expectedPublished.boomerang,
         )
 
         verifySequence {
-            mockForespoerselDao.hentAktivForespoerselForForespoerselId(any())
+            mockForespoerselDao.hentNyesteForespoerselForForespoerselId(
+                any(),
+                setOf(Status.AKTIV, Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
+            )
             mockPriProducer.send(
                 Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer())
+                Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer()),
             )
         }
     }

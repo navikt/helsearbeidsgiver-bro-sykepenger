@@ -8,5 +8,5 @@ data class InntektsmeldingHaandtertDto(
     val fnr: String,
     val vedtaksperiodeId: UUID,
     val inntektsmeldingId: UUID?,
-    val haandtert: LocalDateTime
+    val haandtert: LocalDateTime,
 )

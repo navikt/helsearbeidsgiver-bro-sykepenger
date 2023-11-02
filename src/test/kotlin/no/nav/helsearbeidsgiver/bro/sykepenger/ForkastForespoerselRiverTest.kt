@@ -27,14 +27,17 @@ class ForkastForespoerselRiverTest : FunSpec({
     ForkastForespoerselRiver(
         rapid = testRapid,
         forespoerselDao = mockForespoerselDao,
-        priProducer = mockPriProducer
+        priProducer = mockPriProducer,
     )
 
-    fun mockForkastForespoerselMelding(orgnummer: Orgnr, vedtaksperiodeId: UUID) {
+    fun mockForkastForespoerselMelding(
+        orgnummer: Orgnr,
+        vedtaksperiodeId: UUID,
+    ) {
         testRapid.sendJson(
             Spleis.Key.TYPE to Spleis.Event.TRENGER_IKKE_OPPLYSNINGER_FRA_ARBEIDSGIVER.toJson(Spleis.Event.serializer()),
             Spleis.Key.ORGANISASJONSNUMMER to orgnummer.toJson(Orgnr.serializer()),
-            Spleis.Key.VEDTAKSPERIODE_ID to vedtaksperiodeId.toJson()
+            Spleis.Key.VEDTAKSPERIODE_ID to vedtaksperiodeId.toJson(),
         )
     }
 
@@ -47,7 +50,7 @@ class ForkastForespoerselRiverTest : FunSpec({
 
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
-            mockForespoerselDao.oppdaterForespoerselSomForkastet(vedtaksperiodeId)
+            mockForespoerselDao.oppdaterForespoerslerSomForkastet(vedtaksperiodeId)
         }
     }
 
@@ -63,7 +66,7 @@ class ForkastForespoerselRiverTest : FunSpec({
         verifySequence {
             mockPriProducer.send(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FORKASTET.toJson(Pri.NotisType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson()
+                Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
             )
         }
     }

@@ -9,39 +9,39 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer
 import java.time.LocalDate
-import java.time.YearMonth
 
 @Serializable
 data class ForespurtData(
     val arbeidsgiverperiode: Arbeidsgiverperiode,
     val inntekt: Inntekt,
-    val refusjon: Refusjon
+    val refusjon: Refusjon,
 )
 
 @Serializable
 data class Arbeidsgiverperiode(
-    val paakrevd: Boolean
+    val paakrevd: Boolean,
 )
 
 @Serializable
 data class Inntekt(
     val paakrevd: Boolean,
-    val forslag: ForslagInntekt
+    val forslag: ForslagInntekt,
 )
 
 @Serializable
 data class Refusjon(
     val paakrevd: Boolean,
-    val forslag: ForslagRefusjon
+    val forslag: ForslagRefusjon,
 ) {
     companion object {
         fun ikkePaakrevd(): Refusjon =
             Refusjon(
                 paakrevd = false,
-                forslag = ForslagRefusjon(
-                    perioder = emptyList(),
-                    opphoersdato = null
-                )
+                forslag =
+                    ForslagRefusjon(
+                        perioder = emptyList(),
+                        opphoersdato = null,
+                    ),
             )
     }
 }
@@ -50,10 +50,8 @@ data class Refusjon(
 sealed class ForslagInntekt {
     @Serializable
     @SerialName("ForslagInntektGrunnlag")
-    // TODO erstatt med skjæringstidspunkt?
     data class Grunnlag(
-        val beregningsmaaneder: List<YearMonth>,
-        val forrigeInntekt: ForrigeInntekt? = null
+        val forrigeInntekt: ForrigeInntekt?,
     ) : ForslagInntekt()
 
     @Serializable
@@ -64,12 +62,12 @@ sealed class ForslagInntekt {
 @Serializable
 data class ForslagRefusjon(
     val perioder: List<Periode>,
-    val opphoersdato: LocalDate?
+    val opphoersdato: LocalDate?,
 ) {
     @Serializable
     data class Periode(
         val fom: LocalDate,
-        val beloep: Double
+        val beloep: Double,
     )
 }
 
@@ -77,5 +75,5 @@ data class ForslagRefusjon(
 data class ForrigeInntekt(
     val skjæringstidspunkt: LocalDate,
     val kilde: String,
-    val beløp: Double
+    val beløp: Double,
 )

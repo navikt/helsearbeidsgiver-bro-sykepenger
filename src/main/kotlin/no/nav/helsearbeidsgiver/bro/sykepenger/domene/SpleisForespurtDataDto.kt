@@ -10,7 +10,6 @@ import kotlinx.serialization.json.JsonClassDiscriminator
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer
 import java.time.LocalDate
-import java.time.YearMonth
 
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
@@ -35,20 +34,19 @@ data class SpleisRefusjon(val forslag: List<SpleisForslagRefusjon>) : SpleisFore
 
 @Serializable
 data class SpleisForslagInntekt(
-    val beregningsmåneder: List<YearMonth>,
-    val forrigeInntekt: SpleisForrigeInntekt? = null
+    val forrigeInntekt: SpleisForrigeInntekt? = null,
 )
 
 @Serializable
 data class SpleisForslagRefusjon(
     val fom: LocalDate,
     val tom: LocalDate?,
-    val beløp: Double
+    val beløp: Double,
 )
 
 @Serializable
 data class SpleisForrigeInntekt(
     val skjæringstidspunkt: LocalDate,
     val kilde: String,
-    val beløp: Double
+    val beløp: Double,
 )

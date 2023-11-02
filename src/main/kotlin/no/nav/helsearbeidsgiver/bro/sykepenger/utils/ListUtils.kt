@@ -35,6 +35,6 @@ fun <T : Any> List<T>.splitOnIndex(index: Int): Pair<List<T>, List<T>> =
         .let { (yieldedTrue, yieldedFalse) ->
             Pair(
                 yieldedTrue.map { it.value },
-                yieldedFalse.map { it.value }
+                yieldedFalse.map { it.value },
             )
         }
