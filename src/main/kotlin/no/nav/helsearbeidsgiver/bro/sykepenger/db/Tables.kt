@@ -37,7 +37,7 @@ object BesvarelseTable : Table("besvarelse_metadata") {
         integer("id").autoIncrement(
             idSeqName = "besvarelse_metadata_id_seq",
         )
-    val fkForespoerselId = (long("fk_forespoersel_id") references ForespoerselTable.id)
+    val fkForespoerselId = long("fk_forespoersel_id") references ForespoerselTable.id
     val besvart = datetime("forespoersel_besvart")
     val inntektsmeldingId = uuid("inntektsmelding_id").nullable()
 
