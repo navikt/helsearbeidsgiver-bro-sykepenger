@@ -69,12 +69,8 @@ class MarkerBesvartFraSimbaRiver(
                     besvart = LocalDateTime.now(),
                 )
 
-            if (antallOppdaterte > 0) {
-                if (forespoersel.status == Status.AKTIV) {
-                    loggernaut.info("Oppdaterte status til besvart fra Simba for forespørsel ${forespoersel.forespoerselId}.")
-                }
-            } else {
-                loggernaut.error("Ingen forespørsler ble markert som besvart fra Simba.")
+            if (antallOppdaterte > 0 && forespoersel.status == Status.AKTIV) {
+                loggernaut.info("Oppdaterte status til besvart fra Simba for forespørsel ${forespoersel.forespoerselId}.")
             }
         } else {
             loggernaut.error("Fant ingen forespørsel å markere som besvart fra Simba.")
