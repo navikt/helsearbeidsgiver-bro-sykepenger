@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
-import io.kotest.assertions.throwables.shouldThrowExactly
+import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.ints.shouldBeExactly
@@ -8,8 +8,6 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotliquery.Row
-import kotliquery.sessionOf
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
@@ -17,22 +15,23 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type.BEGRENSET
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockBegrensetForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.listResult
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.nullableResult
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.mars
-import org.postgresql.util.PSQLException
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.JoinType
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import java.time.LocalDateTime
 import java.util.UUID
-import javax.sql.DataSource
 
-class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
-    val forespoerselDao = ForespoerselDao(dataSource)
+class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTable), { db ->
+    val forespoerselDao = ForespoerselDao(db)
 
     fun ForespoerselDto.lagreNotNull(): Long = forespoerselDao.lagre(this).shouldNotBeNull()
 
@@ -40,9 +39,9 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         val forespoersel = mockForespoerselDto()
 
         val id = forespoersel.lagreNotNull()
-        val lagretForespoersel = dataSource.hentForespoersel(id).shouldNotBeNull()
+        val lagretForespoersel = db.hentForespoersel(id).shouldNotBeNull()
 
-        dataSource.antallForespoersler() shouldBeExactly 1
+        db.antallForespoersler() shouldBeExactly 1
         lagretForespoersel shouldBe forespoersel
     }
 
@@ -51,7 +50,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             List(2) {
                 mockForespoerselDto().lagreNotNull()
             }
-        dataSource.oppdaterStatus(id1, Status.AKTIV)
+        db.oppdaterStatus(id1, Status.AKTIV)
 
         val id3 = mockForespoerselDto().lagreNotNull()
         val id4 =
@@ -66,7 +65,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             forespoersel4,
         ) =
             listOf(id1, id2, id3, id4)
-                .map(dataSource::hentForespoersel)
+                .map(db::hentForespoersel)
                 .map { it.shouldNotBeNull() }
 
         forespoersel1.status shouldBe Status.FORKASTET
@@ -151,10 +150,10 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                     )
                     .lagreNotNull()
 
-                dataSource.oppdaterStatus(aktivForespoerselId, Status.AKTIV)
+                db.oppdaterStatus(aktivForespoerselId, Status.AKTIV)
 
                 // Verifiser status på lagrede forespørsler
-                dataSource.hentAlleForespoerslerKnyttetTil(foersteForespoersel.vedtaksperiodeId)
+                db.hentAlleForespoerslerKnyttetTil(foersteForespoersel.vedtaksperiodeId)
                     .sortedBy { it.opprettet }
                     .map { it.status }
                     .shouldContainExactly(
@@ -201,10 +200,10 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                         )
                         .also(ForespoerselDto::lagreNotNull)
 
-                dataSource.oppdaterStatus(aktivForespoerselId, Status.AKTIV)
+                db.oppdaterStatus(aktivForespoerselId, Status.AKTIV)
 
                 // Verifiser status på lagrede forespørsler
-                dataSource.hentAlleForespoerslerKnyttetTil(foersteForespoersel.vedtaksperiodeId)
+                db.hentAlleForespoerslerKnyttetTil(foersteForespoersel.vedtaksperiodeId)
                     .sortedBy { it.opprettet }
                     .map { it.status }
                     .shouldContainExactly(
@@ -257,7 +256,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                         .also(ForespoerselDto::lagreNotNull)
 
                 // Verifiser status på lagrede forespørsler
-                dataSource.hentAlleForespoerslerKnyttetTil(foersteForespoersel.vedtaksperiodeId)
+                db.hentAlleForespoerslerKnyttetTil(foersteForespoersel.vedtaksperiodeId)
                     .sortedBy { it.opprettet }
                     .map { it.status }
                     .shouldContainExactly(
@@ -289,10 +288,10 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                         .copy(sykmeldingsperioder = listOf(Periode(2.januar, 30.januar)))
                         .also(ForespoerselDto::lagreNotNull)
 
-                dataSource.oppdaterStatus(gammelForespoerselId, Status.AKTIV)
+                db.oppdaterStatus(gammelForespoerselId, Status.AKTIV)
 
                 // Verifiser status på lagrede forespørsler
-                dataSource.hentAlleForespoerslerKnyttetTil(gammelForespoersel.vedtaksperiodeId)
+                db.hentAlleForespoerslerKnyttetTil(gammelForespoersel.vedtaksperiodeId)
                     .sortedBy { it.opprettet }
                     .map { it.status }
                     .shouldContainExactly(
@@ -316,7 +315,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 .copy(forespoerselId = randomUuid())
                 .lagreNotNull()
 
-            dataSource.antallForespoersler() shouldBeExactly 1
+            db.antallForespoersler() shouldBeExactly 1
 
             forespoerselDao.hentNyesteForespoerselForForespoerselId(MockUuid.forespoerselId, setOf(Status.AKTIV))
                 .shouldBeNull()
@@ -334,7 +333,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 )
                 .lagreNotNull()
 
-            dataSource.antallForespoersler() shouldBeExactly 2
+            db.antallForespoersler() shouldBeExactly 2
 
             forespoerselDao.hentNyesteForespoerselForForespoerselId(MockUuid.forespoerselId, setOf(Status.AKTIV))
                 .shouldBeNull()
@@ -382,7 +381,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 .copy(vedtaksperiodeId = randomUuid())
                 .lagreNotNull()
 
-            dataSource.oppdaterStatus(gammelForespoerselId, Status.AKTIV)
+            db.oppdaterStatus(gammelForespoerselId, Status.AKTIV)
 
             val actualForespoersel =
                 forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(gammelForespoersel.vedtaksperiodeId)
@@ -396,7 +395,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 .copy(vedtaksperiodeId = randomUuid())
                 .lagreNotNull()
 
-            dataSource.antallForespoersler() shouldBeExactly 1
+            db.antallForespoersler() shouldBeExactly 1
 
             forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(MockUuid.vedtaksperiodeId)
                 .shouldBeNull()
@@ -414,7 +413,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 )
                 .lagreNotNull()
 
-            dataSource.antallForespoersler() shouldBeExactly 2
+            db.antallForespoersler() shouldBeExactly 2
 
             forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(MockUuid.vedtaksperiodeId)
                 .shouldBeNull()
@@ -427,7 +426,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 mockForespoerselDto().lagreNotNull()
             }
 
-        shouldThrowExactly<PSQLException> {
+        shouldThrowAny {
             mockForespoerselDto()
                 // Er lavere enn hva databasen takler, krasjer lagringen
                 .copy(opprettet = LocalDateTime.MIN)
@@ -439,7 +438,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             forespoersel2,
         ) =
             listOf(id1, id2)
-                .map(dataSource::hentForespoersel)
+                .map(db::hentForespoersel)
                 .map { it.shouldNotBeNull() }
 
         forespoersel1.status shouldBe Status.FORKASTET
@@ -447,7 +446,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
         val id3 = id2 + 1
 
-        dataSource.hentForespoersel(id3).shouldBeNull()
+        db.hentForespoersel(id3).shouldBeNull()
     }
 
     test("Lagre forespørsel med begrenset forespurt data i databasen") {
@@ -458,9 +457,9 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             )
 
         val id = forespoersel.lagreNotNull()
-        val lagretForespoersel = dataSource.hentForespoersel(id).shouldNotBeNull()
+        val lagretForespoersel = db.hentForespoersel(id).shouldNotBeNull()
 
-        dataSource.antallForespoersler() shouldBeExactly 1
+        db.antallForespoersler() shouldBeExactly 1
         lagretForespoersel shouldBe forespoersel
     }
 
@@ -472,9 +471,9 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             )
 
         val id = forespoersel.lagreNotNull()
-        val lagretForespoersel = dataSource.hentForespoersel(id).shouldNotBeNull()
+        val lagretForespoersel = db.hentForespoersel(id).shouldNotBeNull()
 
-        dataSource.antallForespoersler() shouldBeExactly 1
+        db.antallForespoersler() shouldBeExactly 1
         lagretForespoersel shouldBe forespoersel
     }
 
@@ -491,8 +490,8 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 MockUuid.inntektsmeldingId,
             )
 
-            val forespoersel1 = dataSource.hentForespoersel(id1)
-            val forespoersel2 = dataSource.hentForespoersel(id2)
+            val forespoersel1 = db.hentForespoersel(id1)
+            val forespoersel2 = db.hentForespoersel(id2)
 
             forespoersel1?.status shouldBe Status.FORKASTET
             forespoersel1?.besvarelse shouldBe null
@@ -513,8 +512,8 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 null,
             )
 
-            val forespoersel1 = dataSource.hentForespoersel(id1)
-            val forespoersel2 = dataSource.hentForespoersel(id2)
+            val forespoersel1 = db.hentForespoersel(id1)
+            val forespoersel2 = db.hentForespoersel(id2)
 
             forespoersel1?.status shouldBe Status.FORKASTET
             forespoersel1?.besvarelse shouldBe null
@@ -540,13 +539,13 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 inntektsmeldingId = inntektsmeldingId,
             )
 
-            val forespoersel = dataSource.hentForespoersel(forespoerselId).shouldNotBeNull()
+            val forespoersel = db.hentForespoersel(forespoerselId).shouldNotBeNull()
 
             forespoersel.status shouldBe Status.BESVART_SPLEIS
             forespoersel.besvarelse?.forespoerselBesvart shouldBe 2.januar.atStartOfDay()
             forespoersel.besvarelse?.inntektsmeldingId shouldBe inntektsmeldingId
 
-            dataSource.antallBesvarelser() shouldBeExactly 1
+            db.antallBesvarelser() shouldBeExactly 1
         }
 
         test("Hvis forespørsel er besvart fra Spleis skal ny besvarelse overskrive den gamle") {
@@ -566,12 +565,12 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 inntektsmeldingId = inntektsmeldingId2,
             )
 
-            val forespoersel = dataSource.hentForespoersel(forespoerselId)
+            val forespoersel = db.hentForespoersel(forespoerselId)
             forespoersel?.status shouldBe Status.BESVART_SPLEIS
             forespoersel?.besvarelse?.forespoerselBesvart shouldBe 2.januar.atStartOfDay()
             forespoersel?.besvarelse?.inntektsmeldingId shouldBe inntektsmeldingId2
 
-            dataSource.antallBesvarelser() shouldBeExactly 1
+            db.antallBesvarelser() shouldBeExactly 1
         }
 
         test("Hvis forespørsel er besvart fra Spleis skal ny besvarelse overskrive den gamle, selv når inntektsmeldingId mangler") {
@@ -589,12 +588,12 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 inntektsmeldingId = null,
             )
 
-            val forespoersel = dataSource.hentForespoersel(forespoerselId)
+            val forespoersel = db.hentForespoersel(forespoerselId)
             forespoersel?.status shouldBe Status.BESVART_SPLEIS
             forespoersel?.besvarelse?.forespoerselBesvart shouldBe 2.januar.atStartOfDay()
             forespoersel?.besvarelse?.inntektsmeldingId shouldBe null
 
-            dataSource.antallBesvarelser() shouldBeExactly 1
+            db.antallBesvarelser() shouldBeExactly 1
         }
     }
 
@@ -610,8 +609,8 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 besvart = besvart,
             )
 
-            val forespoersel1 = dataSource.hentForespoersel(id1).shouldNotBeNull()
-            val forespoersel2 = dataSource.hentForespoersel(id2).shouldNotBeNull()
+            val forespoersel1 = db.hentForespoersel(id1).shouldNotBeNull()
+            val forespoersel2 = db.hentForespoersel(id2).shouldNotBeNull()
 
             forespoersel1.status shouldBe Status.FORKASTET
             forespoersel1.besvarelse shouldBe null
@@ -634,13 +633,13 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 besvart = 23.mars.atStartOfDay(),
             )
 
-            val forespoersel = dataSource.hentForespoersel(forespoerselId).shouldNotBeNull()
+            val forespoersel = db.hentForespoersel(forespoerselId).shouldNotBeNull()
 
             forespoersel.status shouldBe Status.BESVART_SIMBA
             forespoersel.besvarelse?.forespoerselBesvart shouldBe 23.mars.atStartOfDay()
             forespoersel.besvarelse?.inntektsmeldingId shouldBe null
 
-            dataSource.antallBesvarelser() shouldBeExactly 1
+            db.antallBesvarelser() shouldBeExactly 1
         }
 
         test("Hvis forespørsel er besvart fra Spleis skal ny besvarelse IKKE overskrive den gamle") {
@@ -658,24 +657,24 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 besvart = 12.april.atStartOfDay(),
             )
 
-            val forespoersel = dataSource.hentForespoersel(forespoerselId).shouldNotBeNull()
+            val forespoersel = db.hentForespoersel(forespoerselId).shouldNotBeNull()
 
             forespoersel.status shouldBe Status.BESVART_SPLEIS
             forespoersel.besvarelse?.forespoerselBesvart shouldBe 3.februar.atStartOfDay()
             forespoersel.besvarelse?.inntektsmeldingId shouldBe inntektsmeldingId
 
-            dataSource.antallBesvarelser() shouldBeExactly 1
+            db.antallBesvarelser() shouldBeExactly 1
         }
     }
 
     test("Ved oppdatering settes oppdatert-kolonne automatisk") {
         val id = mockForespoerselDto().lagreNotNull()
 
-        val foerOppdatering = dataSource.hentForespoersel(id).shouldNotBeNull()
+        val foerOppdatering = db.hentForespoersel(id).shouldNotBeNull()
 
-        dataSource.oppdaterStatus(id, Status.BESVART_SPLEIS)
+        db.oppdaterStatus(id, Status.BESVART_SPLEIS)
 
-        val etterOppdatering = dataSource.hentForespoersel(id).shouldNotBeNull()
+        val etterOppdatering = db.hentForespoersel(id).shouldNotBeNull()
 
         foerOppdatering.status shouldBe Status.AKTIV
         etterOppdatering.status shouldBe Status.BESVART_SPLEIS
@@ -688,7 +687,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             val forespoerselId = mockForespoerselDto().lagreNotNull()
             forespoerselDao.oppdaterForespoerslerSomForkastet(MockUuid.vedtaksperiodeId)
 
-            val forespoersel = dataSource.hentForespoersel(forespoerselId)
+            val forespoersel = db.hentForespoersel(forespoerselId)
             forespoersel?.status shouldBe Status.FORKASTET
             forespoersel?.besvarelse shouldBe null
         }
@@ -697,7 +696,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             val forespoerselId = mockForespoerselDto().copy(status = Status.BESVART_SIMBA).lagreNotNull()
             forespoerselDao.oppdaterForespoerslerSomForkastet(MockUuid.vedtaksperiodeId)
 
-            val forespoersel = dataSource.hentForespoersel(forespoerselId)
+            val forespoersel = db.hentForespoersel(forespoerselId)
             forespoersel?.status shouldBe Status.BESVART_SIMBA
         }
 
@@ -705,7 +704,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             val forespoerselId = mockForespoerselDto().copy(status = Status.BESVART_SPLEIS).lagreNotNull()
             forespoerselDao.oppdaterForespoerslerSomForkastet(MockUuid.vedtaksperiodeId)
 
-            val forespoersel = dataSource.hentForespoersel(forespoerselId)
+            val forespoersel = db.hentForespoersel(forespoerselId)
             forespoersel?.status shouldBe Status.BESVART_SPLEIS
         }
     }
@@ -732,16 +731,16 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 randomUuid(),
             )
 
-            dataSource.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
-            dataSource.hentForespoersel(idB)?.status shouldBe Status.BESVART_SPLEIS
-            dataSource.hentForespoersel(idC)?.status shouldBe Status.FORKASTET
-            dataSource.hentForespoersel(idD)?.status shouldBe Status.FORKASTET
-            dataSource.hentForespoersel(idE)?.status shouldBe Status.BESVART_SPLEIS
+            db.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
+            db.hentForespoersel(idB)?.status shouldBe Status.BESVART_SPLEIS
+            db.hentForespoersel(idC)?.status shouldBe Status.FORKASTET
+            db.hentForespoersel(idD)?.status shouldBe Status.FORKASTET
+            db.hentForespoersel(idE)?.status shouldBe Status.BESVART_SPLEIS
 
             val forespoerselIdEksponertTilSimba =
                 forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
 
-            forespoerselIdEksponertTilSimba shouldBe dataSource.hentForespoersel(idC)?.forespoerselId
+            forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idC)?.forespoerselId
         }
 
         test("én besvart fra Spleis og én besvart fra Simba") {
@@ -755,15 +754,15 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
             forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(MockUuid.vedtaksperiodeId, now())
 
-            dataSource.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
-            dataSource.hentForespoersel(idB)?.status shouldBe Status.BESVART_SPLEIS
-            dataSource.hentForespoersel(idC)?.status shouldBe Status.FORKASTET
-            dataSource.hentForespoersel(idD)?.status shouldBe Status.BESVART_SIMBA
+            db.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
+            db.hentForespoersel(idB)?.status shouldBe Status.BESVART_SPLEIS
+            db.hentForespoersel(idC)?.status shouldBe Status.FORKASTET
+            db.hentForespoersel(idD)?.status shouldBe Status.BESVART_SIMBA
 
             val forespoerselIdEksponertTilSimba =
                 forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
 
-            forespoerselIdEksponertTilSimba shouldBe dataSource.hentForespoersel(idC)?.forespoerselId
+            forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idC)?.forespoerselId
         }
 
         test("én besvart forespørsel og flere forkastede") {
@@ -777,13 +776,13 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 randomUuid(),
             )
 
-            dataSource.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
-            dataSource.hentForespoersel(idB)?.status shouldBe Status.FORKASTET
-            dataSource.hentForespoersel(idC)?.status shouldBe Status.BESVART_SPLEIS
+            db.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
+            db.hentForespoersel(idB)?.status shouldBe Status.FORKASTET
+            db.hentForespoersel(idC)?.status shouldBe Status.BESVART_SPLEIS
 
             val forespoerselIdEksponertTilSimba =
                 forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
-            forespoerselIdEksponertTilSimba shouldBe dataSource.hentForespoersel(idA)?.forespoerselId
+            forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
         }
 
         test("én besvart fra Simba og én aktiv") {
@@ -793,13 +792,13 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
             val idB = mockForespoerselDto().lagreNotNull()
 
-            dataSource.hentForespoersel(idA)?.status shouldBe Status.BESVART_SIMBA
-            dataSource.hentForespoersel(idB)?.status shouldBe Status.AKTIV
+            db.hentForespoersel(idA)?.status shouldBe Status.BESVART_SIMBA
+            db.hentForespoersel(idB)?.status shouldBe Status.AKTIV
 
             val forespoerselIdEksponertTilSimba =
                 forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
 
-            forespoerselIdEksponertTilSimba shouldBe dataSource.hentForespoersel(idB)?.forespoerselId
+            forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idB)?.forespoerselId
         }
 
         test("én besvart fra Spleis og én aktiv") {
@@ -809,35 +808,35 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
             val idB = mockForespoerselDto().lagreNotNull()
 
-            dataSource.hentForespoersel(idA)?.status shouldBe Status.BESVART_SPLEIS
-            dataSource.hentForespoersel(idB)?.status shouldBe Status.AKTIV
+            db.hentForespoersel(idA)?.status shouldBe Status.BESVART_SPLEIS
+            db.hentForespoersel(idB)?.status shouldBe Status.AKTIV
 
             val forespoerselIdEksponertTilSimba =
                 forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
 
-            forespoerselIdEksponertTilSimba shouldBe dataSource.hentForespoersel(idB)?.forespoerselId
+            forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idB)?.forespoerselId
         }
 
         test("ingen besvarte forespørsler") {
             val idA = mockForespoerselDto().lagreNotNull()
             val idB = mockForespoerselDto().lagreNotNull()
 
-            dataSource.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
-            dataSource.hentForespoersel(idB)?.status shouldBe Status.AKTIV
+            db.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
+            db.hentForespoersel(idB)?.status shouldBe Status.AKTIV
 
             val forespoerselIdEksponertTilSimba =
                 forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
-            forespoerselIdEksponertTilSimba shouldBe dataSource.hentForespoersel(idA)?.forespoerselId
+            forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
         }
 
         test("én aktiv forespoersel") {
             val idA = mockForespoerselDto().lagreNotNull()
 
-            dataSource.hentForespoersel(idA)?.status shouldBe Status.AKTIV
+            db.hentForespoersel(idA)?.status shouldBe Status.AKTIV
 
             val forespoerselIdEksponertTilSimba =
                 forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
-            forespoerselIdEksponertTilSimba shouldBe dataSource.hentForespoersel(idA)?.forespoerselId
+            forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
         }
 
         test("kun én besvart (fra Simba) forespoersel") {
@@ -845,12 +844,12 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
 
             forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(MockUuid.vedtaksperiodeId, now())
 
-            dataSource.hentForespoersel(idA)?.status shouldBe Status.BESVART_SIMBA
+            db.hentForespoersel(idA)?.status shouldBe Status.BESVART_SIMBA
 
             val forespoerselIdEksponertTilSimba =
                 forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
 
-            forespoerselIdEksponertTilSimba shouldBe dataSource.hentForespoersel(idA)?.forespoerselId
+            forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
         }
 
         test("kun én besvart (fra Spleis) forespoersel") {
@@ -861,11 +860,11 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
                 randomUuid(),
             )
 
-            dataSource.hentForespoersel(idA)?.status shouldBe Status.BESVART_SPLEIS
+            db.hentForespoersel(idA)?.status shouldBe Status.BESVART_SPLEIS
 
             val forespoerselIdEksponertTilSimba =
                 forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
-            forespoerselIdEksponertTilSimba shouldBe dataSource.hentForespoersel(idA)?.forespoerselId
+            forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
         }
 
         test("Finner ingen forespørselId som vi har sendt portalen") {
@@ -875,7 +874,7 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
         }
     }
 
-    context(DataSource::hentAlleForespoerslerKnyttetTil.name) {
+    context(Database::hentAlleForespoerslerKnyttetTil.name) {
 
         test("Henter alle forespørsler knyttet til en vedtaksperiodeId") {
             val a = mockForespoerselDto()
@@ -902,64 +901,63 @@ class ForespoerselDaoTest : AbstractDatabaseFunSpec({ dataSource ->
             )
 
             val expected = listOf(a, b, c, d).map { it.forespoerselId }
-            val actual = dataSource.hentAlleForespoerslerKnyttetTil(MockUuid.vedtaksperiodeId).map { it.forespoerselId }
+            val actual = db.hentAlleForespoerslerKnyttetTil(MockUuid.vedtaksperiodeId).map { it.forespoerselId }
             expected shouldBe actual
         }
     }
 })
 
-private fun DataSource.hentForespoersel(id: Long): ForespoerselDto? =
-    "SELECT * FROM forespoersel f LEFT JOIN besvarelse_metadata b ON f.id=b.fk_forespoersel_id WHERE f.id=:id "
-        .nullableResult(
-            params = mapOf("id" to id),
-            dataSource = this,
-            transform = Row::toForespoerselDto,
+private fun Database.hentForespoersel(id: Long): ForespoerselDto? =
+    transaction(this) {
+        ForespoerselTable.join(
+            BesvarelseTable,
+            JoinType.LEFT,
+            ForespoerselTable.id,
+            BesvarelseTable.fkForespoerselId,
         )
-
-private fun DataSource.hentAlleForespoerslerKnyttetTil(vedtaksperiodeId: UUID): List<ForespoerselDto> =
-    (
-        "SELECT * FROM forespoersel f " +
-            "LEFT JOIN besvarelse_metadata b ON f.id=b.${Db.FK_FORESPOERSEL_ID} " +
-            "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId"
-    )
-        .listResult(
-            params = mapOf("vedtaksperiodeId" to vedtaksperiodeId),
-            dataSource = this,
-            transform = Row::toForespoerselDto,
-        )
-
-private fun DataSource.antallBesvarelser(): Int =
-    "SELECT COUNT(1) FROM besvarelse_metadata"
-        .nullableResult(
-            params = emptyMap<String, Nothing>(),
-            dataSource = this,
-        ) { int(1) }
-        .shouldNotBeNull()
-
-private fun DataSource.antallForespoersler(): Int =
-    "SELECT COUNT(1) FROM forespoersel"
-        .nullableResult(
-            params = emptyMap<String, Nothing>(),
-            dataSource = this,
-        ) { int(1) }
-        .shouldNotBeNull()
-
-private fun DataSource.oppdaterStatus(
-    id: Long,
-    status: Status,
-): Boolean =
-    sessionOf(this).use {
-        "UPDATE forespoersel SET status=:status WHERE id=:id"
-            .execute(
-                params =
-                    mapOf(
-                        "id" to id,
-                        "status" to status.name,
-                    ),
-                session = it,
-            )
-            .shouldNotBeNull()
+            .select {
+                ForespoerselTable.id eq id
+            }
+            .map(::tilForespoerselDto)
+            .firstOrNull()
     }
+
+private fun Database.hentAlleForespoerslerKnyttetTil(vedtaksperiodeId: UUID): List<ForespoerselDto> =
+    transaction(this) {
+        ForespoerselTable.join(
+            BesvarelseTable,
+            JoinType.LEFT,
+            ForespoerselTable.id,
+            BesvarelseTable.fkForespoerselId,
+        )
+            .select {
+                ForespoerselTable.vedtaksperiodeId eq vedtaksperiodeId
+            }
+            .map(::tilForespoerselDto)
+    }
+
+private fun Database.oppdaterStatus(
+    id: Long,
+    nyStatus: Status,
+) {
+    transaction(this) {
+        ForespoerselTable.update({
+            ForespoerselTable.id eq id
+        }) {
+            it[status] = nyStatus.name
+        }
+    }
+}
+
+private fun Database.antallForespoersler(): Int =
+    transaction(this) {
+        ForespoerselTable.selectAll().count()
+    }.toInt()
+
+private fun Database.antallBesvarelser(): Int =
+    transaction(this) {
+        BesvarelseTable.selectAll().count()
+    }.toInt()
 
 private fun now(): LocalDateTime = LocalDateTime.now().truncMillis()
 
