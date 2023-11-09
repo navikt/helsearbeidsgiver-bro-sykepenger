@@ -5,7 +5,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.splitOnIndex
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.zipWithNextOrNull
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import org.jetbrains.exposed.sql.Database
@@ -151,28 +151,15 @@ class ForespoerselDao(private val db: Database) {
             }
             .maxByOrNull { it.opprettet }
 
-    fun forespoerselIdEksponertTilSimba(vedtaksperiodeId: UUID): UUID? {
-        val forespoersler =
-            hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId, Status.entries.toSet())
-                .sortedBy { it.opprettet }
-
-        val besvarteIndekser =
-            forespoersler.mapIndexedNotNull { index, forespoersel ->
-                if (forespoersel.status in listOf(Status.BESVART_SIMBA, Status.BESVART_SPLEIS)) {
-                    index
-                } else {
-                    null
-                }
+    fun forespoerselIdEksponertTilSimba(vedtaksperiodeId: UUID): UUID? =
+        hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId, Status.entries.toSet())
+            .sortedByDescending { it.opprettet }
+            .zipWithNextOrNull()
+            .firstOrNull { (_, next) ->
+                next == null || next.status.erBesvart()
             }
-
-        return besvarteIndekser
-            .fold(listOf(forespoersler)) { acc, besvartIndex ->
-                acc.last().splitOnIndex(besvartIndex + 1).toList()
-            }
-            .lastOrNull { it.isNotEmpty() }
-            ?.firstOrNull()
+            ?.let { (current, _) -> current }
             ?.forespoerselId
-    }
 
     private fun hentVedtaksperiodeId(forespoerselId: UUID): UUID? =
         transaction(db) {

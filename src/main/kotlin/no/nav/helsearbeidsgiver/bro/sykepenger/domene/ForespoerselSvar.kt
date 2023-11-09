@@ -42,7 +42,7 @@ data class ForespoerselSvar(
             sykmeldingsperioder = forespoersel.sykmeldingsperioder,
             egenmeldingsperioder = forespoersel.egenmeldingsperioder,
             forespurtData = forespoersel.forespurtData.tilForespurtData(),
-            erBesvart = forespoersel.status in listOf(Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
+            erBesvart = forespoersel.status.erBesvart(),
         )
     }
 
