@@ -872,6 +872,29 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
                 forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
             forespoerselIdEksponertTilSimba shouldBe null
         }
+
+        test("tåler mer enn to eksponerte forespørsler (med ujevnt antall forespørsler mellom)") {
+            val idA = mockForespoerselDto().lagreNotNull()
+
+            forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(MockUuid.vedtaksperiodeId, now(), randomUuid())
+
+            val idB = mockForespoerselDto().lagreNotNull()
+            val idC = mockForespoerselDto().lagreNotNull()
+
+            forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(MockUuid.vedtaksperiodeId, now(), randomUuid())
+
+            val idD = mockForespoerselDto().lagreNotNull()
+
+            db.hentForespoersel(idA)?.status shouldBe Status.BESVART_SPLEIS
+            db.hentForespoersel(idB)?.status shouldBe Status.FORKASTET
+            db.hentForespoersel(idC)?.status shouldBe Status.BESVART_SPLEIS
+            db.hentForespoersel(idD)?.status shouldBe Status.AKTIV
+
+            val forespoerselIdEksponertTilSimba =
+                forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+
+            forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idD)?.forespoerselId
+        }
     }
 
     context(Database::hentAlleForespoerslerKnyttetTil.name) {
