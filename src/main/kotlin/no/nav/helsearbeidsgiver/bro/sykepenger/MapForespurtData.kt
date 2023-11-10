@@ -16,7 +16,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.isDayBefore
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.leadingAndLast
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.mapWithNext
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.zipWithNextOrNull
 
 private val loggernaut = Loggernaut(ForespurtData)
 
@@ -140,20 +140,21 @@ private fun List<SpleisForslagRefusjon>.tilForslagRefusjon(): ForslagRefusjon =
  */
 private fun List<SpleisForslagRefusjon>.medEksplisitteRefusjonsopphold(): List<SpleisForslagRefusjon> {
     val nyRefusjonsforslag =
-        mapWithNext { current, next ->
-            if (next == null || current.tom == null || current.tom.isDayBefore(next.fom)) {
-                listOf(current)
-            } else {
-                listOf(
-                    current,
-                    SpleisForslagRefusjon(
-                        fom = current.tom.plusDays(1),
-                        tom = next.fom.minusDays(1),
-                        beløp = 0.0,
-                    ),
-                )
+        zipWithNextOrNull()
+            .map { (current, next) ->
+                if (next == null || current.tom == null || current.tom.isDayBefore(next.fom)) {
+                    listOf(current)
+                } else {
+                    listOf(
+                        current,
+                        SpleisForslagRefusjon(
+                            fom = current.tom.plusDays(1),
+                            tom = next.fom.minusDays(1),
+                            beløp = 0.0,
+                        ),
+                    )
+                }
             }
-        }
             .flatten()
 
     if (isNotEmpty() && size != nyRefusjonsforslag.size) {
