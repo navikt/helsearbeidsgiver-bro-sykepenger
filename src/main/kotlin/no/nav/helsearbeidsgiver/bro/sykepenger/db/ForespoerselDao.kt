@@ -69,14 +69,6 @@ class ForespoerselDao(private val db: Database) {
                     activeTransaction = this,
                 )
 
-            if (oppdaterteForespoersler.isEmpty()) {
-                val msg =
-                    "Fant ingen aktive eller besvarte forespørsler for vedtaksperioden $vedtaksperiodeId. " +
-                        "Dette skal kun skje for vedtaksperioder som ikke støttes enda (potensielle) eller som stammer fra før pilot."
-                logger.warn(msg)
-                sikkerLogger.warn(msg)
-            }
-
             oppdaterteForespoersler.forEach { id ->
                 insertOrUpdateBesvarelse(id, besvart, inntektsmeldingId, this)
             }
@@ -161,18 +153,7 @@ class ForespoerselDao(private val db: Database) {
             ?.let { (current, _) -> current }
             ?.forespoerselId
 
-    private fun hentVedtaksperiodeId(forespoerselId: UUID): UUID? =
-        transaction(db) {
-            ForespoerselTable.select {
-                ForespoerselTable.forespoerselId eq forespoerselId
-            }
-                .map {
-                    it[ForespoerselTable.vedtaksperiodeId]
-                }
-                .firstOrNull()
-        }
-
-    private fun hentForespoerslerForVedtaksperiodeId(
+    fun hentForespoerslerForVedtaksperiodeId(
         vedtaksperiodeId: UUID,
         statuser: Set<Status>,
     ): List<ForespoerselDto> =
@@ -188,6 +169,17 @@ class ForespoerselDao(private val db: Database) {
                         (ForespoerselTable.status inList statuser.map { it.name })
                 }
                 .map(::tilForespoerselDto)
+        }
+
+    private fun hentVedtaksperiodeId(forespoerselId: UUID): UUID? =
+        transaction(db) {
+            ForespoerselTable.select {
+                ForespoerselTable.forespoerselId eq forespoerselId
+            }
+                .map {
+                    it[ForespoerselTable.vedtaksperiodeId]
+                }
+                .firstOrNull()
         }
 
     private fun oppdaterStatuser(

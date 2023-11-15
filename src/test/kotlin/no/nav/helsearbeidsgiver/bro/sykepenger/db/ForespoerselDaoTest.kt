@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
 import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldBeNull
@@ -28,7 +29,6 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.time.LocalDateTime
-import java.util.UUID
 
 class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTable), { db ->
     val forespoerselDao = ForespoerselDao(db)
@@ -153,7 +153,10 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
                 db.oppdaterStatus(aktivForespoerselId, Status.AKTIV)
 
                 // Verifiser status på lagrede forespørsler
-                db.hentAlleForespoerslerKnyttetTil(foersteForespoersel.vedtaksperiodeId)
+                forespoerselDao.hentForespoerslerForVedtaksperiodeId(
+                    vedtaksperiodeId = foersteForespoersel.vedtaksperiodeId,
+                    statuser = Status.entries.toSet(),
+                )
                     .sortedBy { it.opprettet }
                     .map { it.status }
                     .shouldContainExactly(
@@ -203,7 +206,10 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
                 db.oppdaterStatus(aktivForespoerselId, Status.AKTIV)
 
                 // Verifiser status på lagrede forespørsler
-                db.hentAlleForespoerslerKnyttetTil(foersteForespoersel.vedtaksperiodeId)
+                forespoerselDao.hentForespoerslerForVedtaksperiodeId(
+                    vedtaksperiodeId = foersteForespoersel.vedtaksperiodeId,
+                    statuser = Status.entries.toSet(),
+                )
                     .sortedBy { it.opprettet }
                     .map { it.status }
                     .shouldContainExactly(
@@ -256,7 +262,10 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
                         .also(ForespoerselDto::lagreNotNull)
 
                 // Verifiser status på lagrede forespørsler
-                db.hentAlleForespoerslerKnyttetTil(foersteForespoersel.vedtaksperiodeId)
+                forespoerselDao.hentForespoerslerForVedtaksperiodeId(
+                    vedtaksperiodeId = foersteForespoersel.vedtaksperiodeId,
+                    statuser = Status.entries.toSet(),
+                )
                     .sortedBy { it.opprettet }
                     .map { it.status }
                     .shouldContainExactly(
@@ -291,7 +300,10 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
                 db.oppdaterStatus(gammelForespoerselId, Status.AKTIV)
 
                 // Verifiser status på lagrede forespørsler
-                db.hentAlleForespoerslerKnyttetTil(gammelForespoersel.vedtaksperiodeId)
+                forespoerselDao.hentForespoerslerForVedtaksperiodeId(
+                    vedtaksperiodeId = gammelForespoersel.vedtaksperiodeId,
+                    statuser = Status.entries.toSet(),
+                )
                     .sortedBy { it.opprettet }
                     .map { it.status }
                     .shouldContainExactly(
@@ -897,9 +909,43 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
         }
     }
 
-    context(Database::hentAlleForespoerslerKnyttetTil.name) {
+    context(ForespoerselDao::hentForespoerslerForVedtaksperiodeId.name) {
 
         test("Henter alle forespørsler knyttet til en vedtaksperiodeId") {
+            val a = mockForespoerselDto()
+            val b = mockForespoerselDto()
+            val c = mockForespoerselDto()
+
+            a.lagreNotNull()
+            b.lagreNotNull()
+
+            forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
+                MockUuid.vedtaksperiodeId,
+                now(),
+                randomUuid(),
+            )
+
+            c.lagreNotNull()
+
+            val actual =
+                forespoerselDao.hentForespoerslerForVedtaksperiodeId(
+                    vedtaksperiodeId = MockUuid.vedtaksperiodeId,
+                    statuser = Status.entries.toSet(),
+                )
+
+            actual shouldHaveSize 3
+
+            actual[0].status shouldBe Status.FORKASTET
+            actual[0].shouldBeEqualToIgnoringFields(a, ForespoerselDto::status, ForespoerselDto::besvarelse, ForespoerselDto::oppdatert)
+
+            actual[1].status shouldBe Status.BESVART_SPLEIS
+            actual[1].shouldBeEqualToIgnoringFields(b, ForespoerselDto::status, ForespoerselDto::besvarelse, ForespoerselDto::oppdatert)
+
+            actual[2].status shouldBe Status.AKTIV
+            actual[2].shouldBeEqualToIgnoringFields(c, ForespoerselDto::status, ForespoerselDto::besvarelse, ForespoerselDto::oppdatert)
+        }
+
+        test("Henter forespørsler med gitt status som er knyttet til en vedtaksperiodeId") {
             val a = mockForespoerselDto()
             val b = mockForespoerselDto()
             val c = mockForespoerselDto()
@@ -915,7 +961,6 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             )
 
             c.lagreNotNull()
-            d.lagreNotNull()
 
             forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
                 MockUuid.vedtaksperiodeId,
@@ -923,9 +968,21 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
                 randomUuid(),
             )
 
-            val expected = listOf(a, b, c, d).map { it.forespoerselId }
-            val actual = db.hentAlleForespoerslerKnyttetTil(MockUuid.vedtaksperiodeId).map { it.forespoerselId }
-            expected shouldBe actual
+            d.lagreNotNull()
+
+            val actual =
+                forespoerselDao.hentForespoerslerForVedtaksperiodeId(
+                    vedtaksperiodeId = MockUuid.vedtaksperiodeId,
+                    statuser = setOf(Status.BESVART_SPLEIS),
+                )
+
+            actual shouldHaveSize 2
+
+            actual[0].status shouldBe Status.BESVART_SPLEIS
+            actual[0].shouldBeEqualToIgnoringFields(b, ForespoerselDto::status, ForespoerselDto::besvarelse, ForespoerselDto::oppdatert)
+
+            actual[1].status shouldBe Status.BESVART_SPLEIS
+            actual[1].shouldBeEqualToIgnoringFields(c, ForespoerselDto::status, ForespoerselDto::besvarelse, ForespoerselDto::oppdatert)
         }
     }
 })
@@ -943,20 +1000,6 @@ private fun Database.hentForespoersel(id: Long): ForespoerselDto? =
             }
             .map(::tilForespoerselDto)
             .firstOrNull()
-    }
-
-private fun Database.hentAlleForespoerslerKnyttetTil(vedtaksperiodeId: UUID): List<ForespoerselDto> =
-    transaction(this) {
-        ForespoerselTable.join(
-            BesvarelseTable,
-            JoinType.LEFT,
-            ForespoerselTable.id,
-            BesvarelseTable.fkForespoerselId,
-        )
-            .select {
-                ForespoerselTable.vedtaksperiodeId eq vedtaksperiodeId
-            }
-            .map(::tilForespoerselDto)
     }
 
 private fun Database.oppdaterStatus(
