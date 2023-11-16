@@ -1,95 +1,72 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
-import kotliquery.Row
-import kotliquery.Session
-import kotliquery.TransactionalSession
-import kotliquery.sessionOf
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.BesvarelseMetadataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.execute
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.listResult
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.nullableResult
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.splitOnIndex
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.updateAndReturnGeneratedKey
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.updateResult
-import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
-import no.nav.helsearbeidsgiver.utils.json.fromJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.list
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.zipWithNextOrNull
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.JoinType
+import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
+import org.jetbrains.exposed.sql.Transaction
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.sql.upsert
 import java.time.LocalDateTime
 import java.util.UUID
-import javax.sql.DataSource
 
-class ForespoerselDao(private val dataSource: DataSource) {
+class ForespoerselDao(private val db: Database) {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    fun lagre(forespoersel: ForespoerselDto): Long? {
-        val felter =
-            mapOf(
-                Db.FORESPOERSEL_ID to forespoersel.forespoerselId,
-                Db.TYPE to forespoersel.type.name,
-                Db.STATUS to forespoersel.status.name,
-                Db.ORGNR to forespoersel.orgnr.verdi,
-                Db.FNR to forespoersel.fnr,
-                Db.VEDTAKSPERIODE_ID to forespoersel.vedtaksperiodeId,
-                Db.SKJAERINGSTIDSPUNKT to forespoersel.skjaeringstidspunkt,
-                Db.OPPRETTET to forespoersel.opprettet,
-                Db.OPPDATERT to forespoersel.oppdatert,
-            )
-
-        val jsonFelter =
-            mapOf(
-                Db.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJsonStr(Periode.serializer().list()),
-                Db.EGENMELDINGSPERIODER to forespoersel.egenmeldingsperioder.toJsonStr(Periode.serializer().list()),
-                Db.FORESPURT_DATA to forespoersel.forespurtData.toJsonStr(SpleisForespurtDataDto.serializer().list()),
-            )
-
-        val kolonnenavn = (felter + jsonFelter).keys.joinToString()
-        val noekler =
-            listOf(
-                felter.keys.joinToString { ":$it" },
-                jsonFelter.keys.joinToString { ":$it::json" },
-            ).joinToString()
-
-        return sessionOf(
-            dataSource = dataSource,
-            returnGeneratedKey = true,
-        ).useTransaction {
+    fun lagre(forespoersel: ForespoerselDto): Long =
+        transaction(db) {
             oppdaterStatuser(
-                session = it,
                 vedtaksperiodeId = forespoersel.vedtaksperiodeId,
                 erstattStatuser = setOf(Status.AKTIV),
                 nyStatus = Status.FORKASTET,
+                activeTransaction = this,
             )
 
-            "INSERT INTO forespoersel($kolonnenavn) VALUES ($noekler)"
-                .updateAndReturnGeneratedKey(
-                    params = felter + jsonFelter,
-                    session = it,
-                )
+            ForespoerselTable.insert {
+                it[forespoerselId] = forespoersel.forespoerselId
+                it[type] = forespoersel.type.name
+                it[status] = forespoersel.status.name
+                it[orgnr] = forespoersel.orgnr.verdi
+                it[fnr] = forespoersel.fnr
+                it[vedtaksperiodeId] = forespoersel.vedtaksperiodeId
+                it[skjaeringstidspunkt] = forespoersel.skjaeringstidspunkt
+                it[sykmeldingsperioder] = forespoersel.sykmeldingsperioder
+                it[egenmeldingsperioder] = forespoersel.egenmeldingsperioder
+                it[forespurtData] = forespoersel.forespurtData
+                it[opprettet] = forespoersel.opprettet
+                it[oppdatert] = forespoersel.oppdatert
+            }
+                .let {
+                    it[ForespoerselTable.id]
+                }
         }
-    }
 
     fun oppdaterForespoerslerSomBesvartFraSpleis(
         vedtaksperiodeId: UUID,
         besvart: LocalDateTime,
         inntektsmeldingId: UUID?,
     ): Int =
-        sessionOf(dataSource = dataSource).useTransaction { transaction ->
+        transaction(db) {
             val oppdaterteForespoersler =
                 oppdaterStatuser(
-                    session = transaction,
                     vedtaksperiodeId = vedtaksperiodeId,
                     erstattStatuser = setOf(Status.AKTIV, Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
                     nyStatus = Status.BESVART_SPLEIS,
+                    activeTransaction = this,
                 )
 
             if (oppdaterteForespoersler.isEmpty()) {
@@ -101,7 +78,7 @@ class ForespoerselDao(private val dataSource: DataSource) {
             }
 
             oppdaterteForespoersler.forEach { id ->
-                insertOrUpdateBesvarelse(transaction, id, besvart, inntektsmeldingId)
+                insertOrUpdateBesvarelse(id, besvart, inntektsmeldingId, this)
             }
 
             oppdaterteForespoersler.size
@@ -111,45 +88,44 @@ class ForespoerselDao(private val dataSource: DataSource) {
         vedtaksperiodeId: UUID,
         besvart: LocalDateTime,
     ): Int =
-        sessionOf(dataSource = dataSource).useTransaction { transaction ->
+        transaction(db) {
             val oppdaterteForespoersler =
                 oppdaterStatuser(
-                    session = transaction,
                     vedtaksperiodeId = vedtaksperiodeId,
                     erstattStatuser = setOf(Status.AKTIV, Status.BESVART_SIMBA),
                     nyStatus = Status.BESVART_SIMBA,
+                    activeTransaction = this,
                 )
 
             oppdaterteForespoersler.forEach { id ->
-                insertOrUpdateBesvarelse(transaction, id, besvart, null)
+                insertOrUpdateBesvarelse(id, besvart, null, this)
             }
 
             oppdaterteForespoersler.size
         }
 
     fun oppdaterForespoerslerSomForkastet(vedtaksperiodeId: UUID) {
-        sessionOf(dataSource = dataSource).use {
-            oppdaterStatuser(
-                session = it,
-                vedtaksperiodeId = vedtaksperiodeId,
-                erstattStatuser = setOf(Status.AKTIV),
-                nyStatus = Status.FORKASTET,
-            )
-        }
+        oppdaterStatuser(
+            vedtaksperiodeId = vedtaksperiodeId,
+            erstattStatuser = setOf(Status.AKTIV),
+            nyStatus = Status.FORKASTET,
+        )
     }
 
     fun hentForespoerselForForespoerselId(forespoerselId: UUID): ForespoerselDto? =
-        query(
-            "SELECT *",
-            "FROM forespoersel f",
-            "LEFT JOIN besvarelse_metadata b ON f.id=b.${Db.FK_FORESPOERSEL_ID}",
-            "WHERE ${Db.FORESPOERSEL_ID}=:forespoerselId",
-        )
-            .nullableResult(
-                params = mapOf("forespoerselId" to forespoerselId),
-                dataSource = dataSource,
-                transform = Row::toForespoerselDto,
+        transaction(db) {
+            ForespoerselTable.join(
+                BesvarelseTable,
+                JoinType.LEFT,
+                ForespoerselTable.id,
+                BesvarelseTable.fkForespoerselId,
             )
+                .select {
+                    ForespoerselTable.forespoerselId eq forespoerselId
+                }
+                .map(::tilForespoerselDto)
+                .firstOrNull()
+        }
 
     fun hentNyesteForespoerselForForespoerselId(
         forespoerselId: UUID,
@@ -175,138 +151,123 @@ class ForespoerselDao(private val dataSource: DataSource) {
             }
             .maxByOrNull { it.opprettet }
 
-    fun forespoerselIdEksponertTilSimba(vedtaksperiodeId: UUID): UUID? {
-        val forespoersler =
-            hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId, Status.entries.toSet())
-                .sortedBy { it.opprettet }
-
-        val besvarteIndekser =
-            forespoersler.mapIndexedNotNull { index, forespoersel ->
-                if (forespoersel.status in listOf(Status.BESVART_SIMBA, Status.BESVART_SPLEIS)) {
-                    index
-                } else {
-                    null
-                }
+    fun forespoerselIdEksponertTilSimba(vedtaksperiodeId: UUID): UUID? =
+        hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId, Status.entries.toSet())
+            .sortedByDescending { it.opprettet }
+            .zipWithNextOrNull()
+            .firstOrNull { (_, next) ->
+                next == null || next.status.erBesvart()
             }
-
-        return besvarteIndekser
-            .fold(listOf(forespoersler)) { acc, besvartIndex ->
-                acc.last().splitOnIndex(besvartIndex + 1).toList()
-            }
-            .lastOrNull { it.isNotEmpty() }
-            ?.firstOrNull()
+            ?.let { (current, _) -> current }
             ?.forespoerselId
-    }
 
     private fun hentVedtaksperiodeId(forespoerselId: UUID): UUID? =
-        query(
-            "SELECT ${Db.VEDTAKSPERIODE_ID}",
-            "FROM forespoersel",
-            "WHERE ${Db.FORESPOERSEL_ID}=:forespoerselId",
-        )
-            .nullableResult(
-                params = mapOf("forespoerselId" to forespoerselId),
-                dataSource = dataSource,
-                transform = { Db.VEDTAKSPERIODE_ID.let(::uuid) },
-            )
+        transaction(db) {
+            ForespoerselTable.select {
+                ForespoerselTable.forespoerselId eq forespoerselId
+            }
+                .map {
+                    it[ForespoerselTable.vedtaksperiodeId]
+                }
+                .firstOrNull()
+        }
 
     private fun hentForespoerslerForVedtaksperiodeId(
         vedtaksperiodeId: UUID,
         statuser: Set<Status>,
     ): List<ForespoerselDto> =
-        query(
-            "SELECT * FROM forespoersel f",
-            "LEFT JOIN besvarelse_metadata b ON f.id=b.${Db.FK_FORESPOERSEL_ID}",
-            "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS} in (${statuser.joinToString { "'$it'" }})",
-        )
-            .listResult(
-                params = mapOf("vedtaksperiodeId" to vedtaksperiodeId),
-                dataSource = dataSource,
-                transform = Row::toForespoerselDto,
+        transaction(db) {
+            ForespoerselTable.join(
+                BesvarelseTable,
+                JoinType.LEFT,
+                ForespoerselTable.id,
+                BesvarelseTable.fkForespoerselId,
             )
+                .select {
+                    (ForespoerselTable.vedtaksperiodeId eq vedtaksperiodeId) and
+                        (ForespoerselTable.status inList statuser.map { it.name })
+                }
+                .map(::tilForespoerselDto)
+        }
 
     private fun oppdaterStatuser(
-        session: Session,
         vedtaksperiodeId: UUID,
         erstattStatuser: Set<Status>,
         nyStatus: Status,
-    ): List<Long> =
-        query(
-            "UPDATE forespoersel",
-            "SET ${Db.STATUS}=:nyStatus",
-            "WHERE ${Db.VEDTAKSPERIODE_ID}=:vedtaksperiodeId AND ${Db.STATUS} in (${erstattStatuser.joinToString { "'$it'" }})",
-            "RETURNING id",
-        )
-            .updateResult(
-                params =
-                    mapOf(
-                        "vedtaksperiodeId" to vedtaksperiodeId,
-                        "nyStatus" to nyStatus.name,
-                    ),
-                session = session,
-                transform = Row::toId,
-            )
+        activeTransaction: Transaction? = null,
+    ): List<Long> {
+        val where: SqlExpressionBuilder.() -> Op<Boolean> = {
+            (ForespoerselTable.vedtaksperiodeId eq vedtaksperiodeId) and
+                (ForespoerselTable.status inList erstattStatuser.map { it.name })
+        }
+
+        return activeTransaction.orNew {
+            // Exposed støtter ikke Postgres sin RETURNING: https://github.com/JetBrains/Exposed/issues/1271
+            val updated =
+                ForespoerselTable.select(where)
+                    .map {
+                        it[ForespoerselTable.id]
+                    }
+
+            ForespoerselTable.update(where) {
+                it[status] = nyStatus.name
+            }
+
+            updated
+        }
             .also {
                 val msg = "Oppdaterte ${it.size} rader med ny status '$nyStatus'. ids=$it"
                 logger.info(msg)
                 sikkerLogger.info(msg)
             }
-
-    private fun insertOrUpdateBesvarelse(
-        session: TransactionalSession,
-        forespoerselId: Long,
-        forespoerselBesvart: LocalDateTime,
-        inntektsmeldingId: UUID?,
-    ): Boolean =
-        query(
-            "INSERT INTO besvarelse_metadata(${Db.FK_FORESPOERSEL_ID}, ${Db.FORESPOERSEL_BESVART}, ${Db.INNTEKTSMELDING_ID})",
-            "VALUES(:forespoerselId, :forespoerselBesvart, :inntektsmeldingId)",
-            "ON CONFLICT (fk_forespoersel_id) DO UPDATE SET " +
-                "${Db.FORESPOERSEL_BESVART}=:forespoerselBesvart, ${Db.INNTEKTSMELDING_ID}=:inntektsmeldingId",
-        )
-            .execute(
-                params =
-                    mapOf(
-                        "forespoerselId" to forespoerselId,
-                        "forespoerselBesvart" to forespoerselBesvart,
-                        "inntektsmeldingId" to inntektsmeldingId,
-                    )
-                        .mapValuesNotNull { it },
-                session = session,
-            )
-}
-
-fun Row.toForespoerselDto(): ForespoerselDto =
-    ForespoerselDto(
-        forespoerselId = Db.FORESPOERSEL_ID.let(::uuid),
-        type = Db.TYPE.let(::string).let(Type::valueOf),
-        status = Db.STATUS.let(::string).let(Status::valueOf),
-        orgnr = Db.ORGNR.let(::string).let(::Orgnr),
-        fnr = Db.FNR.let(::string),
-        vedtaksperiodeId = Db.VEDTAKSPERIODE_ID.let(::uuid),
-        skjaeringstidspunkt = Db.SKJAERINGSTIDSPUNKT.let(::localDateOrNull),
-        sykmeldingsperioder = Db.SYKMELDINGSPERIODER.let(::string).fromJson(Periode.serializer().list()),
-        egenmeldingsperioder = Db.EGENMELDINGSPERIODER.let(::string).fromJson(Periode.serializer().list()),
-        forespurtData = Db.FORESPURT_DATA.let(::string).fromJson(SpleisForespurtDataDto.serializer().list()),
-        besvarelse = toBesvarelseMetadataDto(),
-        opprettet = Db.OPPRETTET.let(::localDateTime),
-        oppdatert = Db.OPPDATERT.let(::localDateTime),
-    )
-
-private fun Row.toBesvarelseMetadataDto(): BesvarelseMetadataDto? {
-    val forespoerselBesvart = Db.FORESPOERSEL_BESVART.let(::localDateTimeOrNull)
-    val inntektsmeldingId = Db.INNTEKTSMELDING_ID.let(::uuidOrNull)
-
-    return forespoerselBesvart?.let { BesvarelseMetadataDto(forespoerselBesvart, inntektsmeldingId) }
-}
-
-private fun Row.toId(): Long = Db.ID.let(::long)
-
-/** Unngår bruk av ikke-transactional session. */
-private fun <T> Session.useTransaction(block: (TransactionalSession) -> T): T =
-    use { session ->
-        session.transaction(block)
     }
 
-/** Kun brukt for å få penere kodeformat på queries fordelt over flere linjer. */
-private fun query(vararg parts: String): String = parts.joinToString(separator = " ")
+    private fun insertOrUpdateBesvarelse(
+        forespoerselId: Long,
+        forespoerselBesvart: LocalDateTime,
+        imId: UUID?,
+        activeTransaction: Transaction? = null,
+    ) {
+        activeTransaction.orNew {
+            BesvarelseTable.upsert(BesvarelseTable.fkForespoerselId) {
+                it[fkForespoerselId] = forespoerselId
+                it[besvart] = forespoerselBesvart
+                it[inntektsmeldingId] = imId
+            }
+        }
+    }
+
+    private fun <T> Transaction?.orNew(statement: Transaction.() -> T): T =
+        if (this != null) {
+            this.run(statement)
+        } else {
+            transaction(db, statement)
+        }
+}
+
+fun tilForespoerselDto(row: ResultRow): ForespoerselDto =
+    ForespoerselDto(
+        forespoerselId = row[ForespoerselTable.forespoerselId],
+        type = row[ForespoerselTable.type].let(Type::valueOf),
+        status = row[ForespoerselTable.status].let(Status::valueOf),
+        orgnr = row[ForespoerselTable.orgnr].let(::Orgnr),
+        fnr = row[ForespoerselTable.fnr],
+        vedtaksperiodeId = row[ForespoerselTable.vedtaksperiodeId],
+        skjaeringstidspunkt = row[ForespoerselTable.skjaeringstidspunkt],
+        sykmeldingsperioder = row[ForespoerselTable.sykmeldingsperioder],
+        egenmeldingsperioder = row[ForespoerselTable.egenmeldingsperioder],
+        forespurtData = row[ForespoerselTable.forespurtData],
+        besvarelse = tilBesvarelseMetadataDto(row),
+        opprettet = row[ForespoerselTable.opprettet],
+        oppdatert = row[ForespoerselTable.oppdatert],
+    )
+
+private fun tilBesvarelseMetadataDto(row: ResultRow): BesvarelseMetadataDto? =
+    if (row.getOrNull(BesvarelseTable.id) != null) {
+        BesvarelseMetadataDto(
+            forespoerselBesvart = row[BesvarelseTable.besvart],
+            inntektsmeldingId = row[BesvarelseTable.inntektsmeldingId],
+        )
+    } else {
+        null
+    }

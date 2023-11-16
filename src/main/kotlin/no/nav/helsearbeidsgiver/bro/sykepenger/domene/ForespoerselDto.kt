@@ -45,6 +45,9 @@ enum class Status {
     BESVART_SIMBA,
     BESVART_SPLEIS,
     FORKASTET,
+    ;
+
+    fun erBesvart(): Boolean = this in listOf(BESVART_SIMBA, BESVART_SPLEIS)
 }
 
 enum class Type {

@@ -64,11 +64,11 @@ repositories {
 }
 
 dependencies {
+    val exposedVersion: String by project
     val flywayCoreVersion: String by project
     val hikariVersion: String by project
     val kotestVersion: String by project
     val kotlinxSerializationVersion: String by project
-    val kotliqueryVersion: String by project
     val logbackVersion: String by project
     val mockkVersion: String by project
     val postgresqlVersion: String by project
@@ -81,16 +81,19 @@ dependencies {
     val tokenProviderVersion: String by project
 
     implementation("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
-    implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("no.nav.helsearbeidsgiver:tokenprovider:$tokenProviderVersion")
     implementation("no.nav.helsearbeidsgiver:utils:$utilsVersion")
+    implementation("no.nav.security:token-client-core:$tokenSupportVersion")
     implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-json:$exposedVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
-    implementation("io.ktor:ktor-client-core:$ktorVersion")
-    implementation("no.nav.security:token-client-core:$tokenSupportVersion")
-    implementation("no.nav.helsearbeidsgiver:tokenprovider:$tokenProviderVersion")
 
     runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
 

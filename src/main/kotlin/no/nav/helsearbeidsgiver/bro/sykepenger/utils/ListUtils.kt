@@ -20,21 +20,11 @@ fun <T : Any> List<T>.leadingAndLast(): Pair<List<T>, T>? =
         }
     }
 
-fun <T : Any, R : Any> List<T>.mapWithNext(transform: (T, T?) -> R): List<R> =
+fun <T : Any> List<T>.zipWithNextOrNull(): List<Pair<T, T?>> =
     windowed(size = 2, partialWindows = true)
         .map {
             val current = it[0]
             val next = it.getOrNull(1)
 
-            transform(current, next)
-        }
-
-fun <T : Any> List<T>.splitOnIndex(index: Int): Pair<List<T>, List<T>> =
-    withIndex()
-        .partition { it.index < index }
-        .let { (yieldedTrue, yieldedFalse) ->
-            Pair(
-                yieldedTrue.map { it.value },
-                yieldedFalse.map { it.value },
-            )
+            Pair(current, next)
         }
