@@ -54,3 +54,8 @@ spec:
       - type: POSTGRES_14
         databases:
           - name: helsearbeidsgiver-bro-sykepenger
+            users:
+              - name: bro_datastream_bruker
+        flags:
+          - name: cloudsql.logical_decoding
+            value: "on"
