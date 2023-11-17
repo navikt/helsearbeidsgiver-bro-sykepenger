@@ -47,6 +47,7 @@ private fun postgres(): PostgreSQLContainer<Nothing> =
     PostgreSQLContainer<Nothing>("postgres:14").apply {
         withReuse(true)
         withLabel("app-navn", "helsearbeidsgiver-bro-sykepenger")
+        // nødvending for kunne kjøre migreringsscriptene V16-V18
         setCommand("postgres", "-c", "fsync=off", "-c", "log_statement=all", "-c", "wal_level=logical")
         start()
         println(
