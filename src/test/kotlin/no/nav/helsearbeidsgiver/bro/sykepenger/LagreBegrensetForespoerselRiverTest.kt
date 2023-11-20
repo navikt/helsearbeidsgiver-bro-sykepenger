@@ -85,6 +85,8 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
             mockPriProducer.send(
                 *expectedPublished.toKeyMap().toList().toTypedArray(),
             )
+
+            mockForespoerselDao.hentForespoerslerForVedtaksperiodeId(forespoersel.vedtaksperiodeId, any())
         }
     }
 
@@ -115,6 +117,8 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
                     it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)
                 },
             )
+
+            mockForespoerselDao.hentForespoerslerForVedtaksperiodeId(forespoersel.vedtaksperiodeId, any())
         }
 
         verify(exactly = 0) {
@@ -137,6 +141,7 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
 
         verifySequence {
             mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
+            mockForespoerselDao.hentForespoerslerForVedtaksperiodeId(forespoersel.vedtaksperiodeId, any())
         }
 
         verify(exactly = 0) {

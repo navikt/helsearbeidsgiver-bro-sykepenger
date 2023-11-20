@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
@@ -78,21 +79,15 @@ sealed class LagreForespoerselRiver(
     }
 
     private fun lagreForespoersel(nyForespoersel: ForespoerselDto) {
-        val aktivForespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(nyForespoersel.vedtaksperiodeId)
+        val aktivForespoersel =
+            forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(nyForespoersel.vedtaksperiodeId)
 
         if (aktivForespoersel == null || !nyForespoersel.erDuplikatAv(aktivForespoersel)) {
             forespoerselDao.lagre(nyForespoersel)
                 .let { id ->
-                    if (id != null) {
-                        "Forespørsel lagret med id=$id.".also {
-                            loggernaut.aapen.info(it)
-                            loggernaut.sikker.info(it)
-                        }
-                    } else {
-                        "Forespørsel ble ikke lagret.".also {
-                            loggernaut.aapen.error(it)
-                            loggernaut.sikker.error(it)
-                        }
+                    "Forespørsel lagret med id=$id.".also {
+                        loggernaut.aapen.info(it)
+                        loggernaut.sikker.info(it)
                     }
                 }
         } else {
@@ -114,6 +109,19 @@ sealed class LagreForespoerselRiver(
                 .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
         } else {
             loggernaut.aapen.info("Sa ikke ifra om mottatt forespørsel til Simba fordi det er en oppdatering av eksisterende forespørsel.")
+        }
+
+        val besvarteForespoersler =
+            forespoerselDao.hentForespoerslerForVedtaksperiodeId(
+                nyForespoersel.vedtaksperiodeId,
+                setOf(Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
+            )
+        if (besvarteForespoersler.size > 3) {
+            val msg =
+                "Ny IM har nettopp blitt etterspurt for vedtaksperiode-ID ${nyForespoersel.vedtaksperiodeId}, " +
+                    "som allerede har blitt besvart mer enn 3 ganger."
+            loggernaut.aapen.warn(msg)
+            loggernaut.sikker.warn(msg)
         }
     }
 
