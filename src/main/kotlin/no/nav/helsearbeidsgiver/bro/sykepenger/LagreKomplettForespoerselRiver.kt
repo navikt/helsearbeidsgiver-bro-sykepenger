@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -51,7 +52,7 @@ class LagreKomplettForespoerselRiver(
                     Spleis.Key.ORGANISASJONSNUMMER,
                     Spleis.Key.FØDSELSNUMMER,
                     Spleis.Key.VEDTAKSPERIODE_ID,
-                    Spleis.Key.SKJÆRINGSTIDSPUNKT,
+                    Spleis.Key.BESTEMMENDE_FRAVÆRSDAGER,
                     Spleis.Key.FORESPURT_DATA,
                 )
             }
@@ -61,18 +62,28 @@ class LagreKomplettForespoerselRiver(
     override fun lesForespoersel(
         forespoerselId: UUID,
         melding: Map<Spleis.Key, JsonElement>,
-    ): ForespoerselDto =
-        ForespoerselDto(
+    ): ForespoerselDto {
+        val orgnr = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding)
+        val bestemmendeFravaersdager =
+            Spleis.Key.BESTEMMENDE_FRAVÆRSDAGER.les(
+                MapSerializer(Orgnr.serializer(), LocalDateSerializer),
+                melding,
+            )
+
+        val skjaeringstidspunkt = bestemmendeFravaersdager.minus(orgnr).minOfOrNull { it.value }
+
+        return ForespoerselDto(
             forespoerselId = forespoerselId,
             type = Type.KOMPLETT,
             status = Status.AKTIV,
-            orgnr = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding),
+            orgnr = orgnr,
             fnr = Spleis.Key.FØDSELSNUMMER.les(String.serializer(), melding),
             vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
-            skjaeringstidspunkt = Spleis.Key.SKJÆRINGSTIDSPUNKT.les(LocalDateSerializer, melding),
+            skjaeringstidspunkt = skjaeringstidspunkt,
             sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),
             egenmeldingsperioder = Spleis.Key.EGENMELDINGSPERIODER.les(Periode.serializer().list(), melding),
             forespurtData = Spleis.Key.FORESPURT_DATA.les(SpleisForespurtDataDto.serializer().list(), melding),
             besvarelse = null,
         )
+    }
 }
