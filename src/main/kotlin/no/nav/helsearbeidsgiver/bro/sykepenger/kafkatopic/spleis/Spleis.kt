@@ -12,7 +12,7 @@ object Spleis {
         ORGANISASJONSNUMMER("organisasjonsnummer"),
         FØDSELSNUMMER("fødselsnummer"),
         VEDTAKSPERIODE_ID("vedtaksperiodeId"),
-        SKJÆRINGSTIDSPUNKT("skjæringstidspunkt"),
+        BESTEMMENDE_FRAVÆRSDAGER("bestemmendeFraværsdager"),
         SYKMELDINGSPERIODER("sykmeldingsperioder"),
         EGENMELDINGSPERIODER("egenmeldingsperioder"),
         FOM("fom"),

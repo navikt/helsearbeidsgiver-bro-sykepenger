@@ -49,7 +49,7 @@ fun mockForespoerselDto(): ForespoerselDto =
         orgnr = randomDigitString(9).let(::Orgnr),
         fnr = randomDigitString(11),
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
-        skjaeringstidspunkt = 15.januar,
+        skjaeringstidspunkt = null,
         sykmeldingsperioder =
             listOf(
                 Periode(2.januar, 10.januar),
