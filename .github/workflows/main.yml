@@ -55,6 +55,8 @@ jobs:
   deploy-to-dev:
     name: Deploy to dev-gcp
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     needs: build
     steps:
       - uses: actions/checkout@v4

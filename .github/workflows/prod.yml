@@ -48,6 +48,8 @@ jobs:
   deploy-to-prod:
     name: Deploy to prod-gcp
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     needs: build
     steps:
       - uses: actions/checkout@v4
