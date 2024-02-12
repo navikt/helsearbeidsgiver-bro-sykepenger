@@ -77,15 +77,11 @@ dependencies {
     val testcontainersPostgresqlVersion: String by project
     val utilsVersion: String by project
     val ktorVersion: String by project
-    val tokenSupportVersion: String by project
-    val tokenProviderVersion: String by project
 
     implementation("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("io.ktor:ktor-client-core:$ktorVersion")
-    implementation("no.nav.helsearbeidsgiver:tokenprovider:$tokenProviderVersion")
     implementation("no.nav.helsearbeidsgiver:utils:$utilsVersion")
-    implementation("no.nav.security:token-client-core:$tokenSupportVersion")
     implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayCoreVersion")
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")

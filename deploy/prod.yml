@@ -45,8 +45,6 @@ spec:
       value: tbd.arbeidsgiveropplysninger
     - name: KAFKA_EXTRA_TOPIC
       value: helsearbeidsgiver.pri
-    - name: SPINN_SCOPE
-      value: "api://prod-fss.helsearbeidsgiver.syfoinntektsmelding/.default"
   kafka:
     pool: nav-prod
   gcp:
