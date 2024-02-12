@@ -17,15 +17,6 @@ object Env {
         val password = "${PREFIX}_PASSWORD".fromEnv()
     }
 
-    object AzureAD {
-        val scope = "SPINN_SCOPE".fromEnv()
-        val azureWellKnownUrl = "AZURE_APP_WELL_KNOWN_URL".fromEnv()
-        val azureTokenEndpointUrl = "AZURE_OPENID_CONFIG_TOKEN_ENDPOINT".fromEnv()
-        val azureAppClientID = "AZURE_APP_CLIENT_ID".fromEnv()
-        val azureAppClientSecret = "AZURE_APP_CLIENT_SECRET".fromEnv()
-        val azureAppJwk = "AZURE_APP_JWK".fromEnv()
-    }
-
     fun String.fromEnv(): String =
         System.getenv(this)
             ?: throw RuntimeException("Missing required environment variable \"$this\".")
