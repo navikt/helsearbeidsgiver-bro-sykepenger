@@ -101,6 +101,7 @@ private fun ForespoerselSvar.Suksess.hardcodedJson(): String =
         "type": "$type",
         "orgnr": "${orgnr.verdi}",
         "fnr": "$fnr",
+        "vedtaksperiodeId": "$vedtaksperiodeId",
         "skjaeringstidspunkt": "$skjaeringstidspunkt",
         "sykmeldingsperioder": [${sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
         "egenmeldingsperioder": [${egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],

@@ -154,6 +154,7 @@ fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
         type = Type.KOMPLETT,
         orgnr = "569046822".let(::Orgnr),
         fnr = "abc",
+        vedtaksperiodeId = UUID.randomUUID(),
         skjaeringstidspunkt = 10.november(1999),
         sykmeldingsperioder = listOf(Periode(2.januar, 16.januar)),
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
