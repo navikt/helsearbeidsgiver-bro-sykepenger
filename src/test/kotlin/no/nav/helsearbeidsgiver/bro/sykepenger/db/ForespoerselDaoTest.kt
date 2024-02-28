@@ -24,7 +24,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.JoinType
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
@@ -995,7 +995,8 @@ private fun Database.hentForespoersel(id: Long): ForespoerselDto? =
             ForespoerselTable.id,
             BesvarelseTable.fkForespoerselId,
         )
-            .select {
+            .selectAll()
+            .where {
                 ForespoerselTable.id eq id
             }
             .map(::tilForespoerselDto)

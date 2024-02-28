@@ -16,7 +16,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.upsert
@@ -112,7 +112,8 @@ class ForespoerselDao(private val db: Database) {
                 ForespoerselTable.id,
                 BesvarelseTable.fkForespoerselId,
             )
-                .select {
+                .selectAll()
+                .where {
                     ForespoerselTable.forespoerselId eq forespoerselId
                 }
                 .map(::tilForespoerselDto)
@@ -164,7 +165,8 @@ class ForespoerselDao(private val db: Database) {
                 ForespoerselTable.id,
                 BesvarelseTable.fkForespoerselId,
             )
-                .select {
+                .selectAll()
+                .where {
                     (ForespoerselTable.vedtaksperiodeId eq vedtaksperiodeId) and
                         (ForespoerselTable.status inList statuser.map { it.name })
                 }
@@ -173,9 +175,11 @@ class ForespoerselDao(private val db: Database) {
 
     private fun hentVedtaksperiodeId(forespoerselId: UUID): UUID? =
         transaction(db) {
-            ForespoerselTable.select {
-                ForespoerselTable.forespoerselId eq forespoerselId
-            }
+            ForespoerselTable
+                .selectAll()
+                .where {
+                    ForespoerselTable.forespoerselId eq forespoerselId
+                }
                 .map {
                     it[ForespoerselTable.vedtaksperiodeId]
                 }
@@ -188,7 +192,7 @@ class ForespoerselDao(private val db: Database) {
         nyStatus: Status,
         activeTransaction: Transaction? = null,
     ): List<Long> {
-        val where: SqlExpressionBuilder.() -> Op<Boolean> = {
+        val whereStatement: SqlExpressionBuilder.() -> Op<Boolean> = {
             (ForespoerselTable.vedtaksperiodeId eq vedtaksperiodeId) and
                 (ForespoerselTable.status inList erstattStatuser.map { it.name })
         }
@@ -196,12 +200,14 @@ class ForespoerselDao(private val db: Database) {
         return activeTransaction.orNew {
             // Exposed støtter ikke Postgres sin RETURNING: https://github.com/JetBrains/Exposed/issues/1271
             val updated =
-                ForespoerselTable.select(where)
+                ForespoerselTable
+                    .selectAll()
+                    .where(whereStatement)
                     .map {
                         it[ForespoerselTable.id]
                     }
 
-            ForespoerselTable.update(where) {
+            ForespoerselTable.update(whereStatement) {
                 it[status] = nyStatus.name
             }
 
