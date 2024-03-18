@@ -1033,7 +1033,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
     }
 
     context(::tilForespoerselDto.name) {
-        test("Dersom skjæringstidspunkt mangler, bruk minste bestemmende fraværsdag fra andre arbeidsgivere") {
+        test("Sett skjæringstidspunkt til minste bestemmende fraværsdag blant andre arbeidsgivere") {
             val forespoersel = mockForespoerselDto()
             val annetOrgnr = Orgnr("592864023")
             val tredjeOrgnr = Orgnr("046764589")
