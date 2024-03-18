@@ -43,9 +43,9 @@ class ForespoerselDao(private val db: Database) {
                 it[orgnr] = forespoersel.orgnr.verdi
                 it[fnr] = forespoersel.fnr
                 it[vedtaksperiodeId] = forespoersel.vedtaksperiodeId
-                it[skjaeringstidspunkt] = forespoersel.skjaeringstidspunkt
-                it[sykmeldingsperioder] = forespoersel.sykmeldingsperioder
                 it[egenmeldingsperioder] = forespoersel.egenmeldingsperioder
+                it[sykmeldingsperioder] = forespoersel.sykmeldingsperioder
+                it[bestemmendeFravaersdager] = forespoersel.bestemmendeFravaersdager
                 it[forespurtData] = forespoersel.forespurtData
                 it[opprettet] = forespoersel.opprettet
                 it[oppdatert] = forespoersel.oppdatert
@@ -171,6 +171,7 @@ class ForespoerselDao(private val db: Database) {
                         (ForespoerselTable.status inList statuser.map { it.name })
                 }
                 .map(::tilForespoerselDto)
+                .sortedBy { it.opprettet }
         }
 
     private fun hentVedtaksperiodeId(forespoerselId: UUID): UUID? =
@@ -243,22 +244,31 @@ class ForespoerselDao(private val db: Database) {
         }
 }
 
-fun tilForespoerselDto(row: ResultRow): ForespoerselDto =
-    ForespoerselDto(
+fun tilForespoerselDto(row: ResultRow): ForespoerselDto {
+    val orgnr = row[ForespoerselTable.orgnr].let(::Orgnr)
+    val bestemmendeFravaersdager = row[ForespoerselTable.bestemmendeFravaersdager]
+
+    val skjaeringstidspunkt =
+        bestemmendeFravaersdager.minus(orgnr).minOfOrNull { it.value }
+            ?: row[ForespoerselTable.skjaeringstidspunkt]
+
+    return ForespoerselDto(
         forespoerselId = row[ForespoerselTable.forespoerselId],
         type = row[ForespoerselTable.type].let(Type::valueOf),
         status = row[ForespoerselTable.status].let(Status::valueOf),
-        orgnr = row[ForespoerselTable.orgnr].let(::Orgnr),
+        orgnr = orgnr,
         fnr = row[ForespoerselTable.fnr],
         vedtaksperiodeId = row[ForespoerselTable.vedtaksperiodeId],
-        skjaeringstidspunkt = row[ForespoerselTable.skjaeringstidspunkt],
-        sykmeldingsperioder = row[ForespoerselTable.sykmeldingsperioder],
         egenmeldingsperioder = row[ForespoerselTable.egenmeldingsperioder],
+        sykmeldingsperioder = row[ForespoerselTable.sykmeldingsperioder],
+        skjaeringstidspunkt = skjaeringstidspunkt,
+        bestemmendeFravaersdager = bestemmendeFravaersdager,
         forespurtData = row[ForespoerselTable.forespurtData],
         besvarelse = tilBesvarelseMetadataDto(row),
         opprettet = row[ForespoerselTable.opprettet],
         oppdatert = row[ForespoerselTable.oppdatert],
     )
+}
 
 private fun tilBesvarelseMetadataDto(row: ResultRow): BesvarelseMetadataDto? =
     if (row.getOrNull(BesvarelseTable.id) != null) {

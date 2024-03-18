@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.bro.sykepenger
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
-import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -26,9 +25,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.mars
-import java.time.LocalDate
 
 class LagreKomplettForespoerselRiverTest : FunSpec({
     val testRapid = TestRapid()
@@ -41,24 +38,21 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
         priProducer = mockPriProducer,
     )
 
-    fun mockInnkommendeMelding(
-        forespoersel: ForespoerselDto,
-        bestemmendeFravaersdager: Map<Orgnr, LocalDate> = emptyMap(),
-    ) {
+    fun mockInnkommendeMelding(forespoersel: ForespoerselDto) {
         testRapid.sendJson(
             Spleis.Key.TYPE to Spleis.Event.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER_KOMPLETT.toJson(Spleis.Event.serializer()),
             Spleis.Key.ORGANISASJONSNUMMER to forespoersel.orgnr.toJson(Orgnr.serializer()),
             Spleis.Key.FØDSELSNUMMER to forespoersel.fnr.toJson(),
             Spleis.Key.VEDTAKSPERIODE_ID to forespoersel.vedtaksperiodeId.toJson(),
+            Spleis.Key.EGENMELDINGSPERIODER to forespoersel.egenmeldingsperioder.toJson(Periode.serializer().list()),
+            Spleis.Key.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJson(Periode.serializer().list()),
             Spleis.Key.BESTEMMENDE_FRAVÆRSDAGER to
-                bestemmendeFravaersdager.toJson(
+                forespoersel.bestemmendeFravaersdager.toJson(
                     MapSerializer(
                         Orgnr.serializer(),
                         LocalDateSerializer,
                     ),
                 ),
-            Spleis.Key.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJson(Periode.serializer().list()),
-            Spleis.Key.EGENMELDINGSPERIODER to forespoersel.egenmeldingsperioder.toJson(Periode.serializer().list()),
             Spleis.Key.FORESPURT_DATA to forespoersel.forespurtData.toJson(SpleisForespurtDataDto.serializer().list()),
         )
     }
@@ -160,41 +154,6 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
             mockForespoerselDao.lagre(any())
 
             mockPriProducer.send(any())
-        }
-    }
-
-    test("Skjæringstidspunkt blir satt til minste bestemmende fraværsdag blant andre arbeidsgivere.") {
-        val forespoersel = mockForespoerselDto()
-
-        every { mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId) } returns null
-
-        mockkStatic(::randomUuid) {
-            every { randomUuid() } returns forespoersel.forespoerselId
-
-            mockInnkommendeMelding(
-                forespoersel,
-                mapOf(
-                    forespoersel.orgnr to 15.januar,
-                    "234234234".let(::Orgnr) to 17.januar,
-                    "678678678".let(::Orgnr) to 19.januar,
-                ),
-            )
-        }
-
-        verifySequence {
-            mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
-            mockForespoerselDao.lagre(
-                withArg {
-                    it.shouldBeEqualToIgnoringFields(
-                        forespoersel,
-                        forespoersel::skjaeringstidspunkt,
-                        forespoersel::oppdatert,
-                        forespoersel::opprettet,
-                    )
-                    it.skjaeringstidspunkt shouldBe 17.januar
-                },
-            )
-            mockForespoerselDao.hentForespoerslerForVedtaksperiodeId(forespoersel.vedtaksperiodeId, any())
         }
     }
 })

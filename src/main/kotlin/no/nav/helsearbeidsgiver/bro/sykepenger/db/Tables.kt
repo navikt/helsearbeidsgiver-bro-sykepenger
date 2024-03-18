@@ -1,8 +1,11 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
+import kotlinx.serialization.builtins.MapSerializer
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.date
@@ -22,9 +25,10 @@ object ForespoerselTable : Table("forespoersel") {
     val orgnr = varchar("orgnr", 50)
     val fnr = varchar("fnr", 50)
     val vedtaksperiodeId = uuid("vedtaksperiode_id")
-    val skjaeringstidspunkt = date("skjaeringstidspunkt").nullable()
-    val sykmeldingsperioder = jsonb("sykmeldingsperioder", jsonConfig, Periode.serializer().list())
     val egenmeldingsperioder = jsonb("egenmeldingsperioder", jsonConfig, Periode.serializer().list())
+    val sykmeldingsperioder = jsonb("sykmeldingsperioder", jsonConfig, Periode.serializer().list())
+    val skjaeringstidspunkt = date("skjaeringstidspunkt").nullable()
+    val bestemmendeFravaersdager = jsonb("bestemmende_fravaersdager", jsonConfig, bestemmendeFravaersdagerSerializer)
     val forespurtData = jsonb("forespurt_data", jsonConfig, SpleisForespurtDataDto.serializer().list())
     val opprettet = datetime("opprettet")
     val oppdatert = datetime("oppdatert")
@@ -43,3 +47,5 @@ object BesvarelseTable : Table("besvarelse_metadata") {
 
     override val primaryKey = PrimaryKey(id)
 }
+
+val bestemmendeFravaersdagerSerializer = MapSerializer(Orgnr.serializer(), LocalDateSerializer)

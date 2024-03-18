@@ -5,11 +5,13 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type.BEGRENSET
@@ -21,10 +23,11 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
+import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.JoinType
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
@@ -85,8 +88,14 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             val actual = forespoerselDao.hentForespoerselForForespoerselId(expected.forespoerselId)
 
             actual.shouldNotBeNull()
-            actual.shouldBeEqualToIgnoringFields(expected, ForespoerselDto::status, ForespoerselDto::oppdatert)
+            actual.shouldBeEqualToIgnoringFields(
+                expected,
+                ForespoerselDto::status,
+                ForespoerselDto::skjaeringstidspunkt,
+                ForespoerselDto::oppdatert,
+            )
             actual.status shouldBe Status.FORKASTET
+            actual.skjaeringstidspunkt shouldBe 17.januar
         }
 
         test("Gi 'null' dersom ingen forespørsel finnes") {
@@ -116,6 +125,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
                     forespoerselId = forkastetForespoersel.forespoerselId,
                     statuser = setOf(Status.AKTIV),
                 )
+                    ?.copy(skjaeringstidspunkt = null)
                     .shouldNotBeNull()
 
             actualForespoersel shouldBe aktivForespoersel
@@ -170,6 +180,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
                         forespoerselId = foersteForespoersel.forespoerselId,
                         statuser = setOf(Status.AKTIV),
                     )
+                        ?.copy(skjaeringstidspunkt = null)
                         .shouldNotBeNull()
 
                 actualForespoersel.shouldBeEqualToIgnoringFields(aktivForespoersel, ForespoerselDto::oppdatert)
@@ -223,6 +234,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
                         forespoerselId = foersteForespoersel.forespoerselId,
                         statuser = setOf(Status.AKTIV, Status.BESVART_SPLEIS),
                     )
+                        ?.copy(skjaeringstidspunkt = null)
                         .shouldNotBeNull()
 
                 actualForespoersel shouldBe besvartForespoersel
@@ -280,6 +292,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
                         forespoerselId = foersteForespoersel.forespoerselId,
                         statuser = setOf(Status.AKTIV, Status.BESVART_SPLEIS),
                     )
+                        ?.copy(skjaeringstidspunkt = null)
                         .shouldNotBeNull()
 
                 actualForespoersel shouldBe aktivForespoersel
@@ -316,6 +329,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
                         forespoerselId = gammelForespoersel.forespoerselId,
                         statuser = setOf(Status.AKTIV),
                     )
+                        ?.copy(skjaeringstidspunkt = null)
                         .shouldNotBeNull()
 
                 actualForespoersel shouldBe nyForespoersel
@@ -371,6 +385,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
 
             val actualForespoersel =
                 forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forkastetForespoersel.vedtaksperiodeId)
+                    ?.copy(skjaeringstidspunkt = null)
                     .shouldNotBeNull()
 
             actualForespoersel shouldBe aktivForespoersel
@@ -397,6 +412,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
 
             val actualForespoersel =
                 forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(gammelForespoersel.vedtaksperiodeId)
+                    ?.copy(skjaeringstidspunkt = null)
                     .shouldNotBeNull()
 
             actualForespoersel shouldBe nyForespoersel
@@ -913,8 +929,8 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
 
         test("Henter alle forespørsler knyttet til en vedtaksperiodeId") {
             val a = mockForespoerselDto()
-            val b = mockForespoerselDto()
-            val c = mockForespoerselDto()
+            val b = mockForespoerselDto().oekOpprettet(1)
+            val c = mockForespoerselDto().oekOpprettet(2)
 
             a.lagreNotNull()
             b.lagreNotNull()
@@ -936,20 +952,38 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             actual shouldHaveSize 3
 
             actual[0].status shouldBe Status.FORKASTET
-            actual[0].shouldBeEqualToIgnoringFields(a, ForespoerselDto::status, ForespoerselDto::besvarelse, ForespoerselDto::oppdatert)
+            actual[0].shouldBeEqualToIgnoringFields(
+                a,
+                ForespoerselDto::status,
+                ForespoerselDto::skjaeringstidspunkt,
+                ForespoerselDto::besvarelse,
+                ForespoerselDto::oppdatert,
+            )
 
             actual[1].status shouldBe Status.BESVART_SPLEIS
-            actual[1].shouldBeEqualToIgnoringFields(b, ForespoerselDto::status, ForespoerselDto::besvarelse, ForespoerselDto::oppdatert)
+            actual[1].shouldBeEqualToIgnoringFields(
+                b,
+                ForespoerselDto::status,
+                ForespoerselDto::skjaeringstidspunkt,
+                ForespoerselDto::besvarelse,
+                ForespoerselDto::oppdatert,
+            )
 
             actual[2].status shouldBe Status.AKTIV
-            actual[2].shouldBeEqualToIgnoringFields(c, ForespoerselDto::status, ForespoerselDto::besvarelse, ForespoerselDto::oppdatert)
+            actual[2].shouldBeEqualToIgnoringFields(
+                c,
+                ForespoerselDto::status,
+                ForespoerselDto::skjaeringstidspunkt,
+                ForespoerselDto::besvarelse,
+                ForespoerselDto::oppdatert,
+            )
         }
 
         test("Henter forespørsler med gitt status som er knyttet til en vedtaksperiodeId") {
             val a = mockForespoerselDto()
-            val b = mockForespoerselDto()
-            val c = mockForespoerselDto()
-            val d = mockForespoerselDto()
+            val b = mockForespoerselDto().oekOpprettet(1)
+            val c = mockForespoerselDto().oekOpprettet(2)
+            val d = mockForespoerselDto().oekOpprettet(3)
 
             a.lagreNotNull()
             b.lagreNotNull()
@@ -979,15 +1013,80 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             actual shouldHaveSize 2
 
             actual[0].status shouldBe Status.BESVART_SPLEIS
-            actual[0].shouldBeEqualToIgnoringFields(b, ForespoerselDto::status, ForespoerselDto::besvarelse, ForespoerselDto::oppdatert)
+            actual[0].shouldBeEqualToIgnoringFields(
+                b,
+                ForespoerselDto::status,
+                ForespoerselDto::skjaeringstidspunkt,
+                ForespoerselDto::besvarelse,
+                ForespoerselDto::oppdatert,
+            )
 
             actual[1].status shouldBe Status.BESVART_SPLEIS
-            actual[1].shouldBeEqualToIgnoringFields(c, ForespoerselDto::status, ForespoerselDto::besvarelse, ForespoerselDto::oppdatert)
+            actual[1].shouldBeEqualToIgnoringFields(
+                c,
+                ForespoerselDto::status,
+                ForespoerselDto::skjaeringstidspunkt,
+                ForespoerselDto::besvarelse,
+                ForespoerselDto::oppdatert,
+            )
+        }
+    }
+
+    context(::tilForespoerselDto.name) {
+        test("Dersom skjæringstidspunkt mangler, bruk minste bestemmende fraværsdag fra andre arbeidsgivere") {
+            val forespoersel = mockForespoerselDto()
+            val annetOrgnr = Orgnr("592864023")
+            val tredjeOrgnr = Orgnr("046764589")
+            val bestemmendeFravaersdager =
+                mapOf(
+                    forespoersel.orgnr to 3.mars,
+                    annetOrgnr to 5.mars,
+                    tredjeOrgnr to 7.mars,
+                )
+
+            val id =
+                forespoersel.copy(
+                    skjaeringstidspunkt = null,
+                    bestemmendeFravaersdager = bestemmendeFravaersdager,
+                )
+                    .lagreNotNull()
+
+            val actual = db.hentForespoerselRow(id)?.let(::tilForespoerselDto)
+
+            actual.shouldNotBeNull()
+            actual.skjaeringstidspunkt shouldBe 5.mars
+            actual.bestemmendeFravaersdager shouldBe bestemmendeFravaersdager
+        }
+
+        test("Dersom bestemmende fraværsdager mangler, bruk skjæringstidspunkt") {
+            val skjaeringstidspunkt = 6.juni
+
+            val id =
+                mockForespoerselDto().copy(
+                    bestemmendeFravaersdager = emptyMap(),
+                )
+                    .lagreNotNull()
+
+            val actual =
+                db.hentForespoerselRow(id)
+                    ?.also {
+                        it[ForespoerselTable.skjaeringstidspunkt] = skjaeringstidspunkt
+                    }
+                    ?.let(::tilForespoerselDto)
+
+            actual.shouldNotBeNull()
+            actual.skjaeringstidspunkt shouldBe skjaeringstidspunkt
+            actual.bestemmendeFravaersdager.shouldBeEmpty()
         }
     }
 })
 
 private fun Database.hentForespoersel(id: Long): ForespoerselDto? =
+    hentForespoerselRow(id)
+        ?.let(::tilForespoerselDto)
+        ?.copy(skjaeringstidspunkt = null)
+
+private fun Database.hentForespoerselRow(id: Long): ResultRow? =
     transaction(this) {
         ForespoerselTable.join(
             BesvarelseTable,
@@ -999,7 +1098,6 @@ private fun Database.hentForespoersel(id: Long): ForespoerselDto? =
             .where {
                 ForespoerselTable.id eq id
             }
-            .map(::tilForespoerselDto)
             .firstOrNull()
     }
 
@@ -1025,6 +1123,8 @@ private fun Database.antallBesvarelser(): Int =
     transaction(this) {
         BesvarelseTable.selectAll().count()
     }.toInt()
+
+private fun ForespoerselDto.oekOpprettet(sekunder: Long): ForespoerselDto = copy(opprettet = opprettet.plusSeconds(sekunder))
 
 private fun now(): LocalDateTime = LocalDateTime.now().truncMillis()
 

@@ -37,12 +37,17 @@ class ForespoerselDtoTest : FunSpec({
                 "Oppdager ulik 'orgnr'" to { it.copy(orgnr = "999777555".let(::Orgnr)) },
                 "Oppdager ulik 'fnr'" to { it.copy(fnr = "22244466688") },
                 "Oppdager ulik 'vedtaksperiodeId'" to { it.copy(vedtaksperiodeId = UUID.randomUUID()) },
-                "Oppdager ulik 'skjaeringstidspunkt'" to { it.copy(skjaeringstidspunkt = LocalDate.now().plusDays(17)) },
+                "Oppdager ulik 'egenmeldingsperioder'" to {
+                    it.copy(egenmeldingsperioder = listOf(Periode(2.september(1774), 4.september(1774))))
+                },
                 "Oppdager ulik 'sykmeldingsperioder'" to {
                     it.copy(sykmeldingsperioder = listOf(Periode(22.september(1774), 24.september(1774))))
                 },
-                "Oppdager ulik 'egenmeldingsperioder'" to {
-                    it.copy(egenmeldingsperioder = listOf(Periode(2.september(1774), 4.september(1774))))
+                "Oppdager ulik 'skjaeringstidspunkt'" to { it.copy(skjaeringstidspunkt = LocalDate.now().plusDays(17)) },
+                "Oppdager ulik 'bestemmendeFravaersdager'" to {
+                    it.copy(
+                        bestemmendeFravaersdager = mapOf(it.orgnr to LocalDate.now().plusDays(7)),
+                    )
                 },
                 "Oppdager ulik 'forespurtData'" to {
                     it.copy(

@@ -41,24 +41,33 @@ object MockUuid {
     val inntektsmeldingId: UUID = "22efb342-3e72-4880-a449-eb1efcf0f18b".let(UUID::fromString)
 }
 
-fun mockForespoerselDto(): ForespoerselDto =
-    ForespoerselDto(
+fun mockForespoerselDto(): ForespoerselDto {
+    val orgnr = randomDigitString(9).let(::Orgnr)
+
+    return ForespoerselDto(
         forespoerselId = randomUuid(),
         type = Type.KOMPLETT,
         status = Status.AKTIV,
-        orgnr = randomDigitString(9).let(::Orgnr),
+        orgnr = orgnr,
         fnr = randomDigitString(11),
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
-        skjaeringstidspunkt = null,
+        egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         sykmeldingsperioder =
             listOf(
                 Periode(2.januar, 10.januar),
                 Periode(15.januar, 20.januar),
             ),
-        egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
+        skjaeringstidspunkt = null,
+        bestemmendeFravaersdager =
+            mapOf(
+                orgnr to 15.januar,
+                "234234234".let(::Orgnr) to 17.januar,
+                "678678678".let(::Orgnr) to 19.januar,
+            ),
         forespurtData = mockSpleisForespurtDataListe(),
         besvarelse = null,
     )
+}
 
 fun mockSpleisForespurtDataListe(): List<SpleisForespurtDataDto> =
     listOf(
@@ -149,18 +158,23 @@ fun mockForespoerselMottatt(): ForespoerselMottatt =
         fnr = "abc",
     )
 
-fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess =
-    ForespoerselSvar.Suksess(
+fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess {
+    val orgnr = "569046822".let(::Orgnr)
+    val skjaeringstidspunkt = 10.november(1999)
+
+    return ForespoerselSvar.Suksess(
         type = Type.KOMPLETT,
-        orgnr = "569046822".let(::Orgnr),
+        orgnr = orgnr,
         fnr = "abc",
         vedtaksperiodeId = UUID.randomUUID(),
-        skjaeringstidspunkt = 10.november(1999),
-        sykmeldingsperioder = listOf(Periode(2.januar, 16.januar)),
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
+        sykmeldingsperioder = listOf(Periode(2.januar, 16.januar)),
+        skjaeringstidspunkt = skjaeringstidspunkt,
+        bestemmendeFravaersdager = mapOf(orgnr to skjaeringstidspunkt),
         forespurtData = mockForespurtData(),
         erBesvart = false,
     )
+}
 
 fun mockForespurtData(): ForespurtData =
     ForespurtData(

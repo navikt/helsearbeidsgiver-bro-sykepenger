@@ -1,11 +1,11 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
-import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
+import no.nav.helsearbeidsgiver.bro.sykepenger.db.bestemmendeFravaersdagerSerializer
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
@@ -36,13 +36,13 @@ class LagreKomplettForespoerselRiver(
         River(rapid).apply {
             validate { msg ->
                 msg.demandValues(Spleis.Key.TYPE to Spleis.Event.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER_KOMPLETT.name)
-                msg.requireArray(Spleis.Key.SYKMELDINGSPERIODER.verdi) {
+                msg.requireArray(Spleis.Key.EGENMELDINGSPERIODER.verdi) {
                     require(
                         Spleis.Key.FOM to { it.fromJson(LocalDateSerializer) },
                         Spleis.Key.TOM to { it.fromJson(LocalDateSerializer) },
                     )
                 }
-                msg.requireArray(Spleis.Key.EGENMELDINGSPERIODER.verdi) {
+                msg.requireArray(Spleis.Key.SYKMELDINGSPERIODER.verdi) {
                     require(
                         Spleis.Key.FOM to { it.fromJson(LocalDateSerializer) },
                         Spleis.Key.TOM to { it.fromJson(LocalDateSerializer) },
@@ -65,12 +65,7 @@ class LagreKomplettForespoerselRiver(
     ): ForespoerselDto {
         val orgnr = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding)
         val bestemmendeFravaersdager =
-            Spleis.Key.BESTEMMENDE_FRAVÆRSDAGER.les(
-                MapSerializer(Orgnr.serializer(), LocalDateSerializer),
-                melding,
-            )
-
-        val skjaeringstidspunkt = bestemmendeFravaersdager.minus(orgnr).minOfOrNull { it.value }
+            Spleis.Key.BESTEMMENDE_FRAVÆRSDAGER.les(bestemmendeFravaersdagerSerializer, melding)
 
         return ForespoerselDto(
             forespoerselId = forespoerselId,
@@ -79,9 +74,10 @@ class LagreKomplettForespoerselRiver(
             orgnr = orgnr,
             fnr = Spleis.Key.FØDSELSNUMMER.les(String.serializer(), melding),
             vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
-            skjaeringstidspunkt = skjaeringstidspunkt,
-            sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),
             egenmeldingsperioder = Spleis.Key.EGENMELDINGSPERIODER.les(Periode.serializer().list(), melding),
+            sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),
+            skjaeringstidspunkt = null,
+            bestemmendeFravaersdager = bestemmendeFravaersdager,
             forespurtData = Spleis.Key.FORESPURT_DATA.les(SpleisForespurtDataDto.serializer().list(), melding),
             besvarelse = null,
         )

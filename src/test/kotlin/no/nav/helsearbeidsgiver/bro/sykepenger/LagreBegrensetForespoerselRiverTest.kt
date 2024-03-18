@@ -51,6 +51,7 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
 
     beforeEach {
         clearAllMocks()
+        every { mockPriProducer.send(any()) } returns true
     }
 
     test("Forespørsel blir lagret og sender notifikasjon") {
@@ -155,7 +156,8 @@ class LagreBegrensetForespoerselRiverTest : FunSpec({
 private fun mockBegrensetForespoerselDto(): ForespoerselDto =
     mockForespoerselDto().copy(
         type = Type.BEGRENSET,
-        skjaeringstidspunkt = null,
         egenmeldingsperioder = emptyList(),
+        skjaeringstidspunkt = null,
+        bestemmendeFravaersdager = emptyMap(),
         forespurtData = mockBegrensetForespurtDataListe(),
     )
