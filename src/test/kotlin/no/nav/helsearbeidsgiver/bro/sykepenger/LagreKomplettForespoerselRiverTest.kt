@@ -8,9 +8,9 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.verify
 import io.mockk.verifySequence
-import kotlinx.serialization.builtins.MapSerializer
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
+import no.nav.helsearbeidsgiver.bro.sykepenger.db.bestemmendeFravaersdagerSerializer
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
@@ -22,7 +22,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.toKeyMap
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
-import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.mars
@@ -46,13 +45,7 @@ class LagreKomplettForespoerselRiverTest : FunSpec({
             Spleis.Key.VEDTAKSPERIODE_ID to forespoersel.vedtaksperiodeId.toJson(),
             Spleis.Key.EGENMELDINGSPERIODER to forespoersel.egenmeldingsperioder.toJson(Periode.serializer().list()),
             Spleis.Key.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJson(Periode.serializer().list()),
-            Spleis.Key.BESTEMMENDE_FRAVÆRSDAGER to
-                forespoersel.bestemmendeFravaersdager.toJson(
-                    MapSerializer(
-                        Orgnr.serializer(),
-                        LocalDateSerializer,
-                    ),
-                ),
+            Spleis.Key.BESTEMMENDE_FRAVÆRSDAGER to forespoersel.bestemmendeFravaersdager.toJson(bestemmendeFravaersdagerSerializer),
             Spleis.Key.FORESPURT_DATA to forespoersel.forespurtData.toJson(SpleisForespurtDataDto.serializer().list()),
         )
     }
