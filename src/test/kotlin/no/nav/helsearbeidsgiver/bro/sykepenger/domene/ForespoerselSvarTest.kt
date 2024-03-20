@@ -11,6 +11,7 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
+import java.time.LocalDate
 
 class ForespoerselSvarTest : FunSpec({
     withData(
@@ -102,13 +103,19 @@ private fun ForespoerselSvar.Suksess.hardcodedJson(): String =
         "orgnr": "${orgnr.verdi}",
         "fnr": "$fnr",
         "vedtaksperiodeId": "$vedtaksperiodeId",
-        "skjaeringstidspunkt": "$skjaeringstidspunkt",
-        "sykmeldingsperioder": [${sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
         "egenmeldingsperioder": [${egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
+        "sykmeldingsperioder": [${sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
+        "skjaeringstidspunkt": "$skjaeringstidspunkt",
+        "bestemmendeFravaersdager": {${bestemmendeFravaersdager.toList().joinToString(transform = Pair<Orgnr, LocalDate>::hardcodedJson)}},
         "forespurtData": ${forespurtData.hardcodedJson()},
         "erBesvart": $erBesvart
     }
     """.removeJsonWhitespace()
+
+private fun Pair<Orgnr, LocalDate>.hardcodedJson(): String =
+    """
+        "${first.verdi}": "$second"
+    """
 
 private fun ForespurtData.hardcodedJson(): String =
     """

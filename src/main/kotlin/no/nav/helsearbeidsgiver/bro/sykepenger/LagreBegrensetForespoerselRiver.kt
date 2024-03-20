@@ -62,9 +62,10 @@ class LagreBegrensetForespoerselRiver(
             orgnr = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding),
             fnr = Spleis.Key.FØDSELSNUMMER.les(String.serializer(), melding),
             vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
-            skjaeringstidspunkt = null,
-            sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),
             egenmeldingsperioder = emptyList(),
+            sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),
+            skjaeringstidspunkt = null,
+            bestemmendeFravaersdager = emptyMap(),
             forespurtData = Spleis.Key.FORESPURT_DATA.les(SpleisForespurtDataDto.serializer().list(), melding),
             besvarelse = null,
         )
