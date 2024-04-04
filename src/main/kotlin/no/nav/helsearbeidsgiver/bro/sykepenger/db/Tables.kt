@@ -7,24 +7,32 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.json.jsonb
+import java.util.UUID
 
-object ForespoerselTable : Table("forespoersel") {
-    val id =
+abstract class StatusTable(name: String) : Table(name) {
+    abstract val id: Column<Long>
+    abstract val forespoerselId: Column<UUID>
+    abstract val vedtaksperiodeId: Column<UUID>
+    abstract val status: Column<String>
+}
+
+object ForespoerselTable : StatusTable("forespoersel") {
+    override val id =
         long("id").autoIncrement(
             idSeqName = "forespoersel_id_seq",
         )
-    val forespoerselId = uuid("forespoersel_id")
+    override val forespoerselId = uuid("forespoersel_id")
+    override val vedtaksperiodeId = uuid("vedtaksperiode_id")
+    override val status = varchar("status", 50)
 
-    // Denne er varchar av udefinert lengde i databasen
     val type = text("type")
-    val status = varchar("status", 50)
     val orgnr = varchar("orgnr", 50)
     val fnr = varchar("fnr", 50)
-    val vedtaksperiodeId = uuid("vedtaksperiode_id")
     val egenmeldingsperioder = jsonb("egenmeldingsperioder", jsonConfig, Periode.serializer().list())
     val sykmeldingsperioder = jsonb("sykmeldingsperioder", jsonConfig, Periode.serializer().list())
     val skjaeringstidspunkt = date("skjaeringstidspunkt").nullable()

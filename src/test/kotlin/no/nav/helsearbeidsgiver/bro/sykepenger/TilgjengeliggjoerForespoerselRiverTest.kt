@@ -32,7 +32,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
     test("Ved innkommende event, svar ut korrekt ForespoerselSvar") {
         val forespoersel = mockForespoerselDto()
 
-        every { mockForespoerselDao.hentNyesteForespoerselForForespoerselId(any(), any()) } returns forespoersel
+        every { mockForespoerselDao.hentNyesteForespoerselMedBesvarelseForForespoerselId(any(), any()) } returns forespoersel
 
         val expectedPublished =
             ForespoerselSvar(
@@ -48,7 +48,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         )
 
         verifySequence {
-            mockForespoerselDao.hentNyesteForespoerselForForespoerselId(
+            mockForespoerselDao.hentNyesteForespoerselMedBesvarelseForForespoerselId(
                 any(),
                 setOf(Status.AKTIV, Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
             )
@@ -67,7 +67,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
                 forespurtData = mockBegrensetForespurtDataListe(),
             )
 
-        every { mockForespoerselDao.hentNyesteForespoerselForForespoerselId(any(), any()) } returns forespoersel
+        every { mockForespoerselDao.hentNyesteForespoerselMedBesvarelseForForespoerselId(any(), any()) } returns forespoersel
 
         val expectedPublished =
             ForespoerselSvar(
@@ -83,7 +83,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         )
 
         verifySequence {
-            mockForespoerselDao.hentNyesteForespoerselForForespoerselId(
+            mockForespoerselDao.hentNyesteForespoerselMedBesvarelseForForespoerselId(
                 any(),
                 setOf(Status.AKTIV, Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
             )
@@ -95,7 +95,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
     }
 
     test("Når forespørsel ikke finnes skal det sendes ForespoerselSvar med error") {
-        every { mockForespoerselDao.hentNyesteForespoerselForForespoerselId(any(), any()) } returns null
+        every { mockForespoerselDao.hentNyesteForespoerselMedBesvarelseForForespoerselId(any(), any()) } returns null
 
         val forespoersel = mockForespoerselDto()
         val expectedPublished =
@@ -112,7 +112,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         )
 
         verifySequence {
-            mockForespoerselDao.hentNyesteForespoerselForForespoerselId(
+            mockForespoerselDao.hentNyesteForespoerselMedBesvarelseForForespoerselId(
                 any(),
                 setOf(Status.AKTIV, Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
             )
