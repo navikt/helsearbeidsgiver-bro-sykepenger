@@ -69,7 +69,7 @@ class TestDao(override val db: Database) : StatusDao() {
             .let(::tilForespoerselDto)
 }
 
-class GenericDaoTest : FunSpecWithDb(listOf(TestTable), { db ->
+class StatusDaoTest : FunSpecWithDb(listOf(TestTable), { db ->
     val testDao = TestDao(db)
 
     context(StatusDao::hentForespoerselForForespoerselId.name) {
