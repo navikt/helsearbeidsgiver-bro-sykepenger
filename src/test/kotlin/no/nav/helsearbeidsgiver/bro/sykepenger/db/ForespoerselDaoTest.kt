@@ -1058,7 +1058,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             actual.bestemmendeFravaersdager shouldBe bestemmendeFravaersdager
         }
 
-        test("Dersom bestemmende fraværsdager mangler, bruk skjæringstidspunkt") {
+        test("Dersom bestemmende fraværsdager mangler, legg til skjæringstidspunkt som bestemmende fraværsdag med ukjent orgnr") {
             val skjaeringstidspunkt = 6.juni
 
             val id =
@@ -1076,6 +1076,22 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
 
             actual.shouldNotBeNull()
             actual.skjaeringstidspunkt shouldBe skjaeringstidspunkt
+            actual.bestemmendeFravaersdager shouldBe mapOf(Orgnr("000000000") to skjaeringstidspunkt)
+        }
+
+        test("Dersom både bestemmende fraværsdager og skjæringstidspunkt mangler så er begge tomme") {
+            val id =
+                mockForespoerselDto().copy(
+                    bestemmendeFravaersdager = emptyMap(),
+                )
+                    .lagreNotNull()
+
+            val actual =
+                db.hentForespoerselRow(id)
+                    ?.let(::tilForespoerselDto)
+
+            actual.shouldNotBeNull()
+            actual.skjaeringstidspunkt.shouldBeNull()
             actual.bestemmendeFravaersdager.shouldBeEmpty()
         }
     }
