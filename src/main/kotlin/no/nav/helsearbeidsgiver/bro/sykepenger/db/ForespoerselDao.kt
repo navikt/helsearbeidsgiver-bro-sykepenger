@@ -6,6 +6,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.zipWithNextOrNull
+import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import org.jetbrains.exposed.sql.Database
@@ -246,11 +247,19 @@ class ForespoerselDao(private val db: Database) {
 
 fun tilForespoerselDto(row: ResultRow): ForespoerselDto {
     val orgnr = row[ForespoerselTable.orgnr].let(::Orgnr)
-    val bestemmendeFravaersdager = row[ForespoerselTable.bestemmendeFravaersdager]
+    val bestemmendeFravaersdager =
+        row[ForespoerselTable.bestemmendeFravaersdager]
+            .ifEmpty {
+                mapOf(
+                    // Gamle forespørsler som ikke har 'bestemmendeFravaersdager' _kan_ ha 'skjaeringstidspunkt',
+                    // men vi vet ikke hvilket orgnr det tilhører
+                    Orgnr("000000000") to row[ForespoerselTable.skjaeringstidspunkt],
+                )
+                    .mapValuesNotNull { it }
+            }
 
     val skjaeringstidspunkt =
         bestemmendeFravaersdager.minus(orgnr).minOfOrNull { it.value }
-            ?: row[ForespoerselTable.skjaeringstidspunkt]
 
     return ForespoerselDto(
         forespoerselId = row[ForespoerselTable.forespoerselId],
