@@ -107,21 +107,20 @@ sealed class LagreForespoerselRiver(
             )
                 .ifTrue { loggernaut.aapen.info("Sa ifra om mottatt forespørsel til Simba.") }
                 .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
+
+            val besvarteForespoersler =
+                forespoerselDao.hentForespoerslerForVedtaksperiodeId(
+                    nyForespoersel.vedtaksperiodeId,
+                    setOf(Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
+                )
+            if (besvarteForespoersler.size > 3) {
+                loggernaut.warn(
+                    "Ny IM har nettopp blitt etterspurt for vedtaksperiode-ID ${nyForespoersel.vedtaksperiodeId}, " +
+                        "som allerede har blitt besvart mer enn 3 ganger.",
+                )
+            }
         } else {
             loggernaut.aapen.info("Sa ikke ifra om mottatt forespørsel til Simba fordi det er en oppdatering av eksisterende forespørsel.")
-        }
-
-        val besvarteForespoersler =
-            forespoerselDao.hentForespoerslerForVedtaksperiodeId(
-                nyForespoersel.vedtaksperiodeId,
-                setOf(Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
-            )
-        if (besvarteForespoersler.size > 3) {
-            val msg =
-                "Ny IM har nettopp blitt etterspurt for vedtaksperiode-ID ${nyForespoersel.vedtaksperiodeId}, " +
-                    "som allerede har blitt besvart mer enn 3 ganger."
-            loggernaut.aapen.warn(msg)
-            loggernaut.sikker.warn(msg)
         }
     }
 
