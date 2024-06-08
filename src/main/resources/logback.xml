@@ -24,7 +24,7 @@
     <logger  name="Exposed" level="WARN" additivity="false">
         <appender-ref ref="secureLog"/>
     </logger>
-    <logger name="org.jetbrains.exposed" level="WARN" additivity="false">
+    <logger name="org.jetbrains.exposed" level="INFO" additivity="false">
         <appender-ref ref="secureLog"/>
     </logger>
     <root level="INFO">
