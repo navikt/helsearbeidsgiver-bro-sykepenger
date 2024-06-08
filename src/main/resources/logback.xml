@@ -16,8 +16,8 @@
         </triggeringPolicy>
         <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
     </appender>
-    <logger name="no.nav.helse.rapids_rivers" level="DEBUG" />
 
+    <logger name="no.nav.helse.rapids_rivers" level="DEBUG" />
     <logger name="tjenestekall" level="DEBUG" additivity="false">
         <appender-ref ref="secureLog" />
     </logger>
@@ -27,6 +27,7 @@
     <logger name="org.jetbrains.exposed" level="INFO" additivity="false">
         <appender-ref ref="secureLog"/>
     </logger>
+
     <root level="INFO">
         <appender-ref ref="STDOUT_JSON"/>
     </root>

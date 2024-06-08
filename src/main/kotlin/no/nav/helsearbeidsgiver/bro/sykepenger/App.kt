@@ -11,10 +11,6 @@ fun main() {
     val broLogger = "BroLogger".logger()
     broLogger.info("Hello bro!")
 
-    "Exposed".logger().warn("Exposed logger")
-    "Exposed".logger().info("Exposed logger")
-    "Exposed".logger().error("Exposed logger")
-
     val forespoerselDao = ForespoerselDao(Database.db)
     val priProducer = PriProducer()
 
