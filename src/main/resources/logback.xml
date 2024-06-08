@@ -21,8 +21,9 @@
     <logger name="tjenestekall" level="DEBUG" additivity="false">
         <appender-ref ref="secureLog" />
     </logger>
-
-
+    <logger  name="Exposed" level="WARN" additivity="false">
+        <appender-ref ref="secureLog"/>
+    </logger>
     <logger name="org.jetbrains.exposed" level="WARN" additivity="false">
         <appender-ref ref="secureLog"/>
     </logger>
