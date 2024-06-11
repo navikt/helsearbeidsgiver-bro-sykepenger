@@ -21,6 +21,7 @@
     <logger name="tjenestekall" level="DEBUG" additivity="false">
         <appender-ref ref="secureLog" />
     </logger>
+    // Ikke slett! Denne ble lagt til siden Exposed loggeren ikke logget til secureLog og logget parameterverdier når det feilet i databasetransaksjoner.
     <logger  name="Exposed" level="WARN" additivity="false">
         <appender-ref ref="secureLog"/>
     </logger>
