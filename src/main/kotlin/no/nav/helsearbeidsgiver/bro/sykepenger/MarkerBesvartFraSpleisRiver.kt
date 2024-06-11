@@ -94,7 +94,7 @@ class MarkerBesvartFraSpleisRiver(
             }
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.forespoerselIdEksponertTilSimba(
+                forespoerselDao.hentForespoerselIdEksponertTilSimba(
                     inntektsmeldingHaandtert.vedtaksperiodeId,
                 )
             if (forespoerselIdEksponertTilSimba == null) {

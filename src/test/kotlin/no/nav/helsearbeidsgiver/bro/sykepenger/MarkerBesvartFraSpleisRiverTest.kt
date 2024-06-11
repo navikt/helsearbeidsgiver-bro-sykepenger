@@ -60,7 +60,7 @@ class MarkerBesvartFraSpleisRiverTest : FunSpec({
                 inntektsmeldingHaandtert.haandtert,
                 inntektsmeldingHaandtert.inntektsmeldingId,
             )
-            mockForespoerselDao.forespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
+            mockForespoerselDao.hentForespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
         }
     }
 
@@ -78,7 +78,7 @@ class MarkerBesvartFraSpleisRiverTest : FunSpec({
                 inntektsmeldingHaandtert.haandtert,
                 inntektsmeldingHaandtert.inntektsmeldingId,
             )
-            mockForespoerselDao.forespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
+            mockForespoerselDao.hentForespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
         }
     }
 
@@ -89,7 +89,7 @@ class MarkerBesvartFraSpleisRiverTest : FunSpec({
         every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(any(), any(), any()) } returns 1
 
         every {
-            mockForespoerselDao.forespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
+            mockForespoerselDao.hentForespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
         } returns expectedForespoerselId
 
         mockInnkommendeMelding(inntektsmeldingHaandtert)
@@ -127,7 +127,7 @@ class MarkerBesvartFraSpleisRiverTest : FunSpec({
         } returns 1
 
         every {
-            mockForespoerselDao.forespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
+            mockForespoerselDao.hentForespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
         } returns expectedForespoerselId
 
         mockInnkommendeMelding(inntektsmeldingHaandtert)
@@ -153,7 +153,7 @@ class MarkerBesvartFraSpleisRiverTest : FunSpec({
         } returns 1
 
         every {
-            mockForespoerselDao.forespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
+            mockForespoerselDao.hentForespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
         } returns expectedForespoerselId
 
         mockInnkommendeMelding(inntektsmeldingHaandtert)
