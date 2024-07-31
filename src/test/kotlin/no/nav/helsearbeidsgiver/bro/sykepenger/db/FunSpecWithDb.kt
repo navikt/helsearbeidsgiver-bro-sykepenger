@@ -17,7 +17,7 @@ abstract class FunSpecWithDb(
 ) : FunSpec({
         val db = ExposedDatabase.connect(dataSource())
 
-        beforeEach {
+        beforeTest {
             transaction(db) {
                 tables.forEach { it.deleteAll() }
             }
