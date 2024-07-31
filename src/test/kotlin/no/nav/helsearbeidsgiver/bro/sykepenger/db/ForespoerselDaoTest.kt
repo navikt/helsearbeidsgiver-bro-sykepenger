@@ -15,16 +15,22 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type.BEGRENSET
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.til
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockBegrensetForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import no.nav.helsearbeidsgiver.utils.test.date.april
+import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.mars
+import no.nav.helsearbeidsgiver.utils.test.date.november
+import no.nav.helsearbeidsgiver.utils.test.date.oktober
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.ResultRow
@@ -32,6 +38,7 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.time.LocalDateTime
+import java.util.UUID
 
 class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTable), { db ->
     val forespoerselDao = ForespoerselDao(db)
@@ -737,7 +744,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
         }
     }
 
-    context(ForespoerselDao::forespoerselIdEksponertTilSimba.name) {
+    context(ForespoerselDao::hentForespoerselIdEksponertTilSimba.name) {
 
         test("flere besvarte (fra Spleis) forespørsler") {
             val idA = mockForespoerselDto().lagreNotNull()
@@ -766,7 +773,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idE)?.status shouldBe Status.BESVART_SPLEIS
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
 
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idC)?.forespoerselId
         }
@@ -788,7 +795,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idD)?.status shouldBe Status.BESVART_SIMBA
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
 
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idC)?.forespoerselId
         }
@@ -809,7 +816,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idC)?.status shouldBe Status.BESVART_SPLEIS
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
         }
 
@@ -824,7 +831,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idB)?.status shouldBe Status.AKTIV
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
 
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idB)?.forespoerselId
         }
@@ -840,7 +847,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idB)?.status shouldBe Status.AKTIV
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
 
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idB)?.forespoerselId
         }
@@ -853,7 +860,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idB)?.status shouldBe Status.AKTIV
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
         }
 
@@ -863,7 +870,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idA)?.status shouldBe Status.AKTIV
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
         }
 
@@ -875,7 +882,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idA)?.status shouldBe Status.BESVART_SIMBA
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
 
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
         }
@@ -891,13 +898,13 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idA)?.status shouldBe Status.BESVART_SPLEIS
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
         }
 
         test("Finner ingen forespørselId som vi har sendt portalen") {
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
             forespoerselIdEksponertTilSimba shouldBe null
         }
 
@@ -919,7 +926,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idD)?.status shouldBe Status.AKTIV
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.forespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
 
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idD)?.forespoerselId
         }
@@ -1029,6 +1036,90 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
                 ForespoerselDto::besvarelse,
                 ForespoerselDto::oppdatert,
             )
+        }
+    }
+
+    context(ForespoerselDao::hentAktiveForespoerslerForOrgnrOgFnr.name) {
+        test("Henter kun aktive forespørsler for korrekt orgnr og fnr") {
+            val orgnr = "517780391".let(::Orgnr)
+            val fnr = Fnr.genererGyldig().verdi
+            val vedtaksperiodeId1 = UUID.randomUUID()
+            val vedtaksperiodeId2 = UUID.randomUUID()
+
+            val forespoersel1Gruppe1 =
+                mockForespoerselDto().copy(
+                    orgnr = orgnr,
+                    fnr = fnr,
+                    vedtaksperiodeId = vedtaksperiodeId1,
+                    egenmeldingsperioder = listOf(23.oktober til 23.oktober),
+                    sykmeldingsperioder = listOf(24.oktober til 24.oktober),
+                )
+
+            val forespoersel2Gruppe1 =
+                mockForespoerselDto().copy(
+                    orgnr = orgnr,
+                    fnr = fnr,
+                    vedtaksperiodeId = vedtaksperiodeId1,
+                    sykmeldingsperioder = listOf(23.oktober til 24.oktober),
+                    opprettet = LocalDateTime.now().plusSeconds(3).truncMillis(),
+                )
+
+            val forespoersel3Gruppe1 =
+                mockForespoerselDto().copy(
+                    orgnr = orgnr,
+                    fnr = fnr,
+                    vedtaksperiodeId = vedtaksperiodeId1,
+                    sykmeldingsperioder = listOf(25.oktober til 25.oktober),
+                    opprettet = LocalDateTime.now().plusSeconds(6).truncMillis(),
+                )
+
+            val forespoerselGruppe2 =
+                mockForespoerselDto().copy(
+                    orgnr = orgnr,
+                    fnr = fnr,
+                    vedtaksperiodeId = vedtaksperiodeId2,
+                    sykmeldingsperioder = listOf(3.november til 6.november),
+                )
+
+            val forespoerselAnnetOrgnr =
+                mockForespoerselDto().copy(
+                    orgnr = "999303111".let(::Orgnr),
+                    vedtaksperiodeId = UUID.randomUUID(),
+                    sykmeldingsperioder = listOf(5.august til 5.august),
+                )
+
+            val forespoerselAnnetFnr =
+                mockForespoerselDto().copy(
+                    fnr = Fnr.genererGyldig().verdi,
+                    vedtaksperiodeId = UUID.randomUUID(),
+                    sykmeldingsperioder = listOf(5.august til 5.august),
+                )
+
+            // Skal ikke hentes (er forkastet)
+            forespoerselDao.lagre(forespoersel1Gruppe1)
+
+            // Skal ikke hentes (er besvart)
+            forespoerselDao.lagre(forespoersel2Gruppe1)
+            forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(
+                vedtaksperiodeId1,
+                LocalDateTime.now().plusSeconds(9).truncMillis(),
+            )
+
+            forespoerselDao.lagre(forespoersel3Gruppe1)
+            forespoerselDao.lagre(forespoerselGruppe2)
+
+            // Skal ikke hentes (annet orgnr)
+            forespoerselDao.lagre(forespoerselAnnetOrgnr)
+
+            // Skal ikke hentes (annet fnr)
+            forespoerselDao.lagre(forespoerselAnnetFnr)
+
+            val actualForespoersler = forespoerselDao.hentAktiveForespoerslerForOrgnrOgFnr(orgnr, fnr)
+
+            actualForespoersler.size shouldBeExactly 2
+
+            actualForespoersler[0].copy(skjaeringstidspunkt = null) shouldBe forespoersel3Gruppe1
+            actualForespoersler[1].copy(skjaeringstidspunkt = null) shouldBe forespoerselGruppe2
         }
     }
 

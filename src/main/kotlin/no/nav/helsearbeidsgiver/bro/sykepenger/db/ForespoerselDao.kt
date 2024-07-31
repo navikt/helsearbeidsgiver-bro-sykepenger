@@ -145,15 +145,9 @@ class ForespoerselDao(private val db: Database) {
             }
             .maxByOrNull { it.opprettet }
 
-    fun forespoerselIdEksponertTilSimba(vedtaksperiodeId: UUID): UUID? =
+    fun hentForespoerselIdEksponertTilSimba(vedtaksperiodeId: UUID): UUID? =
         hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId, Status.entries.toSet())
-            .sortedByDescending { it.opprettet }
-            .zipWithNextOrNull()
-            .firstOrNull { (_, next) ->
-                next == null || next.status.erBesvart()
-            }
-            ?.let { (current, _) -> current }
-            ?.forespoerselId
+            .finnEksponertForespoerselId()
 
     fun hentForespoerslerForVedtaksperiodeId(
         vedtaksperiodeId: UUID,
@@ -173,6 +167,39 @@ class ForespoerselDao(private val db: Database) {
                 }
                 .map(::tilForespoerselDto)
                 .sortedBy { it.opprettet }
+        }
+
+    fun hentAktiveForespoerslerForOrgnrOgFnr(
+        orgnr: Orgnr,
+        fnr: String,
+    ): List<ForespoerselDto> =
+        transaction(db) {
+            ForespoerselTable
+                .selectAll()
+                .where {
+                    (ForespoerselTable.orgnr eq orgnr.verdi) and
+                        (ForespoerselTable.fnr eq fnr)
+                }
+                .map {
+                    it[ForespoerselTable.vedtaksperiodeId] to tilForespoerselDto(it)
+                }
+                .toAggregateMap()
+                .mapNotNull { (_, forespoersler) ->
+                    val aktivForespoersel =
+                        forespoersler
+                            .sortedByDescending { it.opprettet }
+                            .firstOrNull { it.status == Status.AKTIV }
+
+                    val eksponertForespoerselId = forespoersler.finnEksponertForespoerselId()
+
+                    if (aktivForespoersel != null && eksponertForespoerselId != null) {
+                        aktivForespoersel.copy(
+                            forespoerselId = eksponertForespoerselId,
+                        )
+                    } else {
+                        null
+                    }
+                }
         }
 
     private fun hentVedtaksperiodeId(forespoerselId: UUID): UUID? =
@@ -287,4 +314,22 @@ private fun tilBesvarelseMetadataDto(row: ResultRow): BesvarelseMetadataDto? =
         )
     } else {
         null
+    }
+
+private fun List<ForespoerselDto>.finnEksponertForespoerselId(): UUID? =
+    sortedByDescending { it.opprettet }
+        .zipWithNextOrNull()
+        .firstOrNull { (_, next) ->
+            next == null || next.status.erBesvart()
+        }
+        ?.let { (current, _) -> current }
+        ?.forespoerselId
+
+private fun List<Pair<UUID, ForespoerselDto>>.toAggregateMap(): Map<UUID, List<ForespoerselDto>> =
+    fold(emptyMap()) { map, (vedtaksperiodeId, forespoersel) ->
+        val forespoerslerForKey = map[vedtaksperiodeId].orEmpty().plus(forespoersel)
+
+        map.plus(
+            vedtaksperiodeId to forespoerslerForKey,
+        )
     }
