@@ -36,6 +36,7 @@ object Pri {
     @Serializable
     enum class BehovType {
         TRENGER_FORESPØRSEL,
+        HENT_FORESPOERSLER,
     }
 
     @Serializable

@@ -4,7 +4,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtData
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagRefusjon
@@ -22,6 +21,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForslagRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Suksess
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
@@ -158,11 +158,11 @@ fun mockForespoerselMottatt(): ForespoerselMottatt =
         fnr = "abc",
     )
 
-fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess {
+fun mockForespoerselSvarSuksess(): Suksess {
     val orgnr = "569046822".let(::Orgnr)
     val skjaeringstidspunkt = 10.november(1999)
 
-    return ForespoerselSvar.Suksess(
+    return Suksess(
         type = Type.KOMPLETT,
         orgnr = orgnr,
         fnr = "abc",

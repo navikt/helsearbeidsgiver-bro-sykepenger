@@ -8,8 +8,8 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.HentForespoerslerSvar
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Suksess
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
@@ -17,19 +17,15 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.les
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.rejectKeys
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.require
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.requireKeys
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
-import java.util.UUID
 
 // Tilgjengeliggjør hvilke data spleis forespør fra arbeidsgiver
-class TilgjengeliggjoerForespoerselRiver(
+class TilgjengeliggjoerForespoerslerForFnrOgOrgRiver(
     rapid: RapidsConnection,
     private val forespoerselDao: ForespoerselDao,
     private val priProducer: PriProducer,
@@ -40,12 +36,9 @@ class TilgjengeliggjoerForespoerselRiver(
         River(rapid).apply {
             validate { msg ->
                 msg.demandValues(
-                    Pri.Key.BEHOV to ForespoerselSvar.behovType.name,
+                    Pri.Key.BEHOV to HentForespoerslerSvar.behovType.name,
                 )
-                msg.require(
-                    Pri.Key.FORESPOERSEL_ID to { it.fromJson(UuidSerializer) },
-                )
-                msg.requireKeys(Pri.Key.BOOMERANG)
+                msg.requireKeys(Pri.Key.BOOMERANG, Pri.Key.FNR, Pri.Key.ORGNR)
                 msg.rejectKeys(Pri.Key.LØSNING)
             }
         }.register(this)
@@ -57,57 +50,50 @@ class TilgjengeliggjoerForespoerselRiver(
     ) {
         val json = packet.toJson().parseJson()
 
-        val forespoerselId =
-            Pri.Key.FORESPOERSEL_ID.les(
-                UuidSerializer,
+        val orgnr =
+            Pri.Key.ORGNR.les(
+                Orgnr.serializer(),
                 json.fromJsonMapFiltered(Pri.Key.serializer()),
             )
 
+        val fnr = Pri.Key.FNR.les(String.serializer(), json.fromJsonMapFiltered(Pri.Key.serializer()))
+
         MdcUtils.withLogFields(
-            "forespoerselId" to forespoerselId.toString(),
+            "orgnr" to orgnr.toString(),
         ) {
             runCatching {
-                json.sendSvar(forespoerselId)
+                json.sendSvar(orgnr, fnr)
             }
                 .onFailure(loggernaut::ukjentFeil)
         }
     }
 
-    private fun JsonElement.sendSvar(forespoerselId: UUID) {
+    private fun JsonElement.sendSvar(
+        orgnr: Orgnr,
+        fnr: String,
+    ) {
         val melding = fromJsonMapFiltered(Pri.Key.serializer())
+
+        val forespoersler = forespoerselDao.hentAktiveForespoerslerForOrgnrOgFnr(orgnr, fnr)
 
         loggernaut.aapen.info("Mottok melding på pri-topic av type '${Pri.Key.BEHOV.les(String.serializer(), melding)}'.")
         loggernaut.sikker.info("Mottok melding på pri-topic med innhold:\n${toPretty()}")
 
-        val forespoerselSvarJson =
-            ForespoerselSvar(
-                forespoerselId = forespoerselId,
+        val hentForespoerslerSvarJson =
+            HentForespoerslerSvar(
+                orgnr = orgnr,
+                fnr = fnr,
+                resultat = forespoersler.map(::Suksess),
                 boomerang = Pri.Key.BOOMERANG.les(JsonElement.serializer(), melding),
-            )
-                .let {
-                    val forespoersel =
-                        forespoerselDao.hentNyesteForespoerselForForespoerselId(
-                            forespoerselId = it.forespoerselId,
-                            statuser = setOf(Status.AKTIV, Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
-                        )
-
-                    if (forespoersel != null) {
-                        loggernaut.aapen.info("Forespørsel funnet.")
-                        it.copy(resultat = Suksess(forespoersel))
-                    } else {
-                        loggernaut.aapen.info("Forespørsel _ikke_ funnet.")
-                        it.copy(feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET)
-                    }
-                }
-                .toJson(ForespoerselSvar.serializer())
+            ).toJson(HentForespoerslerSvar.serializer())
 
         priProducer.send(
-            Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
-            Pri.Key.LØSNING to forespoerselSvarJson,
+            Pri.Key.BEHOV to HentForespoerslerSvar.behovType.toJson(Pri.BehovType.serializer()),
+            Pri.Key.LØSNING to hentForespoerslerSvarJson,
         )
 
-        loggernaut.aapen.info("Behov besvart på pri-topic med forespørsel.")
-        loggernaut.sikker.info("Behov besvart på pri-topic med forespørsel: ${forespoerselSvarJson.toPretty()}")
+        loggernaut.aapen.info("Behov besvart på pri-topic med forespørsel liste.")
+        loggernaut.sikker.info("Behov besvart på pri-topic med forespørsel liste: ${hentForespoerslerSvarJson.toPretty()}")
     }
 
     override fun onError(

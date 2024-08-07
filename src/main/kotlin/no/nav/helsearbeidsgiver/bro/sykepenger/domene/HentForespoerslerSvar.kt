@@ -8,20 +8,20 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
-import java.util.UUID
 
 @Serializable
-data class ForespoerselSvar(
-    val forespoerselId: UUID,
-    val resultat: Suksess? = null,
+data class HentForespoerslerSvar(
+    val orgnr: Orgnr,
+    val fnr: String,
+    val resultat: List<Suksess> = emptyList(),
     val feil: Feil? = null,
     val boomerang: JsonElement,
 ) {
     companion object {
-        val behovType = Pri.BehovType.TRENGER_FORESPØRSEL
+        val behovType = Pri.BehovType.HENT_FORESPOERSLER
     }
 
     enum class Feil {
-        FORESPOERSEL_IKKE_FUNNET,
+        FORESPOERSLER_IKKE_FUNNET,
     }
 }

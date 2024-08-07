@@ -78,7 +78,7 @@ private fun ForespoerselSvar.hardcodedJson(): String =
     }
     """.removeJsonWhitespace()
 
-private fun ForespoerselSvar.Suksess?.hardcodedJsonFieldOrEmpty(): String =
+private fun Suksess?.hardcodedJsonFieldOrEmpty(): String =
     this?.let {
         """
             "resultat": ${it.hardcodedJson()},
@@ -96,7 +96,7 @@ private fun ForespoerselSvar.Feil?.hardcodedJsonFieldOrEmpty(): String =
         ?.removeJsonWhitespace()
         .orEmpty()
 
-private fun ForespoerselSvar.Suksess.hardcodedJson(): String =
+private fun Suksess.hardcodedJson(): String =
     """
     {
         "type": "$type",
