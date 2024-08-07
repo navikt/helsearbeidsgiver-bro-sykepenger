@@ -22,7 +22,6 @@ import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
-import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 
 // Tilgjengeliggjør aktive forespørsler på fnr og orgnr
 class TilgjengeliggjoerForespoerslerForFnrOgOrgRiver(
@@ -55,17 +54,16 @@ class TilgjengeliggjoerForespoerslerForFnrOgOrgRiver(
                 Orgnr.serializer(),
                 json.fromJsonMapFiltered(Pri.Key.serializer()),
             )
+        val fnr =
+            Pri.Key.FNR.les(
+                String.serializer(),
+                json.fromJsonMapFiltered(Pri.Key.serializer()),
+            )
 
-        val fnr = Pri.Key.FNR.les(String.serializer(), json.fromJsonMapFiltered(Pri.Key.serializer()))
-
-        MdcUtils.withLogFields(
-            "orgnr" to orgnr.toString(),
-        ) {
-            runCatching {
-                json.sendSvar(orgnr, fnr)
-            }
-                .onFailure(loggernaut::ukjentFeil)
+        runCatching {
+            json.sendSvar(orgnr, fnr)
         }
+            .onFailure(loggernaut::ukjentFeil)
     }
 
     private fun JsonElement.sendSvar(
