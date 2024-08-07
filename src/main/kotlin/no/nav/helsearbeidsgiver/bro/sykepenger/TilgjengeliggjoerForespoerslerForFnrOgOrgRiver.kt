@@ -24,7 +24,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 
-// Tilgjengeliggjør hvilke data spleis forespør fra arbeidsgiver
+// Tilgjengeliggjør aktive forespørsler på fnr og orgnr
 class TilgjengeliggjoerForespoerslerForFnrOgOrgRiver(
     rapid: RapidsConnection,
     private val forespoerselDao: ForespoerselDao,
