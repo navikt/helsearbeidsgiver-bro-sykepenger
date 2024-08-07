@@ -13,7 +13,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 data class HentForespoerslerForFnrOgOrgnrSvar(
     val orgnr: Orgnr,
     val fnr: String,
-    val resultat: List<Suksess>,
+    val resultat: List<ForespoerselSimba>,
     val boomerang: JsonElement,
 ) {
     companion object {

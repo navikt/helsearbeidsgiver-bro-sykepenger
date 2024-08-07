@@ -7,8 +7,8 @@ import io.mockk.mockk
 import io.mockk.verifySequence
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.HentForespoerslerForFnrOgOrgnrSvar
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Suksess
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
@@ -25,6 +25,7 @@ class TilgjengeliggjoerForespoerslerForPersonOgOrgnrRiverTest : FunSpec({
 
     beforeEach {
         clearAllMocks()
+        testRapid.reset()
     }
 
     test("Ved innkommende event, svar ut korrekt HentForespoerslerSvar") {
@@ -43,7 +44,7 @@ class TilgjengeliggjoerForespoerslerForPersonOgOrgnrRiverTest : FunSpec({
                 fnr = forespoersel.fnr,
                 resultat =
                     listOf(
-                        Suksess(forespoersel),
+                        ForespoerselSimba(forespoersel),
                     ),
                 boomerang = mockJsonElement(),
             )

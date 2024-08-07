@@ -13,7 +13,7 @@ import java.util.UUID
 @Serializable
 data class ForespoerselSvar(
     val forespoerselId: UUID,
-    val resultat: Suksess? = null,
+    val resultat: ForespoerselSimba? = null,
     val feil: Feil? = null,
     val boomerang: JsonElement,
 ) {

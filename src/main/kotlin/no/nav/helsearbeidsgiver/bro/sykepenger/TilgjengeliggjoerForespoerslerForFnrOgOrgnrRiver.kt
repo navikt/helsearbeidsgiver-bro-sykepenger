@@ -8,9 +8,9 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.HentForespoerslerForFnrOgOrgnrSvar
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Suksess
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
@@ -72,18 +72,18 @@ class TilgjengeliggjoerForespoerslerForFnrOgOrgnrRiver(
     ) {
         val melding = fromJsonMapFiltered(Pri.Key.serializer())
 
-        val forespoersler = forespoerselDao.hentAktiveForespoerslerForOrgnrOgFnr(orgnr, fnr)
-
         "Mottok melding på pri-topic".also {
             loggernaut.aapen.info("$it av type '${Pri.Key.BEHOV.les(String.serializer(), melding)}'.")
             loggernaut.sikker.info("$it med innhold:\n${toPretty()}")
         }
 
+        val forespoersler = forespoerselDao.hentAktiveForespoerslerForOrgnrOgFnr(orgnr, fnr)
+
         val hentForespoerslerForFnrOgOrgnrSvarJson =
             HentForespoerslerForFnrOgOrgnrSvar(
                 orgnr = orgnr,
                 fnr = fnr,
-                resultat = forespoersler.map(::Suksess),
+                resultat = forespoersler.map(::ForespoerselSimba),
                 boomerang = Pri.Key.BOOMERANG.les(JsonElement.serializer(), melding),
             ).toJson(HentForespoerslerForFnrOgOrgnrSvar.serializer())
 

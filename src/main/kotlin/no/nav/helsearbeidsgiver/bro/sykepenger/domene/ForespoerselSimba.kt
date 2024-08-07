@@ -11,7 +11,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 @Serializable
-data class Suksess(
+data class ForespoerselSimba(
     val type: Type,
     val orgnr: Orgnr,
     val fnr: String,
