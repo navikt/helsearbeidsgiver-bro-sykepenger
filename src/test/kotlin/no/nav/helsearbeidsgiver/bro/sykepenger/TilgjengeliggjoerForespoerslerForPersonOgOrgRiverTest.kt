@@ -30,7 +30,12 @@ class TilgjengeliggjoerForespoerslerForPersonOgOrgRiverTest : FunSpec({
     test("Ved innkommende event, svar ut korrekt ForespoerselSvar") {
         val forespoersel = mockForespoerselDto()
 
-        every { mockForespoerselDao.hentAktiveForespoerslerForOrgnrOgFnr(forespoersel.orgnr, forespoersel.fnr) } returns listOf(forespoersel)
+        every {
+            mockForespoerselDao.hentAktiveForespoerslerForOrgnrOgFnr(
+                forespoersel.orgnr,
+                forespoersel.fnr,
+            )
+        } returns listOf(forespoersel)
 
         val expectedPublished =
             HentForespoerslerSvar(
