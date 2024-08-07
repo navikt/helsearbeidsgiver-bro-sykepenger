@@ -7,7 +7,7 @@ import io.mockk.mockk
 import io.mockk.verifySequence
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.HentForespoerslerSvar
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.HentForespoerslerForFnrOgOrgnrSvar
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Suksess
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
@@ -16,12 +16,12 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockJsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
-class TilgjengeliggjoerForespoerslerForPersonOgOrgRiverTest : FunSpec({
+class TilgjengeliggjoerForespoerslerForPersonOgOrgnrRiverTest : FunSpec({
     val testRapid = TestRapid()
     val mockForespoerselDao = mockk<ForespoerselDao>()
     val mockPriProducer = mockk<PriProducer>(relaxed = true)
 
-    TilgjengeliggjoerForespoerslerForFnrOgOrgRiver(testRapid, mockForespoerselDao, mockPriProducer)
+    TilgjengeliggjoerForespoerslerForFnrOgOrgnrRiver(testRapid, mockForespoerselDao, mockPriProducer)
 
     beforeEach {
         clearAllMocks()
@@ -38,7 +38,7 @@ class TilgjengeliggjoerForespoerslerForPersonOgOrgRiverTest : FunSpec({
         } returns listOf(forespoersel)
 
         val expectedPublished =
-            HentForespoerslerSvar(
+            HentForespoerslerForFnrOgOrgnrSvar(
                 orgnr = forespoersel.orgnr,
                 fnr = forespoersel.fnr,
                 resultat =
@@ -49,7 +49,7 @@ class TilgjengeliggjoerForespoerslerForPersonOgOrgRiverTest : FunSpec({
             )
 
         testRapid.sendJson(
-            Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER.toJson(Pri.BehovType.serializer()),
+            Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_FNR_OG_ORGNR.toJson(Pri.BehovType.serializer()),
             Pri.Key.ORGNR to expectedPublished.orgnr.verdi.toJson(),
             Pri.Key.FNR to expectedPublished.fnr.toJson(),
             Pri.Key.BOOMERANG to expectedPublished.boomerang,
@@ -58,8 +58,8 @@ class TilgjengeliggjoerForespoerslerForPersonOgOrgRiverTest : FunSpec({
         verifySequence {
             mockForespoerselDao.hentAktiveForespoerslerForOrgnrOgFnr(forespoersel.orgnr, forespoersel.fnr)
             mockPriProducer.send(
-                Pri.Key.BEHOV to HentForespoerslerSvar.behovType.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LØSNING to expectedPublished.toJson(HentForespoerslerSvar.serializer()),
+                Pri.Key.BEHOV to HentForespoerslerForFnrOgOrgnrSvar.behovType.toJson(Pri.BehovType.serializer()),
+                Pri.Key.LØSNING to expectedPublished.toJson(HentForespoerslerForFnrOgOrgnrSvar.serializer()),
             )
         }
     }
@@ -74,7 +74,7 @@ class TilgjengeliggjoerForespoerslerForPersonOgOrgRiverTest : FunSpec({
         } returns emptyList()
 
         val expectedPublished =
-            HentForespoerslerSvar(
+            HentForespoerslerForFnrOgOrgnrSvar(
                 orgnr = forespoersel.orgnr,
                 fnr = forespoersel.fnr,
                 resultat = emptyList(),
@@ -82,7 +82,7 @@ class TilgjengeliggjoerForespoerslerForPersonOgOrgRiverTest : FunSpec({
             )
 
         testRapid.sendJson(
-            Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER.toJson(Pri.BehovType.serializer()),
+            Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_FNR_OG_ORGNR.toJson(Pri.BehovType.serializer()),
             Pri.Key.ORGNR to expectedPublished.orgnr.verdi.toJson(),
             Pri.Key.FNR to expectedPublished.fnr.toJson(),
             Pri.Key.BOOMERANG to expectedPublished.boomerang,
@@ -91,8 +91,8 @@ class TilgjengeliggjoerForespoerslerForPersonOgOrgRiverTest : FunSpec({
         verifySequence {
             mockForespoerselDao.hentAktiveForespoerslerForOrgnrOgFnr(forespoersel.orgnr, forespoersel.fnr)
             mockPriProducer.send(
-                Pri.Key.BEHOV to HentForespoerslerSvar.behovType.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LØSNING to expectedPublished.toJson(HentForespoerslerSvar.serializer()),
+                Pri.Key.BEHOV to HentForespoerslerForFnrOgOrgnrSvar.behovType.toJson(Pri.BehovType.serializer()),
+                Pri.Key.LØSNING to expectedPublished.toJson(HentForespoerslerForFnrOgOrgnrSvar.serializer()),
             )
         }
     }

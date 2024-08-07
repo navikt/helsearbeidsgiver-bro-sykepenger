@@ -10,13 +10,13 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 
 @Serializable
-data class HentForespoerslerSvar(
+data class HentForespoerslerForFnrOgOrgnrSvar(
     val orgnr: Orgnr,
     val fnr: String,
     val resultat: List<Suksess>,
     val boomerang: JsonElement,
 ) {
     companion object {
-        val behovType = Pri.BehovType.HENT_FORESPOERSLER
+        val behovType = Pri.BehovType.HENT_FORESPOERSLER_FOR_FNR_OG_ORGNR
     }
 }

@@ -8,7 +8,7 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.HentForespoerslerSvar
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.HentForespoerslerForFnrOgOrgnrSvar
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Suksess
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
@@ -24,7 +24,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 
 // Tilgjengeliggjør aktive forespørsler på fnr og orgnr
-class TilgjengeliggjoerForespoerslerForFnrOgOrgRiver(
+class TilgjengeliggjoerForespoerslerForFnrOgOrgnrRiver(
     rapid: RapidsConnection,
     private val forespoerselDao: ForespoerselDao,
     private val priProducer: PriProducer,
@@ -35,7 +35,7 @@ class TilgjengeliggjoerForespoerslerForFnrOgOrgRiver(
         River(rapid).apply {
             validate { msg ->
                 msg.demandValues(
-                    Pri.Key.BEHOV to HentForespoerslerSvar.behovType.name,
+                    Pri.Key.BEHOV to HentForespoerslerForFnrOgOrgnrSvar.behovType.name,
                 )
                 msg.requireKeys(Pri.Key.BOOMERANG, Pri.Key.FNR, Pri.Key.ORGNR)
                 msg.rejectKeys(Pri.Key.LØSNING)
@@ -79,22 +79,22 @@ class TilgjengeliggjoerForespoerslerForFnrOgOrgRiver(
             loggernaut.sikker.info("$it med innhold:\n${toPretty()}")
         }
 
-        val hentForespoerslerSvarJson =
-            HentForespoerslerSvar(
+        val hentForespoerslerForFnrOgOrgnrSvarJson =
+            HentForespoerslerForFnrOgOrgnrSvar(
                 orgnr = orgnr,
                 fnr = fnr,
                 resultat = forespoersler.map(::Suksess),
                 boomerang = Pri.Key.BOOMERANG.les(JsonElement.serializer(), melding),
-            ).toJson(HentForespoerslerSvar.serializer())
+            ).toJson(HentForespoerslerForFnrOgOrgnrSvar.serializer())
 
         priProducer.send(
-            Pri.Key.BEHOV to HentForespoerslerSvar.behovType.toJson(Pri.BehovType.serializer()),
-            Pri.Key.LØSNING to hentForespoerslerSvarJson,
+            Pri.Key.BEHOV to HentForespoerslerForFnrOgOrgnrSvar.behovType.toJson(Pri.BehovType.serializer()),
+            Pri.Key.LØSNING to hentForespoerslerForFnrOgOrgnrSvarJson,
         )
 
         "Behov besvart på pri-topic med liste av forespørsler".also {
             loggernaut.aapen.info("$it.")
-            loggernaut.sikker.info("$it: ${hentForespoerslerSvarJson.toPretty()}")
+            loggernaut.sikker.info("$it: ${hentForespoerslerForFnrOgOrgnrSvarJson.toPretty()}")
         }
     }
 
