@@ -92,7 +92,7 @@ class TilgjengeliggjoerForespoerslerForFnrOgOrgRiver(
             Pri.Key.LØSNING to hentForespoerslerSvarJson,
         )
 
-        "Behov besvart på pri-topic med liste av forespørsler".also{
+        "Behov besvart på pri-topic med liste av forespørsler".also {
             loggernaut.aapen.info("$it.")
             loggernaut.sikker.info("$it: ${hentForespoerslerSvarJson.toPretty()}")
         }
