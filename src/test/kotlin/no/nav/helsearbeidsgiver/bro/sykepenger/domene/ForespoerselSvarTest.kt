@@ -102,6 +102,7 @@ private fun ForespoerselSimba.hardcodedJson(): String =
         "type": "$type",
         "orgnr": "${orgnr.verdi}",
         "fnr": "$fnr",
+        "forespoerselId": "$forespoerselId",
         "vedtaksperiodeId": "$vedtaksperiodeId",
         "egenmeldingsperioder": [${egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
         "sykmeldingsperioder": [${sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],

@@ -166,6 +166,7 @@ fun mockForespoerselSvarSuksess(): ForespoerselSimba {
         type = Type.KOMPLETT,
         orgnr = orgnr,
         fnr = "abc",
+        forespoerselId = UUID.randomUUID(),
         vedtaksperiodeId = UUID.randomUUID(),
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         sykmeldingsperioder = listOf(Periode(2.januar, 16.januar)),
