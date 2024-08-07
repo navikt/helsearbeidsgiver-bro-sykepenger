@@ -74,8 +74,10 @@ class TilgjengeliggjoerForespoerslerForFnrOgOrgRiver(
 
         val forespoersler = forespoerselDao.hentAktiveForespoerslerForOrgnrOgFnr(orgnr, fnr)
 
-        loggernaut.aapen.info("Mottok melding på pri-topic av type '${Pri.Key.BEHOV.les(String.serializer(), melding)}'.")
-        loggernaut.sikker.info("Mottok melding på pri-topic med innhold:\n${toPretty()}")
+        "Mottok melding på pri-topic".also {
+            loggernaut.aapen.info("$it av type '${Pri.Key.BEHOV.les(String.serializer(), melding)}'.")
+            loggernaut.sikker.info("$it med innhold:\n${toPretty()}")
+        }
 
         val hentForespoerslerSvarJson =
             HentForespoerslerSvar(
@@ -90,8 +92,10 @@ class TilgjengeliggjoerForespoerslerForFnrOgOrgRiver(
             Pri.Key.LØSNING to hentForespoerslerSvarJson,
         )
 
-        loggernaut.aapen.info("Behov besvart på pri-topic med forespørsel liste.")
-        loggernaut.sikker.info("Behov besvart på pri-topic med forespørsel liste: ${hentForespoerslerSvarJson.toPretty()}")
+        "Behov besvart på pri-topic med liste av forespørsler".also{
+            loggernaut.aapen.info("$it.")
+            loggernaut.sikker.info("$it: ${hentForespoerslerSvarJson.toPretty()}")
+        }
     }
 
     override fun onError(

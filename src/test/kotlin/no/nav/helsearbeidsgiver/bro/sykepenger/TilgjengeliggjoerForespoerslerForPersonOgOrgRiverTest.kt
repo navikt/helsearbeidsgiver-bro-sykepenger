@@ -63,4 +63,37 @@ class TilgjengeliggjoerForespoerslerForPersonOgOrgRiverTest : FunSpec({
             )
         }
     }
+    test("Hvis ingen forespørsler finnes, svar med tom liste") {
+        val forespoersel = mockForespoerselDto()
+
+        every {
+            mockForespoerselDao.hentAktiveForespoerslerForOrgnrOgFnr(
+                forespoersel.orgnr,
+                forespoersel.fnr,
+            )
+        } returns emptyList()
+
+        val expectedPublished =
+            HentForespoerslerSvar(
+                orgnr = forespoersel.orgnr,
+                fnr = forespoersel.fnr,
+                resultat = emptyList(),
+                boomerang = mockJsonElement(),
+            )
+
+        testRapid.sendJson(
+            Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER.toJson(Pri.BehovType.serializer()),
+            Pri.Key.ORGNR to expectedPublished.orgnr.verdi.toJson(),
+            Pri.Key.FNR to expectedPublished.fnr.toJson(),
+            Pri.Key.BOOMERANG to expectedPublished.boomerang,
+        )
+
+        verifySequence {
+            mockForespoerselDao.hentAktiveForespoerslerForOrgnrOgFnr(forespoersel.orgnr, forespoersel.fnr)
+            mockPriProducer.send(
+                Pri.Key.BEHOV to HentForespoerslerSvar.behovType.toJson(Pri.BehovType.serializer()),
+                Pri.Key.LØSNING to expectedPublished.toJson(HentForespoerslerSvar.serializer()),
+            )
+        }
+    }
 })

@@ -13,15 +13,10 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 data class HentForespoerslerSvar(
     val orgnr: Orgnr,
     val fnr: String,
-    val resultat: List<Suksess> = emptyList(),
-    val feil: Feil? = null,
+    val resultat: List<Suksess>,
     val boomerang: JsonElement,
 ) {
     companion object {
         val behovType = Pri.BehovType.HENT_FORESPOERSLER
-    }
-
-    enum class Feil {
-        FORESPOERSLER_IKKE_FUNNET,
     }
 }
