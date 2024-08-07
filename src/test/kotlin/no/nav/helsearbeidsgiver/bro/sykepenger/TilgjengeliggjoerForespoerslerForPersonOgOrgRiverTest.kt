@@ -30,7 +30,7 @@ class TilgjengeliggjoerForespoerslerForPersonOgOrgRiverTest : FunSpec({
     test("Ved innkommende event, svar ut korrekt ForespoerselSvar") {
         val forespoersel = mockForespoerselDto()
 
-        every { mockForespoerselDao.hentAktiveForespoerslerForOrgnrOgFnr(forespoersel.orgnr, any()) } returns listOf(forespoersel)
+        every { mockForespoerselDao.hentAktiveForespoerslerForOrgnrOgFnr(forespoersel.orgnr, forespoersel.fnr) } returns listOf(forespoersel)
 
         val expectedPublished =
             HentForespoerslerSvar(
@@ -51,7 +51,7 @@ class TilgjengeliggjoerForespoerslerForPersonOgOrgRiverTest : FunSpec({
         )
 
         verifySequence {
-            mockForespoerselDao.hentAktiveForespoerslerForOrgnrOgFnr(forespoersel.orgnr, any())
+            mockForespoerselDao.hentAktiveForespoerslerForOrgnrOgFnr(forespoersel.orgnr, forespoersel.fnr)
             mockPriProducer.send(
                 Pri.Key.BEHOV to HentForespoerslerSvar.behovType.toJson(Pri.BehovType.serializer()),
                 Pri.Key.LØSNING to expectedPublished.toJson(HentForespoerslerSvar.serializer()),
