@@ -27,7 +27,7 @@ class TilgjengeliggjoerForespoerslerForPersonOgOrgRiverTest : FunSpec({
         clearAllMocks()
     }
 
-    test("Ved innkommende event, svar ut korrekt ForespoerselSvar") {
+    test("Ved innkommende event, svar ut korrekt HentForespoerslerSvar") {
         val forespoersel = mockForespoerselDto()
 
         every {
