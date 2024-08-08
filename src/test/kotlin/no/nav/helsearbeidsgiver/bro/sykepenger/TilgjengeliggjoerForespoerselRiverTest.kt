@@ -7,6 +7,7 @@ import io.mockk.mockk
 import io.mockk.verifySequence
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
@@ -37,7 +38,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         val expectedPublished =
             ForespoerselSvar(
                 forespoerselId = forespoersel.forespoerselId,
-                resultat = ForespoerselSvar.Suksess(forespoersel),
+                resultat = ForespoerselSimba(forespoersel),
                 boomerang = mockJsonElement(),
             )
 
@@ -72,7 +73,7 @@ class TilgjengeliggjoerForespoerselRiverTest : FunSpec({
         val expectedPublished =
             ForespoerselSvar(
                 forespoerselId = forespoersel.forespoerselId,
-                resultat = ForespoerselSvar.Suksess(forespoersel),
+                resultat = ForespoerselSimba(forespoersel),
                 boomerang = mockJsonElement(),
             )
 

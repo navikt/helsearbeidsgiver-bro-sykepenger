@@ -78,7 +78,7 @@ private fun ForespoerselSvar.hardcodedJson(): String =
     }
     """.removeJsonWhitespace()
 
-private fun ForespoerselSvar.Suksess?.hardcodedJsonFieldOrEmpty(): String =
+private fun ForespoerselSimba?.hardcodedJsonFieldOrEmpty(): String =
     this?.let {
         """
             "resultat": ${it.hardcodedJson()},
@@ -96,12 +96,13 @@ private fun ForespoerselSvar.Feil?.hardcodedJsonFieldOrEmpty(): String =
         ?.removeJsonWhitespace()
         .orEmpty()
 
-private fun ForespoerselSvar.Suksess.hardcodedJson(): String =
+private fun ForespoerselSimba.hardcodedJson(): String =
     """
     {
         "type": "$type",
         "orgnr": "${orgnr.verdi}",
         "fnr": "$fnr",
+        "forespoerselId": "$forespoerselId",
         "vedtaksperiodeId": "$vedtaksperiodeId",
         "egenmeldingsperioder": [${egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
         "sykmeldingsperioder": [${sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],

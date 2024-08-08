@@ -8,6 +8,7 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
@@ -92,7 +93,7 @@ class TilgjengeliggjoerForespoerselRiver(
 
                     if (forespoersel != null) {
                         loggernaut.aapen.info("Forespørsel funnet.")
-                        it.copy(resultat = ForespoerselSvar.Suksess(forespoersel))
+                        it.copy(resultat = ForespoerselSimba(forespoersel))
                     } else {
                         loggernaut.aapen.info("Forespørsel _ikke_ funnet.")
                         it.copy(feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET)

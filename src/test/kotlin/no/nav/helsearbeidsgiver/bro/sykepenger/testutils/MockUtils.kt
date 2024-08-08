@@ -4,7 +4,7 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtData
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagRefusjon
@@ -158,14 +158,15 @@ fun mockForespoerselMottatt(): ForespoerselMottatt =
         fnr = "abc",
     )
 
-fun mockForespoerselSvarSuksess(): ForespoerselSvar.Suksess {
+fun mockForespoerselSvarSuksess(): ForespoerselSimba {
     val orgnr = "569046822".let(::Orgnr)
     val skjaeringstidspunkt = 10.november(1999)
 
-    return ForespoerselSvar.Suksess(
+    return ForespoerselSimba(
         type = Type.KOMPLETT,
         orgnr = orgnr,
         fnr = "abc",
+        forespoerselId = UUID.randomUUID(),
         vedtaksperiodeId = UUID.randomUUID(),
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         sykmeldingsperioder = listOf(Periode(2.januar, 16.januar)),
