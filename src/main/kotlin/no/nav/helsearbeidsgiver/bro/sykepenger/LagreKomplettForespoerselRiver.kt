@@ -86,21 +86,33 @@ class LagreKomplettForespoerselRiver(
                 besvarelse = null,
             )
 
-        val bf =
+        val bfUtenEgenmld =
             bestemmendeFravaersdag(
                 arbeidsgiverperioder = emptyList(),
                 sykefravaersperioder = forespoersel.sykmeldingsperioder.map { PeriodeV1(it.fom, it.tom) },
             )
+        // Sjekker denne også ettersom egenmeldinger som arbeidsgiver har sendt inn er med i Spleis sitt grunnlag
+        val bfMedEgenmld =
+            bestemmendeFravaersdag(
+                arbeidsgiverperioder = emptyList(),
+                sykefravaersperioder =
+                    forespoersel.egenmeldingsperioder.map { PeriodeV1(it.fom, it.tom) } +
+                        forespoersel.sykmeldingsperioder.map { PeriodeV1(it.fom, it.tom) },
+            )
+
+        // Kun ett forslag til bestemmende fraværsdag betyr kun én arbeidsgiver
         if (
             forespoersel.bestemmendeFravaersdager.size == 1 &&
-            forespoersel.bestemmendeFravaersdager.values.first() != bf
+            forespoersel.bestemmendeFravaersdager.values.first() != bfUtenEgenmld &&
+            forespoersel.bestemmendeFravaersdager.values.first() != bfMedEgenmld
         ) {
             MdcUtils.withLogFields(
-                "forspoerselId" to forespoersel.forespoerselId.toString(),
+                "forespoerselId" to forespoersel.forespoerselId.toString(),
             ) {
                 loggernaut.sikker.info(
                     "Forslag fra Spleis (${forespoersel.bestemmendeFravaersdager.values.first()}) " +
-                        "matcher ikke utledet bestemmende fraværsdag fra sykmeldingsperioder ($bf, uten egenmld).",
+                        "matcher hverken bestemmende fraværsdag utledet fra kun sykmeldingsperioder ($bfUtenEgenmld)" +
+                        "eller fra egenmeldings- og sykmeldingsperioder ($bfMedEgenmld).",
                 )
             }
         }
