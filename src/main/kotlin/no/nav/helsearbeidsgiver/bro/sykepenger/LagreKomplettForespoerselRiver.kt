@@ -19,11 +19,14 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.les
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.require
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.requireKeys
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.bestemmendeFravaersdag
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import java.util.UUID
+import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode as PeriodeV1
 
 class LagreKomplettForespoerselRiver(
     rapid: RapidsConnection,
@@ -67,19 +70,53 @@ class LagreKomplettForespoerselRiver(
         val bestemmendeFravaersdager =
             Spleis.Key.BESTEMMENDE_FRAVÆRSDAGER.les(bestemmendeFravaersdagerSerializer, melding)
 
-        return ForespoerselDto(
-            forespoerselId = forespoerselId,
-            type = Type.KOMPLETT,
-            status = Status.AKTIV,
-            orgnr = orgnr,
-            fnr = Spleis.Key.FØDSELSNUMMER.les(String.serializer(), melding),
-            vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
-            egenmeldingsperioder = Spleis.Key.EGENMELDINGSPERIODER.les(Periode.serializer().list(), melding),
-            sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),
-            skjaeringstidspunkt = null,
-            bestemmendeFravaersdager = bestemmendeFravaersdager,
-            forespurtData = Spleis.Key.FORESPURT_DATA.les(SpleisForespurtDataDto.serializer().list(), melding),
-            besvarelse = null,
-        )
+        val forespoersel =
+            ForespoerselDto(
+                forespoerselId = forespoerselId,
+                type = Type.KOMPLETT,
+                status = Status.AKTIV,
+                orgnr = orgnr,
+                fnr = Spleis.Key.FØDSELSNUMMER.les(String.serializer(), melding),
+                vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
+                egenmeldingsperioder = Spleis.Key.EGENMELDINGSPERIODER.les(Periode.serializer().list(), melding),
+                sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),
+                skjaeringstidspunkt = null,
+                bestemmendeFravaersdager = bestemmendeFravaersdager,
+                forespurtData = Spleis.Key.FORESPURT_DATA.les(SpleisForespurtDataDto.serializer().list(), melding),
+                besvarelse = null,
+            )
+
+        val bfUtenEgenmld =
+            bestemmendeFravaersdag(
+                arbeidsgiverperioder = emptyList(),
+                sykefravaersperioder = forespoersel.sykmeldingsperioder.map { PeriodeV1(it.fom, it.tom) },
+            )
+        // Sjekker denne også ettersom egenmeldinger som arbeidsgiver har sendt inn er med i Spleis sitt grunnlag
+        val bfMedEgenmld =
+            bestemmendeFravaersdag(
+                arbeidsgiverperioder = emptyList(),
+                sykefravaersperioder =
+                    forespoersel.egenmeldingsperioder.map { PeriodeV1(it.fom, it.tom) } +
+                        forespoersel.sykmeldingsperioder.map { PeriodeV1(it.fom, it.tom) },
+            )
+
+        // Kun ett forslag til bestemmende fraværsdag betyr kun én arbeidsgiver
+        if (
+            forespoersel.bestemmendeFravaersdager.size == 1 &&
+            forespoersel.bestemmendeFravaersdager.values.first() != bfUtenEgenmld &&
+            forespoersel.bestemmendeFravaersdager.values.first() != bfMedEgenmld
+        ) {
+            MdcUtils.withLogFields(
+                "forespoerselId" to forespoersel.forespoerselId.toString(),
+            ) {
+                loggernaut.sikker.info(
+                    "Forslag fra Spleis (${forespoersel.bestemmendeFravaersdager.values.first()}) " +
+                        "matcher hverken bestemmende fraværsdag utledet fra kun sykmeldingsperioder ($bfUtenEgenmld)" +
+                        "eller fra egenmeldings- og sykmeldingsperioder ($bfMedEgenmld).",
+                )
+            }
+        }
+
+        return forespoersel
     }
 }

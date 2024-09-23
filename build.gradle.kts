@@ -66,6 +66,7 @@ repositories {
 dependencies {
     val exposedVersion: String by project
     val flywayCoreVersion: String by project
+    val hagDomeneInntektsmeldingVersion: String by project
     val hikariVersion: String by project
     val kotestVersion: String by project
     val kotlinxSerializationVersion: String by project
@@ -81,6 +82,7 @@ dependencies {
     implementation("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion")
     implementation("no.nav.helsearbeidsgiver:utils:$utilsVersion")
     implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayCoreVersion")
