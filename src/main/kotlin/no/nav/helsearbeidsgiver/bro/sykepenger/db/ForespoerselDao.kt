@@ -149,6 +149,10 @@ class ForespoerselDao(private val db: Database) {
         hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId, Status.entries.toSet())
             .finnEksponertForespoerselId()
 
+    fun hentForespoerselEksponertTilSimba(vedtaksperiodeId: UUID): ForespoerselDto? =
+        hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId, Status.entries.toSet())
+            .finnEksponertForespoersel()
+
     fun hentForespoerslerForVedtaksperiodeId(
         vedtaksperiodeId: UUID,
         statuser: Set<Status>,
@@ -316,13 +320,16 @@ private fun tilBesvarelseMetadataDto(row: ResultRow): BesvarelseMetadataDto? =
         null
     }
 
-private fun List<ForespoerselDto>.finnEksponertForespoerselId(): UUID? =
+private fun List<ForespoerselDto>.finnEksponertForespoersel(): ForespoerselDto? =
     sortedByDescending { it.opprettet }
         .zipWithNextOrNull()
         .firstOrNull { (_, next) ->
             next == null || next.status.erBesvart()
         }
         ?.let { (current, _) -> current }
+
+private fun List<ForespoerselDto>.finnEksponertForespoerselId(): UUID? =
+    finnEksponertForespoersel()
         ?.forespoerselId
 
 private fun List<Pair<UUID, ForespoerselDto>>.toAggregateMap(): Map<UUID, List<ForespoerselDto>> =
