@@ -24,7 +24,9 @@ import org.jetbrains.exposed.sql.upsert
 import java.time.LocalDateTime
 import java.util.UUID
 
-class ForespoerselDao(private val db: Database) {
+class ForespoerselDao(
+    private val db: Database,
+) {
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
@@ -37,21 +39,21 @@ class ForespoerselDao(private val db: Database) {
                 activeTransaction = this,
             )
 
-            ForespoerselTable.insert {
-                it[forespoerselId] = forespoersel.forespoerselId
-                it[type] = forespoersel.type.name
-                it[status] = forespoersel.status.name
-                it[orgnr] = forespoersel.orgnr.verdi
-                it[fnr] = forespoersel.fnr
-                it[vedtaksperiodeId] = forespoersel.vedtaksperiodeId
-                it[egenmeldingsperioder] = forespoersel.egenmeldingsperioder
-                it[sykmeldingsperioder] = forespoersel.sykmeldingsperioder
-                it[bestemmendeFravaersdager] = forespoersel.bestemmendeFravaersdager
-                it[forespurtData] = forespoersel.forespurtData
-                it[opprettet] = forespoersel.opprettet
-                it[oppdatert] = forespoersel.oppdatert
-            }
-                .let {
+            ForespoerselTable
+                .insert {
+                    it[forespoerselId] = forespoersel.forespoerselId
+                    it[type] = forespoersel.type.name
+                    it[status] = forespoersel.status.name
+                    it[orgnr] = forespoersel.orgnr.verdi
+                    it[fnr] = forespoersel.fnr
+                    it[vedtaksperiodeId] = forespoersel.vedtaksperiodeId
+                    it[egenmeldingsperioder] = forespoersel.egenmeldingsperioder
+                    it[sykmeldingsperioder] = forespoersel.sykmeldingsperioder
+                    it[bestemmendeFravaersdager] = forespoersel.bestemmendeFravaersdager
+                    it[forespurtData] = forespoersel.forespurtData
+                    it[opprettet] = forespoersel.opprettet
+                    it[oppdatert] = forespoersel.oppdatert
+                }.let {
                     it[ForespoerselTable.id]
                 }
         }
@@ -107,17 +109,16 @@ class ForespoerselDao(private val db: Database) {
 
     fun hentForespoerselForForespoerselId(forespoerselId: UUID): ForespoerselDto? =
         transaction(db) {
-            ForespoerselTable.join(
-                BesvarelseTable,
-                JoinType.LEFT,
-                ForespoerselTable.id,
-                BesvarelseTable.fkForespoerselId,
-            )
-                .selectAll()
+            ForespoerselTable
+                .join(
+                    BesvarelseTable,
+                    JoinType.LEFT,
+                    ForespoerselTable.id,
+                    BesvarelseTable.fkForespoerselId,
+                ).selectAll()
                 .where {
                     ForespoerselTable.forespoerselId eq forespoerselId
-                }
-                .map(::tilForespoerselDto)
+                }.map(::tilForespoerselDto)
                 .firstOrNull()
         }
 
@@ -129,8 +130,7 @@ class ForespoerselDao(private val db: Database) {
             hentForespoerslerForVedtaksperiodeId(
                 vedtaksperiodeId = vedtaksperiodeId,
                 statuser = statuser,
-            )
-                .maxByOrNull { it.opprettet }
+            ).maxByOrNull { it.opprettet }
         }
 
     fun hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId: UUID): ForespoerselDto? =
@@ -142,12 +142,12 @@ class ForespoerselDao(private val db: Database) {
                         sikkerLogger.error(it)
                     }
                 }
-            }
-            .maxByOrNull { it.opprettet }
+            }.maxByOrNull { it.opprettet }
 
     fun hentForespoerselIdEksponertTilSimba(vedtaksperiodeId: UUID): UUID? =
         hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId, Status.entries.toSet())
-            .finnEksponertForespoerselId()
+            .finnEksponertForespoersel()
+            ?.forespoerselId
 
     fun hentForespoerselEksponertTilSimba(vedtaksperiodeId: UUID): ForespoerselDto? =
         hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId, Status.entries.toSet())
@@ -158,18 +158,17 @@ class ForespoerselDao(private val db: Database) {
         statuser: Set<Status>,
     ): List<ForespoerselDto> =
         transaction(db) {
-            ForespoerselTable.join(
-                BesvarelseTable,
-                JoinType.LEFT,
-                ForespoerselTable.id,
-                BesvarelseTable.fkForespoerselId,
-            )
-                .selectAll()
+            ForespoerselTable
+                .join(
+                    BesvarelseTable,
+                    JoinType.LEFT,
+                    ForespoerselTable.id,
+                    BesvarelseTable.fkForespoerselId,
+                ).selectAll()
                 .where {
                     (ForespoerselTable.vedtaksperiodeId eq vedtaksperiodeId) and
                         (ForespoerselTable.status inList statuser.map { it.name })
-                }
-                .map(::tilForespoerselDto)
+                }.map(::tilForespoerselDto)
                 .sortedBy { it.opprettet }
         }
 
@@ -183,18 +182,16 @@ class ForespoerselDao(private val db: Database) {
                 .where {
                     (ForespoerselTable.orgnr eq orgnr.verdi) and
                         (ForespoerselTable.fnr eq fnr)
-                }
-                .map {
+                }.map {
                     it[ForespoerselTable.vedtaksperiodeId] to tilForespoerselDto(it)
-                }
-                .toAggregateMap()
+                }.toAggregateMap()
                 .mapNotNull { (_, forespoersler) ->
                     val aktivForespoersel =
                         forespoersler
                             .sortedByDescending { it.opprettet }
                             .firstOrNull { it.status == Status.AKTIV }
 
-                    val eksponertForespoerselId = forespoersler.finnEksponertForespoerselId()
+                    val eksponertForespoerselId = forespoersler.finnEksponertForespoersel()?.forespoerselId
 
                     if (aktivForespoersel != null && eksponertForespoerselId != null) {
                         aktivForespoersel.copy(
@@ -212,11 +209,9 @@ class ForespoerselDao(private val db: Database) {
                 .selectAll()
                 .where {
                     ForespoerselTable.forespoerselId eq forespoerselId
-                }
-                .map {
+                }.map {
                     it[ForespoerselTable.vedtaksperiodeId]
-                }
-                .firstOrNull()
+                }.firstOrNull()
         }
 
     private fun oppdaterStatuser(
@@ -230,23 +225,23 @@ class ForespoerselDao(private val db: Database) {
                 (ForespoerselTable.status inList erstattStatuser.map { it.name })
         }
 
-        return activeTransaction.orNew {
-            // Exposed støtter ikke Postgres sin RETURNING: https://github.com/JetBrains/Exposed/issues/1271
-            val updated =
-                ForespoerselTable
-                    .selectAll()
-                    .where(whereStatement)
-                    .map {
-                        it[ForespoerselTable.id]
-                    }
+        return activeTransaction
+            .orNew {
+                // Exposed støtter ikke Postgres sin RETURNING: https://github.com/JetBrains/Exposed/issues/1271
+                val updated =
+                    ForespoerselTable
+                        .selectAll()
+                        .where(whereStatement)
+                        .map {
+                            it[ForespoerselTable.id]
+                        }
 
-            ForespoerselTable.update(whereStatement) {
-                it[status] = nyStatus.name
-            }
+                ForespoerselTable.update(whereStatement) {
+                    it[status] = nyStatus.name
+                }
 
-            updated
-        }
-            .also {
+                updated
+            }.also {
                 val msg = "Oppdaterte ${it.size} rader med ny status '$nyStatus'. ids=$it"
                 logger.info(msg)
                 sikkerLogger.info(msg)
@@ -285,8 +280,7 @@ fun tilForespoerselDto(row: ResultRow): ForespoerselDto {
                     // Gamle forespørsler som ikke har 'bestemmendeFravaersdager' _kan_ ha 'skjaeringstidspunkt',
                     // men vi vet ikke hvilket orgnr det tilhører
                     Orgnr("000000000") to row[ForespoerselTable.skjaeringstidspunkt],
-                )
-                    .mapValuesNotNull { it }
+                ).mapValuesNotNull { it }
             }
 
     val skjaeringstidspunkt =
@@ -325,12 +319,7 @@ private fun List<ForespoerselDto>.finnEksponertForespoersel(): ForespoerselDto? 
         .zipWithNextOrNull()
         .firstOrNull { (_, next) ->
             next == null || next.status.erBesvart()
-        }
-        ?.let { (current, _) -> current }
-
-private fun List<ForespoerselDto>.finnEksponertForespoerselId(): UUID? =
-    finnEksponertForespoersel()
-        ?.forespoerselId
+        }?.let { (current, _) -> current }
 
 private fun List<Pair<UUID, ForespoerselDto>>.toAggregateMap(): Map<UUID, List<ForespoerselDto>> =
     fold(emptyMap()) { map, (vedtaksperiodeId, forespoersel) ->
