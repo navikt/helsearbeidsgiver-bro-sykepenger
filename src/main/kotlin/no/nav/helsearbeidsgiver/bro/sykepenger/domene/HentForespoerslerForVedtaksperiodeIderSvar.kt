@@ -15,6 +15,6 @@ data class HentForespoerslerForVedtaksperiodeIderSvar(
     val boomerang: JsonElement,
 ) {
     companion object {
-        val behovType = Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_IDER
+        val behovType = Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE
     }
 }

@@ -48,7 +48,7 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIderRiverTest : FunSpec({
             )
 
         testRapid.sendJson(
-            Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_IDER.toJson(Pri.BehovType.serializer()),
+            Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
             Pri.Key.VEDTAKSPERIODE_ID_LISTE to listOf(forespoersel.vedtaksperiodeId).toJson(vedtaksperiodeListeSerializer),
             Pri.Key.BOOMERANG to expectedPublished.boomerang,
         )
@@ -77,7 +77,7 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIderRiverTest : FunSpec({
             )
 
         testRapid.sendJson(
-            Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_IDER.toJson(Pri.BehovType.serializer()),
+            Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
             Pri.Key.VEDTAKSPERIODE_ID_LISTE to listOf(forespoersel.vedtaksperiodeId).toJson(vedtaksperiodeListeSerializer),
             Pri.Key.BOOMERANG to expectedPublished.boomerang,
         )

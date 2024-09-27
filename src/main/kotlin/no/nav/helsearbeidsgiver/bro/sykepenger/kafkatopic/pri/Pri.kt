@@ -38,7 +38,7 @@ object Pri {
     enum class BehovType {
         TRENGER_FORESPØRSEL,
         HENT_FORESPOERSLER_FOR_FNR_OG_ORGNR,
-        HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_IDER,
+        HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE,
     }
 
     @Serializable
