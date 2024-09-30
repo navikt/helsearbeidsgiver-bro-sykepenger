@@ -8,7 +8,7 @@ import io.mockk.verifySequence
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.HentForespoerslerForVedtaksperiodeIderSvar
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.HentForespoerslerForVedtaksperiodeIdListeSvar
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
@@ -17,19 +17,19 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.vedtaksperiodeListeSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
-class TilgjengeliggjoerForespoerslerForVedtaksperiodeIderRiverTest : FunSpec({
+class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiverTest : FunSpec({
     val testRapid = TestRapid()
     val mockForespoerselDao = mockk<ForespoerselDao>()
     val mockPriProducer = mockk<PriProducer>(relaxed = true)
 
-    TilgjengeliggjoerForespoerslerForVedtaksperiodeIderRiver(testRapid, mockForespoerselDao, mockPriProducer)
+    TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiver(testRapid, mockForespoerselDao, mockPriProducer)
 
     beforeEach {
         clearAllMocks()
         testRapid.reset()
     }
 
-    test("Ved innkommende event, svar ut korrekt HentForespoerslerForVedtaksperiodeIderSvar") {
+    test("Ved innkommende event, svar ut korrekt HentForespoerslerForVedtaksperiodeIdListeSvar") {
         val forespoersel = mockForespoerselDto()
 
         every {
@@ -39,7 +39,7 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIderRiverTest : FunSpec({
         } returns forespoersel
 
         val expectedPublished =
-            HentForespoerslerForVedtaksperiodeIderSvar(
+            HentForespoerslerForVedtaksperiodeIdListeSvar(
                 resultat =
                     listOf(
                         ForespoerselSimba(forespoersel),
@@ -56,8 +56,8 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIderRiverTest : FunSpec({
         verifySequence {
             mockForespoerselDao.hentForespoerselEksponertTilSimba(forespoersel.vedtaksperiodeId)
             mockPriProducer.send(
-                Pri.Key.BEHOV to HentForespoerslerForVedtaksperiodeIderSvar.behovType.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LØSNING to expectedPublished.toJson(HentForespoerslerForVedtaksperiodeIderSvar.serializer()),
+                Pri.Key.BEHOV to HentForespoerslerForVedtaksperiodeIdListeSvar.behovType.toJson(Pri.BehovType.serializer()),
+                Pri.Key.LØSNING to expectedPublished.toJson(HentForespoerslerForVedtaksperiodeIdListeSvar.serializer()),
             )
         }
     }
@@ -71,7 +71,7 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIderRiverTest : FunSpec({
         } returns null
 
         val expectedPublished =
-            HentForespoerslerForVedtaksperiodeIderSvar(
+            HentForespoerslerForVedtaksperiodeIdListeSvar(
                 resultat = emptyList(),
                 boomerang = mockJsonElement(),
             )
@@ -85,8 +85,8 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIderRiverTest : FunSpec({
         verifySequence {
             mockForespoerselDao.hentForespoerselEksponertTilSimba(forespoersel.vedtaksperiodeId)
             mockPriProducer.send(
-                Pri.Key.BEHOV to HentForespoerslerForVedtaksperiodeIderSvar.behovType.toJson(Pri.BehovType.serializer()),
-                Pri.Key.LØSNING to expectedPublished.toJson(HentForespoerslerForVedtaksperiodeIderSvar.serializer()),
+                Pri.Key.BEHOV to HentForespoerslerForVedtaksperiodeIdListeSvar.behovType.toJson(Pri.BehovType.serializer()),
+                Pri.Key.LØSNING to expectedPublished.toJson(HentForespoerslerForVedtaksperiodeIdListeSvar.serializer()),
             )
         }
     }

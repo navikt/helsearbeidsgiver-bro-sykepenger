@@ -9,7 +9,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.HentForespoerslerForVedtaksperiodeIderSvar
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.HentForespoerslerForVedtaksperiodeIdListeSvar
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
@@ -24,8 +24,8 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import java.util.UUID
 
-// Tilgjengeliggjør aktive forespørsler på vedtaksperiode-IDer
-class TilgjengeliggjoerForespoerslerForVedtaksperiodeIderRiver(
+// Tilgjengeliggjør aktive forespørsler for en liste med vedtaksperiode-IDer
+class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiver(
     rapid: RapidsConnection,
     private val forespoerselDao: ForespoerselDao,
     private val priProducer: PriProducer,
@@ -37,7 +37,7 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIderRiver(
             .apply {
                 validate { msg ->
                     msg.demandValues(
-                        Pri.Key.BEHOV to HentForespoerslerForVedtaksperiodeIderSvar.behovType.name,
+                        Pri.Key.BEHOV to HentForespoerslerForVedtaksperiodeIdListeSvar.behovType.name,
                     )
                     msg.requireKeys(Pri.Key.BOOMERANG, Pri.Key.VEDTAKSPERIODE_ID_LISTE)
                     msg.rejectKeys(Pri.Key.LØSNING)
@@ -51,18 +51,18 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIderRiver(
     ) {
         val json = packet.toJson().parseJson()
 
-        val vedtaksperiodeIder =
+        val vedtaksperiodeIdListe =
             Pri.Key.VEDTAKSPERIODE_ID_LISTE.les(
                 vedtaksperiodeListeSerializer,
                 json.fromJsonMapFiltered(Pri.Key.serializer()),
             )
 
         runCatching {
-            json.sendSvar(vedtaksperiodeIder)
+            json.sendSvar(vedtaksperiodeIdListe)
         }.onFailure(loggernaut::ukjentFeil)
     }
 
-    private fun JsonElement.sendSvar(vedtaksperiodeIder: List<UUID>) {
+    private fun JsonElement.sendSvar(vedtaksperiodeIdListe: List<UUID>) {
         val melding = fromJsonMapFiltered(Pri.Key.serializer())
 
         "Mottok melding på pri-topic".also {
@@ -70,22 +70,22 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIderRiver(
             loggernaut.sikker.info("$it med innhold:\n${toPretty()}")
         }
 
-        val forespoersler = vedtaksperiodeIder.mapNotNull { forespoerselDao.hentForespoerselEksponertTilSimba(it) }
+        val forespoersler = vedtaksperiodeIdListe.mapNotNull { forespoerselDao.hentForespoerselEksponertTilSimba(it) }
 
-        val hentForespoerslerForVedtaksperiodeIderSvarJson =
-            HentForespoerslerForVedtaksperiodeIderSvar(
+        val hentForespoerslerForVedtaksperiodeIdListeSvarJson =
+            HentForespoerslerForVedtaksperiodeIdListeSvar(
                 resultat = forespoersler.map(::ForespoerselSimba),
                 boomerang = Pri.Key.BOOMERANG.les(JsonElement.serializer(), melding),
-            ).toJson(HentForespoerslerForVedtaksperiodeIderSvar.serializer())
+            ).toJson(HentForespoerslerForVedtaksperiodeIdListeSvar.serializer())
 
         priProducer.send(
-            Pri.Key.BEHOV to HentForespoerslerForVedtaksperiodeIderSvar.behovType.toJson(Pri.BehovType.serializer()),
-            Pri.Key.LØSNING to hentForespoerslerForVedtaksperiodeIderSvarJson,
+            Pri.Key.BEHOV to HentForespoerslerForVedtaksperiodeIdListeSvar.behovType.toJson(Pri.BehovType.serializer()),
+            Pri.Key.LØSNING to hentForespoerslerForVedtaksperiodeIdListeSvarJson,
         )
 
         "Behov besvart på pri-topic med liste av forespørsler".also {
             loggernaut.aapen.info("$it.")
-            loggernaut.sikker.info("$it: ${hentForespoerslerForVedtaksperiodeIderSvarJson.toPretty()}")
+            loggernaut.sikker.info("$it: ${hentForespoerslerForVedtaksperiodeIdListeSvarJson.toPretty()}")
         }
     }
 

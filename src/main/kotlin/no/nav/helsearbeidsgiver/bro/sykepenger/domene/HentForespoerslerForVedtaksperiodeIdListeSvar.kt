@@ -10,7 +10,7 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 
 @Serializable
-data class HentForespoerslerForVedtaksperiodeIderSvar(
+data class HentForespoerslerForVedtaksperiodeIdListeSvar(
     val resultat: List<ForespoerselSimba>,
     val boomerang: JsonElement,
 ) {
