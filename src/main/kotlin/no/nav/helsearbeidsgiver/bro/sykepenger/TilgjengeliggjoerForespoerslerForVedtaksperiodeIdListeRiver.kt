@@ -25,7 +25,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import java.util.UUID
 
-// Tilgjengeliggjør aktive forespørsler for en liste med vedtaksperiode-IDer
+// Tilgjengeliggjør eksponerte forespørsler for en liste med vedtaksperiode-IDer
 class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiver(
     rapid: RapidsConnection,
     private val forespoerselDao: ForespoerselDao,
