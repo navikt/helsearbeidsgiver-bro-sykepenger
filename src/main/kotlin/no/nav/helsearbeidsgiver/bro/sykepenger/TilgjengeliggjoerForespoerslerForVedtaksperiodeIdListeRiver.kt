@@ -17,9 +17,10 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.les
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.rejectKeys
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.requireKeys
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.vedtaksperiodeListeSerializer
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import java.util.UUID
@@ -53,7 +54,7 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiver(
 
         val vedtaksperiodeIdListe =
             Pri.Key.VEDTAKSPERIODE_ID_LISTE.les(
-                vedtaksperiodeListeSerializer,
+                UuidSerializer.list(),
                 json.fromJsonMapFiltered(Pri.Key.serializer()),
             )
 

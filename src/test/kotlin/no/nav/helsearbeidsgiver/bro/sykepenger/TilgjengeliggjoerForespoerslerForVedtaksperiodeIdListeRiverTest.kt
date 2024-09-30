@@ -14,7 +14,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockJsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.vedtaksperiodeListeSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 
 class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiverTest : FunSpec({
@@ -49,7 +49,7 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiverTest : FunSpec(
 
         testRapid.sendJson(
             Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
-            Pri.Key.VEDTAKSPERIODE_ID_LISTE to listOf(forespoersel.vedtaksperiodeId).toJson(vedtaksperiodeListeSerializer),
+            Pri.Key.VEDTAKSPERIODE_ID_LISTE to listOf(forespoersel.vedtaksperiodeId).toJson(UuidSerializer),
             Pri.Key.BOOMERANG to expectedPublished.boomerang,
         )
 
@@ -78,7 +78,7 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiverTest : FunSpec(
 
         testRapid.sendJson(
             Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
-            Pri.Key.VEDTAKSPERIODE_ID_LISTE to listOf(forespoersel.vedtaksperiodeId).toJson(vedtaksperiodeListeSerializer),
+            Pri.Key.VEDTAKSPERIODE_ID_LISTE to listOf(forespoersel.vedtaksperiodeId).toJson(UuidSerializer),
             Pri.Key.BOOMERANG to expectedPublished.boomerang,
         )
 
