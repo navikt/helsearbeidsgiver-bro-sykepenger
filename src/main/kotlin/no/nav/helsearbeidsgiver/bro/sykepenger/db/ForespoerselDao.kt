@@ -144,14 +144,12 @@ class ForespoerselDao(
                 }
             }.maxByOrNull { it.opprettet }
 
-    fun hentForespoerselIdEksponertTilSimba(vedtaksperiodeId: UUID): UUID? =
-        hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId, Status.entries.toSet())
-            .finnEksponertForespoersel()
-            ?.forespoerselId
-
-    fun hentForespoerselEksponertTilSimba(vedtaksperiodeId: UUID): ForespoerselDto? =
-        hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId, Status.entries.toSet())
-            .finnEksponertForespoersel()
+    fun hentForespoerslerEksponertTilSimba(vedtaksperiodeIdListe: List<UUID>): List<ForespoerselDto> =
+        hentForespoerslerForVedtaksperiodeIdListe(vedtaksperiodeIdListe, Status.entries.toSet())
+            .groupBy { it.vedtaksperiodeId }
+            .mapNotNull { (_, forespoersler) ->
+                forespoersler.finnEksponertForespoersel()
+            }
 
     fun hentForespoerslerForVedtaksperiodeId(
         vedtaksperiodeId: UUID,
@@ -201,6 +199,25 @@ class ForespoerselDao(
                         null
                     }
                 }
+        }
+
+    private fun hentForespoerslerForVedtaksperiodeIdListe(
+        vedtaksperiodeIdListe: List<UUID>,
+        statuser: Set<Status>,
+    ): List<ForespoerselDto> =
+        transaction(db) {
+            ForespoerselTable
+                .join(
+                    BesvarelseTable,
+                    JoinType.LEFT,
+                    ForespoerselTable.id,
+                    BesvarelseTable.fkForespoerselId,
+                ).selectAll()
+                .where {
+                    (ForespoerselTable.vedtaksperiodeId inList vedtaksperiodeIdListe) and
+                        (ForespoerselTable.status inList statuser.map { it.name })
+                }.map(::tilForespoerselDto)
+                .sortedBy { it.opprettet }
         }
 
     private fun hentVedtaksperiodeId(forespoerselId: UUID): UUID? =

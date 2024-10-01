@@ -744,7 +744,7 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
         }
     }
 
-    context(ForespoerselDao::hentForespoerselIdEksponertTilSimba.name) {
+    context(ForespoerselDao::hentForespoerslerEksponertTilSimba.name) {
 
         test("flere besvarte (fra Spleis) forespørsler") {
             val idA = mockForespoerselDto().lagreNotNull()
@@ -773,7 +773,10 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idE)?.status shouldBe Status.BESVART_SPLEIS
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao
+                    .hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
+                    .firstOrNull()
+                    ?.forespoerselId
 
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idC)?.forespoerselId
         }
@@ -795,7 +798,9 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idD)?.status shouldBe Status.BESVART_SIMBA
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao
+                    .hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
+                    .firstOrNull()?.forespoerselId
 
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idC)?.forespoerselId
         }
@@ -816,7 +821,9 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idC)?.status shouldBe Status.BESVART_SPLEIS
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao
+                    .hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
+                    .firstOrNull()?.forespoerselId
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
         }
 
@@ -831,7 +838,9 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idB)?.status shouldBe Status.AKTIV
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao
+                    .hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
+                    .firstOrNull()?.forespoerselId
 
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idB)?.forespoerselId
         }
@@ -847,7 +856,9 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idB)?.status shouldBe Status.AKTIV
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao
+                    .hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
+                    .firstOrNull()?.forespoerselId
 
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idB)?.forespoerselId
         }
@@ -860,7 +871,9 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idB)?.status shouldBe Status.AKTIV
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao
+                    .hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
+                    .firstOrNull()?.forespoerselId
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
         }
 
@@ -870,7 +883,8 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idA)?.status shouldBe Status.AKTIV
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao.hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
+                    .firstOrNull()?.forespoerselId
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
         }
 
@@ -882,7 +896,8 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idA)?.status shouldBe Status.BESVART_SIMBA
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao.hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
+                    .firstOrNull()?.forespoerselId
 
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
         }
@@ -898,13 +913,15 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idA)?.status shouldBe Status.BESVART_SPLEIS
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao.hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
+                    .firstOrNull()?.forespoerselId
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
         }
 
         test("Finner ingen forespørselId som vi har sendt portalen") {
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao.hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
+                    .firstOrNull()?.forespoerselId
             forespoerselIdEksponertTilSimba shouldBe null
         }
 
@@ -926,7 +943,8 @@ class ForespoerselDaoTest : FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTa
             db.hentForespoersel(idD)?.status shouldBe Status.AKTIV
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.hentForespoerselIdEksponertTilSimba(MockUuid.vedtaksperiodeId)
+                forespoerselDao.hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
+                    .firstOrNull()?.forespoerselId
 
             forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idD)?.forespoerselId
         }

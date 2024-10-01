@@ -71,7 +71,7 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiver(
             loggernaut.sikker.info("$it med innhold:\n${toPretty()}")
         }
 
-        val forespoersler = vedtaksperiodeIdListe.mapNotNull { forespoerselDao.hentForespoerselEksponertTilSimba(it) }
+        val forespoersler = forespoerselDao.hentForespoerslerEksponertTilSimba(vedtaksperiodeIdListe)
 
         val hentForespoerslerForVedtaksperiodeIdListeSvarJson =
             HentForespoerslerForVedtaksperiodeIdListeSvar(

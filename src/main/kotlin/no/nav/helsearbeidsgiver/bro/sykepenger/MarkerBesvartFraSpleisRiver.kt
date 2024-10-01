@@ -94,9 +94,12 @@ class MarkerBesvartFraSpleisRiver(
             }
 
             val forespoerselIdEksponertTilSimba =
-                forespoerselDao.hentForespoerselIdEksponertTilSimba(
-                    inntektsmeldingHaandtert.vedtaksperiodeId,
-                )
+                forespoerselDao
+                    .hentForespoerslerEksponertTilSimba(
+                        listOf(inntektsmeldingHaandtert.vedtaksperiodeId),
+                    ).firstOrNull()
+                    ?.forespoerselId
+
             if (forespoerselIdEksponertTilSimba == null) {
                 loggernaut.aapen.warn("Fant ingen forespørsler for den besvarte inntektsmeldingen")
                 loggernaut.sikker.warn("Fant ingen forespørsler for den besvarte inntektsmeldingen: ${toPretty()}")
