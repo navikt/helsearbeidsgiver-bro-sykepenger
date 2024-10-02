@@ -145,7 +145,7 @@ class ForespoerselDao(
             }.maxByOrNull { it.opprettet }
 
     fun hentForespoerslerEksponertTilSimba(vedtaksperiodeIdListe: List<UUID>): List<ForespoerselDto> =
-        hentForespoerslerForVedtaksperiodeIdListe(vedtaksperiodeIdListe, Status.entries.toSet())
+        hentForespoerslerForVedtaksperiodeIdListe(vedtaksperiodeIdListe)
             .groupBy { it.vedtaksperiodeId }
             .mapNotNull { (_, forespoersler) ->
                 forespoersler.finnEksponertForespoersel()
@@ -203,7 +203,6 @@ class ForespoerselDao(
 
     private fun hentForespoerslerForVedtaksperiodeIdListe(
         vedtaksperiodeIdListe: List<UUID>,
-        statuser: Set<Status>,
     ): List<ForespoerselDto> =
         transaction(db) {
             ForespoerselTable
@@ -213,10 +212,8 @@ class ForespoerselDao(
                     ForespoerselTable.id,
                     BesvarelseTable.fkForespoerselId,
                 ).selectAll()
-                .where {
-                    (ForespoerselTable.vedtaksperiodeId inList vedtaksperiodeIdListe) and
-                        (ForespoerselTable.status inList statuser.map { it.name })
-                }.map(::tilForespoerselDto)
+                .where { ForespoerselTable.vedtaksperiodeId inList vedtaksperiodeIdListe }
+                .map(::tilForespoerselDto)
                 .sortedBy { it.opprettet }
         }
 
