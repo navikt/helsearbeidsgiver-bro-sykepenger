@@ -201,9 +201,7 @@ class ForespoerselDao(
                 }
         }
 
-    private fun hentForespoerslerForVedtaksperiodeIdListe(
-        vedtaksperiodeIdListe: List<UUID>,
-    ): List<ForespoerselDto> =
+    private fun hentForespoerslerForVedtaksperiodeIdListe(vedtaksperiodeIdListe: List<UUID>): List<ForespoerselDto> =
         transaction(db) {
             ForespoerselTable
                 .join(
