@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.testutils
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.Key
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
