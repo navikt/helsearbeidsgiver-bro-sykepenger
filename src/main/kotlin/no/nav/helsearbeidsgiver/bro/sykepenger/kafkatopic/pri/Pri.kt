@@ -20,6 +20,7 @@ object Pri {
         FNR("fnr"),
         FORESPOERSEL_ID("forespoerselId"),
         SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
+        VEDTAKSPERIODE_ID_LISTE("vedtaksperiode_id_liste"),
         ;
 
         override fun toString(): String = verdi
@@ -37,6 +38,7 @@ object Pri {
     enum class BehovType {
         TRENGER_FORESPØRSEL,
         HENT_FORESPOERSLER_FOR_FNR_OG_ORGNR,
+        HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE,
     }
 
     @Serializable

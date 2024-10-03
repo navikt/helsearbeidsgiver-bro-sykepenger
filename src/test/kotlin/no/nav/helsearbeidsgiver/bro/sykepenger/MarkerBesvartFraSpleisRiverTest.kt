@@ -60,7 +60,7 @@ class MarkerBesvartFraSpleisRiverTest : FunSpec({
                 inntektsmeldingHaandtert.haandtert,
                 inntektsmeldingHaandtert.inntektsmeldingId,
             )
-            mockForespoerselDao.hentForespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
+            mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(inntektsmeldingHaandtert.vedtaksperiodeId))
         }
     }
 
@@ -78,7 +78,7 @@ class MarkerBesvartFraSpleisRiverTest : FunSpec({
                 inntektsmeldingHaandtert.haandtert,
                 inntektsmeldingHaandtert.inntektsmeldingId,
             )
-            mockForespoerselDao.hentForespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
+            mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(inntektsmeldingHaandtert.vedtaksperiodeId))
         }
     }
 
@@ -89,7 +89,10 @@ class MarkerBesvartFraSpleisRiverTest : FunSpec({
         every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(any(), any(), any()) } returns 1
 
         every {
-            mockForespoerselDao.hentForespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
+            mockForespoerselDao
+                .hentForespoerslerEksponertTilSimba(listOf(inntektsmeldingHaandtert.vedtaksperiodeId))
+                .firstOrNull()
+                ?.forespoerselId
         } returns expectedForespoerselId
 
         mockInnkommendeMelding(inntektsmeldingHaandtert)
@@ -127,7 +130,10 @@ class MarkerBesvartFraSpleisRiverTest : FunSpec({
         } returns 1
 
         every {
-            mockForespoerselDao.hentForespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
+            mockForespoerselDao
+                .hentForespoerslerEksponertTilSimba(listOf(inntektsmeldingHaandtert.vedtaksperiodeId))
+                .firstOrNull()
+                ?.forespoerselId
         } returns expectedForespoerselId
 
         mockInnkommendeMelding(inntektsmeldingHaandtert)
@@ -153,7 +159,10 @@ class MarkerBesvartFraSpleisRiverTest : FunSpec({
         } returns 1
 
         every {
-            mockForespoerselDao.hentForespoerselIdEksponertTilSimba(inntektsmeldingHaandtert.vedtaksperiodeId)
+            mockForespoerselDao
+                .hentForespoerslerEksponertTilSimba(listOf(inntektsmeldingHaandtert.vedtaksperiodeId))
+                .firstOrNull()
+                ?.forespoerselId
         } returns expectedForespoerselId
 
         mockInnkommendeMelding(inntektsmeldingHaandtert)
