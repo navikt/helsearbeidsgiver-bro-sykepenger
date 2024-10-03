@@ -96,12 +96,17 @@ class LagreKomplettForespoerselRiver(
             bestemmendeFravaersdag(
                 arbeidsgiverperioder = emptyList(),
                 sykefravaersperioder =
-                    forespoersel.egenmeldingsperioder.map { PeriodeV1(it.fom, it.tom) } +
-                        forespoersel.sykmeldingsperioder.map { PeriodeV1(it.fom, it.tom) },
+                    (
+                        forespoersel.egenmeldingsperioder.map { PeriodeV1(it.fom, it.tom) } +
+                            forespoersel.sykmeldingsperioder.map { PeriodeV1(it.fom, it.tom) }
+                    )
+                        .sortedBy { it.fom },
             )
 
-        // Kun ett forslag til bestemmende fraværsdag betyr kun én arbeidsgiver
         if (
+            // Ved ingen egenmeldinger så bruker vi Spleis sitt forslag til preutfylling av skjema
+            forespoersel.egenmeldingsperioder.isNotEmpty() &&
+            // Kun ett forslag til bestemmende fraværsdag betyr kun én arbeidsgiver
             forespoersel.bestemmendeFravaersdager.size == 1 &&
             forespoersel.bestemmendeFravaersdager.values.first() != bfUtenEgenmld &&
             forespoersel.bestemmendeFravaersdager.values.first() != bfMedEgenmld
@@ -111,7 +116,7 @@ class LagreKomplettForespoerselRiver(
             ) {
                 loggernaut.sikker.info(
                     "Forslag fra Spleis (${forespoersel.bestemmendeFravaersdager.values.first()}) " +
-                        "matcher hverken bestemmende fraværsdag utledet fra kun sykmeldingsperioder ($bfUtenEgenmld)" +
+                        "matcher hverken bestemmende fraværsdag utledet fra kun sykmeldingsperioder ($bfUtenEgenmld) " +
                         "eller fra egenmeldings- og sykmeldingsperioder ($bfMedEgenmld).",
                 )
             }
