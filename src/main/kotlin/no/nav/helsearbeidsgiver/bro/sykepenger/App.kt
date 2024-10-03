@@ -23,7 +23,6 @@ fun main() {
     MarkerBesvartFraSimbaRiver(rapid = rapid, forespoerselDao = forespoerselDao)
     MarkerBesvartFraSpleisRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
     ForkastForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
-    // NB! Denne skal ikke registreres før portalen er klar for å vise begrensede forespørsler
     LagreBegrensetForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
 
     rapid.registerDbLifecycle()

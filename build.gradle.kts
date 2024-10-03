@@ -52,8 +52,6 @@ repositories {
     val githubPassword: String by project
 
     mavenCentral()
-    google()
-    maven("https://packages.confluent.io/maven/")
     maven {
         setUrl("https://maven.pkg.github.com/navikt/*")
         credentials {
