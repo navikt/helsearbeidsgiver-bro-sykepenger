@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.Database
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer

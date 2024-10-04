@@ -1,6 +1,6 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.utils
 
-import no.nav.helse.rapids_rivers.MessageProblems
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 

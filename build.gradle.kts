@@ -71,6 +71,7 @@ dependencies {
     val logbackVersion: String by project
     val mockkVersion: String by project
     val postgresqlVersion: String by project
+    val rapidsAndRiversTestVersion: String by project
     val rapidsAndRiversVersion: String by project
     val slf4jVersion: String by project
     val testcontainersPostgresqlVersion: String by project
@@ -95,6 +96,7 @@ dependencies {
     runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
 
     testImplementation(testFixtures("no.nav.helsearbeidsgiver:utils:$utilsVersion"))
+    testImplementation("com.github.navikt.tbd-libs:rapids-and-rivers-test:$rapidsAndRiversTestVersion")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-framework-datatest:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")

@@ -1,9 +1,9 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.River
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
