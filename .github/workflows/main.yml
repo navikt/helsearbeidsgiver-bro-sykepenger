@@ -31,7 +31,7 @@ jobs:
         uses: gradle/wrapper-validation-action@v3
 
       - name: Build and test
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           arguments: build test jar --console=plain
         env:
