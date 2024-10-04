@@ -13,44 +13,45 @@ import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import java.time.LocalDate
 
-class ForespoerselSvarTest : FunSpec({
-    withData(
-        mapOf<String, ForespoerselSvar.() -> ForespoerselSvar>(
-            "ForespoerselSvar med suksess serialiseres korrekt" to ForespoerselSvar::medSuksess,
-            "ForespoerselSvar med feil serialiseres korrekt" to ForespoerselSvar::medFeil,
-        ),
-    ) { medSuksessEllerFeil ->
-        val forespoerselSvar =
-            mockForespoerselSvarUtenSuksessEllerFeil()
-                .medSuksessEllerFeil()
+class ForespoerselSvarTest :
+    FunSpec({
+        withData(
+            mapOf<String, ForespoerselSvar.() -> ForespoerselSvar>(
+                "ForespoerselSvar med suksess serialiseres korrekt" to ForespoerselSvar::medSuksess,
+                "ForespoerselSvar med feil serialiseres korrekt" to ForespoerselSvar::medFeil,
+            ),
+        ) { medSuksessEllerFeil ->
+            val forespoerselSvar =
+                mockForespoerselSvarUtenSuksessEllerFeil()
+                    .medSuksessEllerFeil()
 
-        val expectedJson = forespoerselSvar.hardcodedJson()
+            val expectedJson = forespoerselSvar.hardcodedJson()
 
-        val actualJson = forespoerselSvar.toJsonStr(ForespoerselSvar.serializer())
+            val actualJson = forespoerselSvar.toJsonStr(ForespoerselSvar.serializer())
 
-        actualJson shouldBe expectedJson
-    }
+            actualJson shouldBe expectedJson
+        }
 
-    withData(
-        mapOf<String, ForespoerselSvar.() -> ForespoerselSvar>(
-            "ForespoerselSvar med suksess deserialiseres korrekt" to ForespoerselSvar::medSuksess,
-            "ForespoerselSvar med feil deserialiseres korrekt" to ForespoerselSvar::medFeil,
-        ),
-    ) { medSuksessEllerFeil ->
-        val expectedInstance =
-            mockForespoerselSvarUtenSuksessEllerFeil()
-                .medSuksessEllerFeil()
+        withData(
+            mapOf<String, ForespoerselSvar.() -> ForespoerselSvar>(
+                "ForespoerselSvar med suksess deserialiseres korrekt" to ForespoerselSvar::medSuksess,
+                "ForespoerselSvar med feil deserialiseres korrekt" to ForespoerselSvar::medFeil,
+            ),
+        ) { medSuksessEllerFeil ->
+            val expectedInstance =
+                mockForespoerselSvarUtenSuksessEllerFeil()
+                    .medSuksessEllerFeil()
 
-        val expectedJson = expectedInstance.hardcodedJson()
+            val expectedJson = expectedInstance.hardcodedJson()
 
-        val actualInstance =
-            shouldNotThrowAny {
-                expectedJson.parseJson().fromJson(ForespoerselSvar.serializer())
-            }
+            val actualInstance =
+                shouldNotThrowAny {
+                    expectedJson.parseJson().fromJson(ForespoerselSvar.serializer())
+                }
 
-        actualInstance shouldBe expectedInstance
-    }
-})
+            actualInstance shouldBe expectedInstance
+        }
+    })
 
 private fun mockForespoerselSvarUtenSuksessEllerFeil(): ForespoerselSvar =
     ForespoerselSvar(
@@ -58,8 +59,7 @@ private fun mockForespoerselSvarUtenSuksessEllerFeil(): ForespoerselSvar =
         boomerang =
             mapOf(
                 "boom" to "shakalaka".toJson(),
-            )
-                .toJson(),
+            ).toJson(),
     )
 
 private fun ForespoerselSvar.medSuksess(): ForespoerselSvar = copy(resultat = mockForespoerselSvarSuksess())
@@ -79,21 +79,21 @@ private fun ForespoerselSvar.hardcodedJson(): String =
     """.removeJsonWhitespace()
 
 private fun ForespoerselSimba?.hardcodedJsonFieldOrEmpty(): String =
-    this?.let {
-        """
+    this
+        ?.let {
+            """
             "resultat": ${it.hardcodedJson()},
         """
-    }
-        ?.removeJsonWhitespace()
+        }?.removeJsonWhitespace()
         .orEmpty()
 
 private fun ForespoerselSvar.Feil?.hardcodedJsonFieldOrEmpty(): String =
-    this?.let {
-        """
+    this
+        ?.let {
+            """
             "feil": "$it",
         """
-    }
-        ?.removeJsonWhitespace()
+        }?.removeJsonWhitespace()
         .orEmpty()
 
 private fun ForespoerselSimba.hardcodedJson(): String =

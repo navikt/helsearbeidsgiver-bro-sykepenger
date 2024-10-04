@@ -35,18 +35,19 @@ class MarkerBesvartFraSpleisRiver(
     private val loggernaut = Loggernaut(this)
 
     init {
-        River(rapid).apply {
-            validate { msg ->
-                msg.demandValues(Spleis.Key.TYPE to Spleis.Event.INNTEKTSMELDING_HÅNDTERT.name)
-                msg.requireKeys(
-                    Spleis.Key.ORGANISASJONSNUMMER,
-                    Spleis.Key.FØDSELSNUMMER,
-                    Spleis.Key.VEDTAKSPERIODE_ID,
-                    Spleis.Key.OPPRETTET,
-                )
-                msg.interestedKeys(Spleis.Key.DOKUMENT_ID)
-            }
-        }.register(this)
+        River(rapid)
+            .apply {
+                validate { msg ->
+                    msg.demandValues(Spleis.Key.TYPE to Spleis.Event.INNTEKTSMELDING_HÅNDTERT.name)
+                    msg.requireKeys(
+                        Spleis.Key.ORGANISASJONSNUMMER,
+                        Spleis.Key.FØDSELSNUMMER,
+                        Spleis.Key.VEDTAKSPERIODE_ID,
+                        Spleis.Key.OPPRETTET,
+                    )
+                    msg.interestedKeys(Spleis.Key.DOKUMENT_ID)
+                }
+            }.register(this)
     }
 
     override fun onPacket(
@@ -54,11 +55,11 @@ class MarkerBesvartFraSpleisRiver(
         context: MessageContext,
     ) {
         runCatching {
-            packet.toJson()
+            packet
+                .toJson()
                 .parseJson()
                 .oppdaterForespoersel()
-        }
-            .onFailure(loggernaut::ukjentFeil)
+        }.onFailure(loggernaut::ukjentFeil)
             .getOrThrow()
     }
 
@@ -111,10 +112,10 @@ class MarkerBesvartFraSpleisRiver(
                         inntektsmeldingId?.let { Pri.Key.SPINN_INNTEKTSMELDING_ID to it.toJson() },
                     ).toTypedArray()
 
-                priProducer.send(
-                    *felter,
-                )
-                    .ifTrue { loggernaut.info("Sa ifra om besvart forespørsel til Simba.") }
+                priProducer
+                    .send(
+                        *felter,
+                    ).ifTrue { loggernaut.info("Sa ifra om besvart forespørsel til Simba.") }
                     .ifFalse { loggernaut.error("Klarte ikke si ifra om besvart forespørsel til Simba.") }
             }
         }

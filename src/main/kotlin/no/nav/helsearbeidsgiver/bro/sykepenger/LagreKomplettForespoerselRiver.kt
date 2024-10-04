@@ -36,30 +36,31 @@ class LagreKomplettForespoerselRiver(
     override val loggernaut = Loggernaut(this)
 
     init {
-        River(rapid).apply {
-            validate { msg ->
-                msg.demandValues(Spleis.Key.TYPE to Spleis.Event.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER_KOMPLETT.name)
-                msg.requireArray(Spleis.Key.EGENMELDINGSPERIODER.verdi) {
-                    require(
-                        Spleis.Key.FOM to { it.fromJson(LocalDateSerializer) },
-                        Spleis.Key.TOM to { it.fromJson(LocalDateSerializer) },
+        River(rapid)
+            .apply {
+                validate { msg ->
+                    msg.demandValues(Spleis.Key.TYPE to Spleis.Event.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER_KOMPLETT.name)
+                    msg.requireArray(Spleis.Key.EGENMELDINGSPERIODER.verdi) {
+                        require(
+                            Spleis.Key.FOM to { it.fromJson(LocalDateSerializer) },
+                            Spleis.Key.TOM to { it.fromJson(LocalDateSerializer) },
+                        )
+                    }
+                    msg.requireArray(Spleis.Key.SYKMELDINGSPERIODER.verdi) {
+                        require(
+                            Spleis.Key.FOM to { it.fromJson(LocalDateSerializer) },
+                            Spleis.Key.TOM to { it.fromJson(LocalDateSerializer) },
+                        )
+                    }
+                    msg.requireKeys(
+                        Spleis.Key.ORGANISASJONSNUMMER,
+                        Spleis.Key.FØDSELSNUMMER,
+                        Spleis.Key.VEDTAKSPERIODE_ID,
+                        Spleis.Key.BESTEMMENDE_FRAVÆRSDAGER,
+                        Spleis.Key.FORESPURT_DATA,
                     )
                 }
-                msg.requireArray(Spleis.Key.SYKMELDINGSPERIODER.verdi) {
-                    require(
-                        Spleis.Key.FOM to { it.fromJson(LocalDateSerializer) },
-                        Spleis.Key.TOM to { it.fromJson(LocalDateSerializer) },
-                    )
-                }
-                msg.requireKeys(
-                    Spleis.Key.ORGANISASJONSNUMMER,
-                    Spleis.Key.FØDSELSNUMMER,
-                    Spleis.Key.VEDTAKSPERIODE_ID,
-                    Spleis.Key.BESTEMMENDE_FRAVÆRSDAGER,
-                    Spleis.Key.FORESPURT_DATA,
-                )
-            }
-        }.register(this)
+            }.register(this)
     }
 
     override fun lesForespoersel(
@@ -99,8 +100,7 @@ class LagreKomplettForespoerselRiver(
                     (
                         forespoersel.egenmeldingsperioder.map { PeriodeV1(it.fom, it.tom) } +
                             forespoersel.sykmeldingsperioder.map { PeriodeV1(it.fom, it.tom) }
-                    )
-                        .sortedBy { it.fom },
+                    ).sortedBy { it.fom },
             )
 
         if (

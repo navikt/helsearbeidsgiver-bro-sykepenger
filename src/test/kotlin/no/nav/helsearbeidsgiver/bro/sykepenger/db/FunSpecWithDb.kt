@@ -28,18 +28,18 @@ abstract class FunSpecWithDb(
 
 private fun dataSource(): DataSource {
     val postgres = postgres()
-    return HikariConfig().apply {
-        jdbcUrl = postgres.jdbcUrl
-        username = postgres.username
-        password = postgres.password
-        maximumPoolSize = 5
-        minimumIdle = 1
-        idleTimeout = 500001
-        connectionTimeout = 10000
-        maxLifetime = 600001
-        initializationFailTimeout = 5000
-    }
-        .let(::HikariDataSource)
+    return HikariConfig()
+        .apply {
+            jdbcUrl = postgres.jdbcUrl
+            username = postgres.username
+            password = postgres.password
+            maximumPoolSize = 5
+            minimumIdle = 1
+            idleTimeout = 500001
+            connectionTimeout = 10000
+            maxLifetime = 600001
+            initializationFailTimeout = 5000
+        }.let(::HikariDataSource)
         .migrate()
 }
 
@@ -58,7 +58,8 @@ private fun postgres(): PostgreSQLContainer<Nothing> =
 
 private fun DataSource.migrate() =
     also {
-        Flyway.configure()
+        Flyway
+            .configure()
             .dataSource(this)
             .failOnMissingLocations(true)
             .cleanDisabled(false)

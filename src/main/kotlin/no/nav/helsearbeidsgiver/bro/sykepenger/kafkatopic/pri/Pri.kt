@@ -8,7 +8,9 @@ object Pri {
     const val TOPIC = "helsearbeidsgiver.pri"
 
     @Serializable(KeySerializer::class)
-    enum class Key(override val verdi: String) : TopicKey {
+    enum class Key(
+        override val verdi: String,
+    ) : TopicKey {
         // Predefinerte fra rapids-and-rivers-biblioteket
         BEHOV("@behov"),
         LØSNING("@løsning"),

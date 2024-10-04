@@ -6,7 +6,9 @@ private val orgnrRgx = Regex("\\d{9}")
 
 @Serializable
 @JvmInline
-value class Orgnr(val verdi: String) {
+value class Orgnr(
+    val verdi: String,
+) {
     init {
         require(verdi.erGyldigOrgnr())
     }

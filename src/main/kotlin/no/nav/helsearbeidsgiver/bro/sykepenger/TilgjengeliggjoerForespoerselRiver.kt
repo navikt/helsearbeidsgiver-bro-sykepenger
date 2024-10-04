@@ -37,18 +37,19 @@ class TilgjengeliggjoerForespoerselRiver(
     private val loggernaut = Loggernaut(this)
 
     init {
-        River(rapid).apply {
-            validate { msg ->
-                msg.demandValues(
-                    Pri.Key.BEHOV to ForespoerselSvar.behovType.name,
-                )
-                msg.require(
-                    Pri.Key.FORESPOERSEL_ID to { it.fromJson(UuidSerializer) },
-                )
-                msg.requireKeys(Pri.Key.BOOMERANG)
-                msg.rejectKeys(Pri.Key.LØSNING)
-            }
-        }.register(this)
+        River(rapid)
+            .apply {
+                validate { msg ->
+                    msg.demandValues(
+                        Pri.Key.BEHOV to ForespoerselSvar.behovType.name,
+                    )
+                    msg.require(
+                        Pri.Key.FORESPOERSEL_ID to { it.fromJson(UuidSerializer) },
+                    )
+                    msg.requireKeys(Pri.Key.BOOMERANG)
+                    msg.rejectKeys(Pri.Key.LØSNING)
+                }
+            }.register(this)
     }
 
     override fun onPacket(
@@ -68,8 +69,7 @@ class TilgjengeliggjoerForespoerselRiver(
         ) {
             runCatching {
                 json.sendSvar(forespoerselId)
-            }
-                .onFailure(loggernaut::ukjentFeil)
+            }.onFailure(loggernaut::ukjentFeil)
         }
     }
 
@@ -83,23 +83,21 @@ class TilgjengeliggjoerForespoerselRiver(
             ForespoerselSvar(
                 forespoerselId = forespoerselId,
                 boomerang = Pri.Key.BOOMERANG.les(JsonElement.serializer(), melding),
-            )
-                .let {
-                    val forespoersel =
-                        forespoerselDao.hentNyesteForespoerselForForespoerselId(
-                            forespoerselId = it.forespoerselId,
-                            statuser = setOf(Status.AKTIV, Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
-                        )
+            ).let {
+                val forespoersel =
+                    forespoerselDao.hentNyesteForespoerselForForespoerselId(
+                        forespoerselId = it.forespoerselId,
+                        statuser = setOf(Status.AKTIV, Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
+                    )
 
-                    if (forespoersel != null) {
-                        loggernaut.aapen.info("Forespørsel funnet.")
-                        it.copy(resultat = ForespoerselSimba(forespoersel))
-                    } else {
-                        loggernaut.aapen.info("Forespørsel _ikke_ funnet.")
-                        it.copy(feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET)
-                    }
+                if (forespoersel != null) {
+                    loggernaut.aapen.info("Forespørsel funnet.")
+                    it.copy(resultat = ForespoerselSimba(forespoersel))
+                } else {
+                    loggernaut.aapen.info("Forespørsel _ikke_ funnet.")
+                    it.copy(feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET)
                 }
-                .toJson(ForespoerselSvar.serializer())
+            }.toJson(ForespoerselSvar.serializer())
 
         priProducer.send(
             Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),

@@ -26,12 +26,13 @@ class MarkerBesvartFraSimbaRiver(
     private val loggernaut = Loggernaut(this)
 
     init {
-        River(rapid).apply {
-            validate { msg ->
-                msg.demandValues(Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.name)
-                msg.requireKeys(Pri.Key.FORESPOERSEL_ID)
-            }
-        }.register(this)
+        River(rapid)
+            .apply {
+                validate { msg ->
+                    msg.demandValues(Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART_SIMBA.name)
+                    msg.requireKeys(Pri.Key.FORESPOERSEL_ID)
+                }
+            }.register(this)
     }
 
     override fun onPacket(
@@ -54,8 +55,7 @@ class MarkerBesvartFraSimbaRiver(
         ) {
             runCatching {
                 markerBesvart(forespoerselId)
-            }
-                .onFailure(loggernaut::ukjentFeil)
+            }.onFailure(loggernaut::ukjentFeil)
         }
     }
 

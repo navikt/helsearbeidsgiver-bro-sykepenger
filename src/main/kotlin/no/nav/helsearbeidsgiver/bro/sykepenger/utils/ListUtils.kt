@@ -13,7 +13,8 @@ fun <T : Any> List<T>.leadingAndLast(): Pair<List<T>, T>? =
         else -> {
             val (leading, onlyLast) = chunked(size - 1)
 
-            onlyLast.firstOrNull()
+            onlyLast
+                .firstOrNull()
                 ?.let { last ->
                     Pair(leading, last)
                 }

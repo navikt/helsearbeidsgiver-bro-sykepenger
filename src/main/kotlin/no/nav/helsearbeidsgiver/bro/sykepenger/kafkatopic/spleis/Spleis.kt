@@ -6,7 +6,9 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.Key as TopicKey
 
 object Spleis {
     @Serializable(KeySerializer::class)
-    enum class Key(override val verdi: String) : TopicKey {
+    enum class Key(
+        override val verdi: String,
+    ) : TopicKey {
         // Egendefinerte
         TYPE("type"),
         ORGANISASJONSNUMMER("organisasjonsnummer"),

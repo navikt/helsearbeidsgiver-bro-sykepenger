@@ -22,15 +22,21 @@ data object SpleisArbeidsgiverperiode : SpleisForespurtDataDto()
 
 @Serializable
 @SerialName("Inntekt")
-data class SpleisInntekt(val forslag: SpleisForslagInntekt) : SpleisForespurtDataDto()
+data class SpleisInntekt(
+    val forslag: SpleisForslagInntekt,
+) : SpleisForespurtDataDto()
 
 @Serializable
 @SerialName("FastsattInntekt")
-data class SpleisFastsattInntekt(val fastsattInntekt: Double) : SpleisForespurtDataDto()
+data class SpleisFastsattInntekt(
+    val fastsattInntekt: Double,
+) : SpleisForespurtDataDto()
 
 @Serializable
 @SerialName("Refusjon")
-data class SpleisRefusjon(val forslag: List<SpleisForslagRefusjon>) : SpleisForespurtDataDto()
+data class SpleisRefusjon(
+    val forslag: List<SpleisForslagRefusjon>,
+) : SpleisForespurtDataDto()
 
 @Serializable
 data class SpleisForslagInntekt(

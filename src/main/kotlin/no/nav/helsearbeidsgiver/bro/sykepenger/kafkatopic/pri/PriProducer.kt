@@ -19,13 +19,13 @@ class PriProducer(
     private val topic = Pri.TOPIC
 
     fun send(vararg keyValuePairs: Pair<Pri.Key, JsonElement>): Boolean =
-        keyValuePairs.toMap()
+        keyValuePairs
+            .toMap()
             .toJsonStr()
             .toRecord()
             .runCatching {
                 producer.send(this).get()
-            }
-            .isSuccess
+            }.isSuccess
 
     private fun String.toRecord(): ProducerRecord<String, String> = ProducerRecord(topic, this)
 }
