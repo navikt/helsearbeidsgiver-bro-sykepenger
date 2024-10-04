@@ -31,15 +31,16 @@ internal class ForkastForespoerselRiver(
     private val loggernaut = Loggernaut(this)
 
     init {
-        River(rapid).apply {
-            validate { msg ->
-                msg.demandValues(Spleis.Key.TYPE to Spleis.Event.TRENGER_IKKE_OPPLYSNINGER_FRA_ARBEIDSGIVER.name)
-                msg.requireKeys(
-                    Spleis.Key.ORGANISASJONSNUMMER,
-                    Spleis.Key.VEDTAKSPERIODE_ID,
-                )
-            }
-        }.register(this)
+        River(rapid)
+            .apply {
+                validate { msg ->
+                    msg.demandValues(Spleis.Key.TYPE to Spleis.Event.TRENGER_IKKE_OPPLYSNINGER_FRA_ARBEIDSGIVER.name)
+                    msg.requireKeys(
+                        Spleis.Key.ORGANISASJONSNUMMER,
+                        Spleis.Key.VEDTAKSPERIODE_ID,
+                    )
+                }
+            }.register(this)
     }
 
     override fun onPacket(
@@ -47,11 +48,11 @@ internal class ForkastForespoerselRiver(
         context: MessageContext,
     ) {
         runCatching {
-            packet.toJson()
+            packet
+                .toJson()
                 .parseJson()
                 .oppdaterForespoersel()
-        }
-            .onFailure(loggernaut::ukjentFeil)
+        }.onFailure(loggernaut::ukjentFeil)
             .getOrThrow()
     }
 
@@ -75,11 +76,11 @@ internal class ForkastForespoerselRiver(
                 loggernaut.sikker.info(it)
             }
 
-            priProducer.send(
-                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FORKASTET.toJson(Pri.NotisType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
-            )
-                .ifTrue { loggernaut.aapen.info("Sa ifra om forkastet forespørsel til Simba.") }
+            priProducer
+                .send(
+                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FORKASTET.toJson(Pri.NotisType.serializer()),
+                    Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
+                ).ifTrue { loggernaut.aapen.info("Sa ifra om forkastet forespørsel til Simba.") }
                 .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om forkastet forespørsel til Simba.") }
         }
     }

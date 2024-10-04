@@ -154,8 +154,7 @@ private fun List<SpleisForslagRefusjon>.medEksplisitteRefusjonsopphold(): List<S
                         ),
                     )
                 }
-            }
-            .flatten()
+            }.flatten()
 
     if (isNotEmpty() && size != nyRefusjonsforslag.size) {
         loggernaut.sikker.info("Refusjonsforslag endret fra $this til $nyRefusjonsforslag.")

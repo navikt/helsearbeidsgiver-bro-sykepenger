@@ -11,7 +11,8 @@ import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 
 fun TestRapid.sendJson(vararg keyValuePairs: Pair<Key, JsonElement?>) {
-    keyValuePairs.toMap()
+    keyValuePairs
+        .toMap()
         .mapValuesNotNull { it }
         .toJsonStr()
         .let(this::sendTestMessage)

@@ -15,53 +15,54 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.errors.TimeoutException
 
-class PriProducerTest : FunSpec({
-    val mockProducer = mockk<KafkaProducer<String, String>>()
+class PriProducerTest :
+    FunSpec({
+        val mockProducer = mockk<KafkaProducer<String, String>>()
 
-    val priProducer =
-        PriProducer(
-            producer = mockProducer,
-        )
-
-    beforeEach {
-        clearAllMocks()
-    }
-
-    test("gir true ved sendt melding til kafka stream") {
-        every { mockProducer.send(any()).get() } returns mockRecordMetadata()
-
-        val forespoerselMottatt = mockForespoerselMottatt()
-
-        val bleMeldingSendt =
-            priProducer.send(
-                *forespoerselMottatt.toKeyMap().toList().toTypedArray(),
+        val priProducer =
+            PriProducer(
+                producer = mockProducer,
             )
 
-        bleMeldingSendt.shouldBeTrue()
+        beforeEach {
+            clearAllMocks()
+        }
 
-        val expected =
-            ProducerRecord<String, String>(
-                Pri.TOPIC,
-                forespoerselMottatt.toKeyMap().toJsonStr(),
-            )
+        test("gir true ved sendt melding til kafka stream") {
+            every { mockProducer.send(any()).get() } returns mockRecordMetadata()
 
-        verifySequence { mockProducer.send(expected) }
-    }
+            val forespoerselMottatt = mockForespoerselMottatt()
 
-    test("gir false ved feilet sending til kafka stream") {
-        every { mockProducer.send(any()) } throws TimeoutException("too slow bro")
+            val bleMeldingSendt =
+                priProducer.send(
+                    *forespoerselMottatt.toKeyMap().toList().toTypedArray(),
+                )
 
-        val forespoerselMottatt = mockForespoerselMottatt()
+            bleMeldingSendt.shouldBeTrue()
 
-        val bleMeldingSendt =
-            priProducer.send(
-                *forespoerselMottatt.toKeyMap().toList().toTypedArray(),
-            )
+            val expected =
+                ProducerRecord<String, String>(
+                    Pri.TOPIC,
+                    forespoerselMottatt.toKeyMap().toJsonStr(),
+                )
 
-        bleMeldingSendt.shouldBeFalse()
+            verifySequence { mockProducer.send(expected) }
+        }
 
-        verifySequence { mockProducer.send(any()) }
-    }
-})
+        test("gir false ved feilet sending til kafka stream") {
+            every { mockProducer.send(any()) } throws TimeoutException("too slow bro")
+
+            val forespoerselMottatt = mockForespoerselMottatt()
+
+            val bleMeldingSendt =
+                priProducer.send(
+                    *forespoerselMottatt.toKeyMap().toList().toTypedArray(),
+                )
+
+            bleMeldingSendt.shouldBeFalse()
+
+            verifySequence { mockProducer.send(any()) }
+        }
+    })
 
 private fun mockRecordMetadata(): RecordMetadata = RecordMetadata(null, 0, 0, 0, 0, 0)

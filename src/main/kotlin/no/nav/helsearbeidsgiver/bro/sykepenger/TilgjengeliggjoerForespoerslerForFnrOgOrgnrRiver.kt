@@ -32,15 +32,16 @@ class TilgjengeliggjoerForespoerslerForFnrOgOrgnrRiver(
     private val loggernaut = Loggernaut(this)
 
     init {
-        River(rapid).apply {
-            validate { msg ->
-                msg.demandValues(
-                    Pri.Key.BEHOV to HentForespoerslerForFnrOgOrgnrSvar.behovType.name,
-                )
-                msg.requireKeys(Pri.Key.BOOMERANG, Pri.Key.FNR, Pri.Key.ORGNR)
-                msg.rejectKeys(Pri.Key.LØSNING)
-            }
-        }.register(this)
+        River(rapid)
+            .apply {
+                validate { msg ->
+                    msg.demandValues(
+                        Pri.Key.BEHOV to HentForespoerslerForFnrOgOrgnrSvar.behovType.name,
+                    )
+                    msg.requireKeys(Pri.Key.BOOMERANG, Pri.Key.FNR, Pri.Key.ORGNR)
+                    msg.rejectKeys(Pri.Key.LØSNING)
+                }
+            }.register(this)
     }
 
     override fun onPacket(
@@ -62,8 +63,7 @@ class TilgjengeliggjoerForespoerslerForFnrOgOrgnrRiver(
 
         runCatching {
             json.sendSvar(orgnr, fnr)
-        }
-            .onFailure(loggernaut::ukjentFeil)
+        }.onFailure(loggernaut::ukjentFeil)
     }
 
     private fun JsonElement.sendSvar(

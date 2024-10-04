@@ -8,7 +8,8 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.pipe.mapFirst
 
 fun JsonMessage.demandValues(vararg keyAndValuePairs: Pair<Key, String>) {
-    keyAndValuePairs.map { it.mapFirst(Key::verdi) }
+    keyAndValuePairs
+        .map { it.mapFirst(Key::verdi) }
         .forEach { (key, value) ->
             demandValue(key, value)
         }

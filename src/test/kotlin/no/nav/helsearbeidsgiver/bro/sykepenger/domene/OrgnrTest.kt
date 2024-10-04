@@ -7,30 +7,31 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 
-class OrgnrTest : FunSpec({
-    test("data serialiseres korrekt") {
-        val orgnr = mockOrgnr()
+class OrgnrTest :
+    FunSpec({
+        test("data serialiseres korrekt") {
+            val orgnr = mockOrgnr()
 
-        val expectedJson = orgnr.hardcodedJson()
+            val expectedJson = orgnr.hardcodedJson()
 
-        val actualJson = orgnr.toJsonStr(Orgnr.serializer())
+            val actualJson = orgnr.toJsonStr(Orgnr.serializer())
 
-        actualJson shouldBe expectedJson
-    }
+            actualJson shouldBe expectedJson
+        }
 
-    test("data deserialiseres korrekt") {
-        val expectedInstance = mockOrgnr()
+        test("data deserialiseres korrekt") {
+            val expectedInstance = mockOrgnr()
 
-        val expectedJson = expectedInstance.hardcodedJson()
+            val expectedJson = expectedInstance.hardcodedJson()
 
-        val actualInstance =
-            shouldNotThrowAny {
-                expectedJson.parseJson().fromJson(Orgnr.serializer())
-            }
+            val actualInstance =
+                shouldNotThrowAny {
+                    expectedJson.parseJson().fromJson(Orgnr.serializer())
+                }
 
-        actualInstance shouldBe expectedInstance
-    }
-})
+            actualInstance shouldBe expectedInstance
+        }
+    })
 
 private fun mockOrgnr(): Orgnr = Orgnr("885927409")
 

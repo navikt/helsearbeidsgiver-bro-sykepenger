@@ -10,30 +10,31 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 
-class ForespoerselMottattTest : FunSpec({
-    test("data serialiseres korrekt") {
-        val forespoerselMottatt = mockForespoerselMottatt()
+class ForespoerselMottattTest :
+    FunSpec({
+        test("data serialiseres korrekt") {
+            val forespoerselMottatt = mockForespoerselMottatt()
 
-        val expectedJson = forespoerselMottatt.hardcodedJson()
+            val expectedJson = forespoerselMottatt.hardcodedJson()
 
-        val actualJson = forespoerselMottatt.toJsonStr(ForespoerselMottatt.serializer())
+            val actualJson = forespoerselMottatt.toJsonStr(ForespoerselMottatt.serializer())
 
-        actualJson shouldBe expectedJson
-    }
+            actualJson shouldBe expectedJson
+        }
 
-    test("data deserialiseres korrekt") {
-        val expectedInstance = mockForespoerselMottatt()
+        test("data deserialiseres korrekt") {
+            val expectedInstance = mockForespoerselMottatt()
 
-        val expectedJson = expectedInstance.hardcodedJson()
+            val expectedJson = expectedInstance.hardcodedJson()
 
-        val actualInstance =
-            shouldNotThrowAny {
-                expectedJson.parseJson().fromJson(ForespoerselMottatt.serializer())
-            }
+            val actualInstance =
+                shouldNotThrowAny {
+                    expectedJson.parseJson().fromJson(ForespoerselMottatt.serializer())
+                }
 
-        actualInstance shouldBe expectedInstance
-    }
-})
+            actualInstance shouldBe expectedInstance
+        }
+    })
 
 private fun ForespoerselMottatt.hardcodedJson(): String =
     """

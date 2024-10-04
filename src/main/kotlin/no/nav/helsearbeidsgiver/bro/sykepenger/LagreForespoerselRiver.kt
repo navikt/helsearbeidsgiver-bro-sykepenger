@@ -49,11 +49,11 @@ sealed class LagreForespoerselRiver(
             Log.forespoerselId(forespoerselId),
         ) {
             runCatching {
-                packet.toJson()
+                packet
+                    .toJson()
                     .parseJson()
                     .lagreForespoersel(forespoerselId)
-            }
-                .onFailure(loggernaut::ukjentFeil)
+            }.onFailure(loggernaut::ukjentFeil)
                 .getOrElse {
                     loggernaut.aapen.error("Klarte ikke å lagre forespørsel!")
                     loggernaut.sikker.error("Klarte ikke å lagre forespørsel!", it)
@@ -83,7 +83,8 @@ sealed class LagreForespoerselRiver(
             forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(nyForespoersel.vedtaksperiodeId)
 
         if (aktivForespoersel == null || !nyForespoersel.erDuplikatAv(aktivForespoersel)) {
-            forespoerselDao.lagre(nyForespoersel)
+            forespoerselDao
+                .lagre(nyForespoersel)
                 .let { id ->
                     "Forespørsel lagret med id=$id.".also {
                         loggernaut.aapen.info(it)
@@ -99,13 +100,13 @@ sealed class LagreForespoerselRiver(
 
         // Ikke send notis ved oppdatering av forespørsel som er ubesvart
         if (aktivForespoersel == null) {
-            priProducer.send(
-                Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(Pri.NotisType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to nyForespoersel.forespoerselId.toJson(),
-                Pri.Key.ORGNR to nyForespoersel.orgnr.toJson(Orgnr.serializer()),
-                Pri.Key.FNR to nyForespoersel.fnr.toJson(),
-            )
-                .ifTrue { loggernaut.aapen.info("Sa ifra om mottatt forespørsel til Simba.") }
+            priProducer
+                .send(
+                    Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(Pri.NotisType.serializer()),
+                    Pri.Key.FORESPOERSEL_ID to nyForespoersel.forespoerselId.toJson(),
+                    Pri.Key.ORGNR to nyForespoersel.orgnr.toJson(Orgnr.serializer()),
+                    Pri.Key.FNR to nyForespoersel.fnr.toJson(),
+                ).ifTrue { loggernaut.aapen.info("Sa ifra om mottatt forespørsel til Simba.") }
                 .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
 
             val besvarteForespoersler =

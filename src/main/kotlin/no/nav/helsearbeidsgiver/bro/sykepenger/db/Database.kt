@@ -47,7 +47,8 @@ private val migrationConfig by lazy {
 }
 
 private fun runMigration(dataSource: DataSource) {
-    Flyway.configure()
+    Flyway
+        .configure()
         .dataSource(dataSource)
         .lockRetryCount(-1)
         .load()
