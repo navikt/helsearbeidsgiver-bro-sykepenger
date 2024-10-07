@@ -57,7 +57,6 @@ fun mockForespoerselDto(): ForespoerselDto {
                 Periode(2.januar, 10.januar),
                 Periode(15.januar, 20.januar),
             ),
-        skjaeringstidspunkt = null,
         bestemmendeFravaersdager =
             mapOf(
                 orgnr to 15.januar,
@@ -160,7 +159,6 @@ fun mockForespoerselMottatt(): ForespoerselMottatt =
 
 fun mockForespoerselSvarSuksess(): ForespoerselSimba {
     val orgnr = "569046822".let(::Orgnr)
-    val skjaeringstidspunkt = 10.november(1999)
 
     return ForespoerselSimba(
         type = Type.KOMPLETT,
@@ -170,8 +168,7 @@ fun mockForespoerselSvarSuksess(): ForespoerselSimba {
         vedtaksperiodeId = UUID.randomUUID(),
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         sykmeldingsperioder = listOf(Periode(2.januar, 16.januar)),
-        skjaeringstidspunkt = skjaeringstidspunkt,
-        bestemmendeFravaersdager = mapOf(orgnr to skjaeringstidspunkt),
+        bestemmendeFravaersdager = mapOf(orgnr to 10.november(1999)),
         forespurtData = mockForespurtData(),
         erBesvart = false,
     )

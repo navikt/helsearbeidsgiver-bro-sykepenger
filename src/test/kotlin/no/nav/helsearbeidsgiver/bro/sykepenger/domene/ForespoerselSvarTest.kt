@@ -106,7 +106,6 @@ private fun ForespoerselSimba.hardcodedJson(): String =
         "vedtaksperiodeId": "$vedtaksperiodeId",
         "egenmeldingsperioder": [${egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
         "sykmeldingsperioder": [${sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
-        "skjaeringstidspunkt": "$skjaeringstidspunkt",
         "bestemmendeFravaersdager": {${bestemmendeFravaersdager.toList().joinToString(transform = Pair<Orgnr, LocalDate>::hardcodedJson)}},
         "forespurtData": ${forespurtData.hardcodedJson()},
         "erBesvart": $erBesvart

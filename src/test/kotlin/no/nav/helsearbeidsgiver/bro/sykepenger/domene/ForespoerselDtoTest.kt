@@ -44,7 +44,6 @@ class ForespoerselDtoTest :
                     "Oppdager ulik 'sykmeldingsperioder'" to {
                         it.copy(sykmeldingsperioder = listOf(Periode(22.september(1774), 24.september(1774))))
                     },
-                    "Oppdager ulik 'skjaeringstidspunkt'" to { it.copy(skjaeringstidspunkt = LocalDate.now().plusDays(17)) },
                     "Oppdager ulik 'bestemmendeFravaersdager'" to {
                         it.copy(
                             bestemmendeFravaersdager = mapOf(it.orgnr to LocalDate.now().plusDays(7)),

@@ -44,9 +44,9 @@ private fun List<SpleisForespurtDataDto>.lesInntekt(): Inntekt {
                             forrigeInntekt =
                                 spleisInntekt.forslag.forrigeInntekt?.let {
                                     ForrigeInntekt(
-                                        it.skjæringstidspunkt,
-                                        it.kilde,
-                                        it.beløp,
+                                        skjæringstidspunkt = it.skjæringstidspunkt,
+                                        kilde = it.kilde,
+                                        beløp = it.beløp,
                                     )
                                 },
                         ),

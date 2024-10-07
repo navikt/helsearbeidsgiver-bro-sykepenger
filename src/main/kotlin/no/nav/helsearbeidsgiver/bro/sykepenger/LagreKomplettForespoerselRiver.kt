@@ -81,7 +81,6 @@ class LagreKomplettForespoerselRiver(
                 vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
                 egenmeldingsperioder = Spleis.Key.EGENMELDINGSPERIODER.les(Periode.serializer().list(), melding),
                 sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),
-                skjaeringstidspunkt = null,
                 bestemmendeFravaersdager = bestemmendeFravaersdager,
                 forespurtData = Spleis.Key.FORESPURT_DATA.les(SpleisForespurtDataDto.serializer().list(), melding),
                 besvarelse = null,

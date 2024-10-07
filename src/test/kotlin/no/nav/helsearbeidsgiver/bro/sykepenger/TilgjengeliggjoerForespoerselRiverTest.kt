@@ -61,11 +61,11 @@ class TilgjengeliggjoerForespoerselRiverTest :
             }
         }
 
-        test("Ved innkommende event, svar ut korrekt ForespoerselSvar med begrenset forespurtData og uten skjæringstidspunkt") {
+        test("Ved innkommende event, svar ut korrekt ForespoerselSvar med begrenset forespurtData og uten bestemmende fraværsdager") {
             val forespoersel =
                 mockForespoerselDto().copy(
                     type = Type.BEGRENSET,
-                    skjaeringstidspunkt = null,
+                    bestemmendeFravaersdager = emptyMap(),
                     forespurtData = mockBegrensetForespurtDataListe(),
                 )
 
