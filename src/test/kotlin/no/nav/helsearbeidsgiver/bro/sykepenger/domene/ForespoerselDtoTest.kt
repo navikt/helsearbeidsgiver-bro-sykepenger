@@ -17,9 +17,6 @@ class ForespoerselDtoTest :
                 mapOf<String, (ForespoerselDto) -> ForespoerselDto>(
                     "Aksepterer helt like" to { it },
                     "Ignorerer 'forespoerselId'" to { it.copy(forespoerselId = UUID.randomUUID()) },
-                    "Ignorerer 'besvarelse'" to {
-                        it.copy(besvarelse = BesvarelseMetadataDto(LocalDateTime.now(), UUID.randomUUID()))
-                    },
                     "Ignorerer 'opprettet'" to { it.copy(opprettet = LocalDateTime.now().minusDays(5)) },
                     "Ignorerer 'oppdatert'" to { it.copy(oppdatert = LocalDateTime.now().plusDays(10)) },
                 ),

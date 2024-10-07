@@ -83,7 +83,6 @@ class LagreKomplettForespoerselRiver(
                 sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),
                 bestemmendeFravaersdager = bestemmendeFravaersdager,
                 forespurtData = Spleis.Key.FORESPURT_DATA.les(SpleisForespurtDataDto.serializer().list(), melding),
-                besvarelse = null,
             )
 
         val bfUtenEgenmld =

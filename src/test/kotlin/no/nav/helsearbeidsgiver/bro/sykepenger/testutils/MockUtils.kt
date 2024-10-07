@@ -64,7 +64,6 @@ fun mockForespoerselDto(): ForespoerselDto {
                 "678678678".let(::Orgnr) to 19.januar,
             ),
         forespurtData = mockSpleisForespurtDataListe(),
-        besvarelse = null,
     )
 }
 

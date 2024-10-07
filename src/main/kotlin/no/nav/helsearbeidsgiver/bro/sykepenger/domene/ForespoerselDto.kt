@@ -21,7 +21,6 @@ data class ForespoerselDto(
     val sykmeldingsperioder: List<Periode>,
     val bestemmendeFravaersdager: Map<Orgnr, LocalDate>,
     val forespurtData: List<SpleisForespurtDataDto>,
-    val besvarelse: BesvarelseMetadataDto?,
     val opprettet: LocalDateTime = LocalDateTime.now().truncMillis(),
     val oppdatert: LocalDateTime = LocalDateTime.now().truncMillis(),
 ) {
@@ -29,16 +28,10 @@ data class ForespoerselDto(
         this ==
             other.copy(
                 forespoerselId = forespoerselId,
-                besvarelse = besvarelse,
                 opprettet = opprettet,
                 oppdatert = oppdatert,
             )
 }
-
-data class BesvarelseMetadataDto(
-    val forespoerselBesvart: LocalDateTime,
-    val inntektsmeldingId: UUID?,
-)
 
 enum class Status {
     AKTIV,
@@ -62,14 +55,6 @@ enum class Type {
      *   - mangler bestemmende fraværsdager
      */
     BEGRENSET,
-
-    /**
-     * En potensiell forespørsel er knyttet til en vedtaksperiode som er innenfor arbeidsgiverperioden.
-     *
-     * Slike perioder trenger ingen arbeidsgiveropplysninger, men skal tillate å motta opplysninger fra arbeidsgiver
-     * fordi de kan ha opplysninger som gjør at perioden strekker seg forbi arbeidsgiverperioden.
-     */
-    POTENSIELL,
 }
 
 @Serializable
