@@ -11,15 +11,13 @@ import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.JoinType
-import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.sql.updateReturning
 import org.jetbrains.exposed.sql.upsert
 import java.time.LocalDateTime
 import java.util.UUID
@@ -231,34 +229,26 @@ class ForespoerselDao(
         erstattStatuser: Set<Status>,
         nyStatus: Status,
         activeTransaction: Transaction? = null,
-    ): List<Long> {
-        val whereStatement: SqlExpressionBuilder.() -> Op<Boolean> = {
-            (ForespoerselTable.vedtaksperiodeId eq vedtaksperiodeId) and
-                (ForespoerselTable.status inList erstattStatuser.map { it.name })
-        }
-
-        return activeTransaction
+    ): List<Long> =
+        activeTransaction
             .orNew {
-                // Exposed støtter ikke Postgres sin RETURNING: https://github.com/JetBrains/Exposed/issues/1271
-                val updated =
-                    ForespoerselTable
-                        .selectAll()
-                        .where(whereStatement)
-                        .map {
-                            it[ForespoerselTable.id]
-                        }
-
-                ForespoerselTable.update(whereStatement) {
-                    it[status] = nyStatus.name
-                }
-
-                updated
+                ForespoerselTable
+                    .updateReturning(
+                        returning = listOf(ForespoerselTable.id),
+                        where = {
+                            (ForespoerselTable.vedtaksperiodeId eq vedtaksperiodeId) and
+                                (ForespoerselTable.status inList erstattStatuser.map { it.name })
+                        },
+                    ) {
+                        it[status] = nyStatus.name
+                    }.map {
+                        it[ForespoerselTable.id]
+                    }
             }.also {
                 val msg = "Oppdaterte ${it.size} rader med ny status '$nyStatus'. ids=$it"
                 logger.info(msg)
                 sikkerLogger.info(msg)
             }
-    }
 
     private fun insertOrUpdateBesvarelse(
         forespoerselId: Long,
@@ -317,14 +307,12 @@ fun tilForespoerselDto(row: ResultRow): ForespoerselDto {
 }
 
 private fun tilBesvarelseMetadataDto(row: ResultRow): BesvarelseMetadataDto? =
-    if (row.getOrNull(BesvarelseTable.id) != null) {
+    runCatching {
         BesvarelseMetadataDto(
             forespoerselBesvart = row[BesvarelseTable.besvart],
             inntektsmeldingId = row[BesvarelseTable.inntektsmeldingId],
         )
-    } else {
-        null
-    }
+    }.getOrNull()
 
 private fun List<ForespoerselDto>.finnEksponertForespoersel(): ForespoerselDto? =
     sortedByDescending { it.opprettet }
