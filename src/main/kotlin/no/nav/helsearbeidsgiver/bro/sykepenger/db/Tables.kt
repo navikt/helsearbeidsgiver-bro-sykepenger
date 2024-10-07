@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.json.jsonb
 
@@ -27,7 +26,6 @@ object ForespoerselTable : Table("forespoersel") {
     val vedtaksperiodeId = uuid("vedtaksperiode_id")
     val egenmeldingsperioder = jsonb("egenmeldingsperioder", jsonConfig, Periode.serializer().list())
     val sykmeldingsperioder = jsonb("sykmeldingsperioder", jsonConfig, Periode.serializer().list())
-    val skjaeringstidspunkt = date("skjaeringstidspunkt").nullable()
     val bestemmendeFravaersdager = jsonb("bestemmende_fravaersdager", jsonConfig, bestemmendeFravaersdagerSerializer)
     val forespurtData = jsonb("forespurt_data", jsonConfig, SpleisForespurtDataDto.serializer().list())
     val opprettet = datetime("opprettet")

@@ -5,7 +5,6 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.ints.shouldBeExactly
-import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -25,7 +24,6 @@ import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
-import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.date.november
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
@@ -99,11 +97,9 @@ class ForespoerselDaoTest :
                 actual.shouldBeEqualToIgnoringFields(
                     expected,
                     ForespoerselDto::status,
-                    ForespoerselDto::skjaeringstidspunkt,
                     ForespoerselDto::oppdatert,
                 )
                 actual.status shouldBe Status.FORKASTET
-                actual.skjaeringstidspunkt shouldBe 17.januar
             }
 
             test("Gi 'null' dersom ingen forespørsel finnes") {
@@ -133,8 +129,7 @@ class ForespoerselDaoTest :
                         .hentNyesteForespoerselForForespoerselId(
                             forespoerselId = forkastetForespoersel.forespoerselId,
                             statuser = setOf(Status.AKTIV),
-                        )?.copy(skjaeringstidspunkt = null)
-                        .shouldNotBeNull()
+                        ).shouldNotBeNull()
 
                 actualForespoersel shouldBe aktivForespoersel
             }
@@ -186,8 +181,7 @@ class ForespoerselDaoTest :
                             .hentNyesteForespoerselForForespoerselId(
                                 forespoerselId = foersteForespoersel.forespoerselId,
                                 statuser = setOf(Status.AKTIV),
-                            )?.copy(skjaeringstidspunkt = null)
-                            .shouldNotBeNull()
+                            ).shouldNotBeNull()
 
                     actualForespoersel.shouldBeEqualToIgnoringFields(aktivForespoersel, ForespoerselDto::oppdatert)
                 }
@@ -237,8 +231,7 @@ class ForespoerselDaoTest :
                             .hentNyesteForespoerselForForespoerselId(
                                 forespoerselId = foersteForespoersel.forespoerselId,
                                 statuser = setOf(Status.AKTIV, Status.BESVART_SPLEIS),
-                            )?.copy(skjaeringstidspunkt = null)
-                            .shouldNotBeNull()
+                            ).shouldNotBeNull()
 
                     actualForespoersel shouldBe besvartForespoersel
                 }
@@ -291,8 +284,7 @@ class ForespoerselDaoTest :
                             .hentNyesteForespoerselForForespoerselId(
                                 forespoerselId = foersteForespoersel.forespoerselId,
                                 statuser = setOf(Status.AKTIV, Status.BESVART_SPLEIS),
-                            )?.copy(skjaeringstidspunkt = null)
-                            .shouldNotBeNull()
+                            ).shouldNotBeNull()
 
                     actualForespoersel shouldBe aktivForespoersel
                 }
@@ -328,8 +320,7 @@ class ForespoerselDaoTest :
                             .hentNyesteForespoerselForForespoerselId(
                                 forespoerselId = gammelForespoersel.forespoerselId,
                                 statuser = setOf(Status.AKTIV),
-                            )?.copy(skjaeringstidspunkt = null)
-                            .shouldNotBeNull()
+                            ).shouldNotBeNull()
 
                     actualForespoersel shouldBe nyForespoersel
                 }
@@ -386,7 +377,6 @@ class ForespoerselDaoTest :
                 val actualForespoersel =
                     forespoerselDao
                         .hentAktivForespoerselForVedtaksperiodeId(forkastetForespoersel.vedtaksperiodeId)
-                        ?.copy(skjaeringstidspunkt = null)
                         .shouldNotBeNull()
 
                 actualForespoersel shouldBe aktivForespoersel
@@ -414,7 +404,6 @@ class ForespoerselDaoTest :
                 val actualForespoersel =
                     forespoerselDao
                         .hentAktivForespoerselForVedtaksperiodeId(gammelForespoersel.vedtaksperiodeId)
-                        ?.copy(skjaeringstidspunkt = null)
                         .shouldNotBeNull()
 
                 actualForespoersel shouldBe nyForespoersel
@@ -485,20 +474,6 @@ class ForespoerselDaoTest :
                 mockForespoerselDto().copy(
                     type = BEGRENSET,
                     forespurtData = mockBegrensetForespurtDataListe(),
-                )
-
-            val id = forespoersel.lagreNotNull()
-            val lagretForespoersel = db.hentForespoersel(id).shouldNotBeNull()
-
-            db.antallForespoersler() shouldBeExactly 1
-            lagretForespoersel shouldBe forespoersel
-        }
-
-        test("Lagre forespørsel uten skjæringstidspunkt i databasen") {
-            val forespoersel =
-                mockForespoerselDto().copy(
-                    type = BEGRENSET,
-                    skjaeringstidspunkt = null,
                 )
 
             val id = forespoersel.lagreNotNull()
@@ -991,7 +966,6 @@ class ForespoerselDaoTest :
                 actual[0].shouldBeEqualToIgnoringFields(
                     a,
                     ForespoerselDto::status,
-                    ForespoerselDto::skjaeringstidspunkt,
                     ForespoerselDto::besvarelse,
                     ForespoerselDto::oppdatert,
                 )
@@ -1000,7 +974,6 @@ class ForespoerselDaoTest :
                 actual[1].shouldBeEqualToIgnoringFields(
                     b,
                     ForespoerselDto::status,
-                    ForespoerselDto::skjaeringstidspunkt,
                     ForespoerselDto::besvarelse,
                     ForespoerselDto::oppdatert,
                 )
@@ -1009,7 +982,6 @@ class ForespoerselDaoTest :
                 actual[2].shouldBeEqualToIgnoringFields(
                     c,
                     ForespoerselDto::status,
-                    ForespoerselDto::skjaeringstidspunkt,
                     ForespoerselDto::besvarelse,
                     ForespoerselDto::oppdatert,
                 )
@@ -1052,7 +1024,6 @@ class ForespoerselDaoTest :
                 actual[0].shouldBeEqualToIgnoringFields(
                     b,
                     ForespoerselDto::status,
-                    ForespoerselDto::skjaeringstidspunkt,
                     ForespoerselDto::besvarelse,
                     ForespoerselDto::oppdatert,
                 )
@@ -1061,7 +1032,6 @@ class ForespoerselDaoTest :
                 actual[1].shouldBeEqualToIgnoringFields(
                     c,
                     ForespoerselDto::status,
-                    ForespoerselDto::skjaeringstidspunkt,
                     ForespoerselDto::besvarelse,
                     ForespoerselDto::oppdatert,
                 )
@@ -1147,73 +1117,8 @@ class ForespoerselDaoTest :
 
                 actualForespoersler.size shouldBeExactly 2
 
-                actualForespoersler[0].copy(skjaeringstidspunkt = null) shouldBe forespoersel3Gruppe1
-                actualForespoersler[1].copy(skjaeringstidspunkt = null) shouldBe forespoerselGruppe2
-            }
-        }
-
-        context(::tilForespoerselDto.name) {
-            test("Sett skjæringstidspunkt til minste bestemmende fraværsdag blant andre arbeidsgivere") {
-                val forespoersel = mockForespoerselDto()
-                val annetOrgnr = Orgnr("592864023")
-                val tredjeOrgnr = Orgnr("046764589")
-                val bestemmendeFravaersdager =
-                    mapOf(
-                        forespoersel.orgnr to 3.mars,
-                        annetOrgnr to 5.mars,
-                        tredjeOrgnr to 7.mars,
-                    )
-
-                val id =
-                    forespoersel
-                        .copy(
-                            skjaeringstidspunkt = null,
-                            bestemmendeFravaersdager = bestemmendeFravaersdager,
-                        ).lagreNotNull()
-
-                val actual = db.hentForespoerselRow(id)?.let(::tilForespoerselDto)
-
-                actual.shouldNotBeNull()
-                actual.skjaeringstidspunkt shouldBe 5.mars
-                actual.bestemmendeFravaersdager shouldBe bestemmendeFravaersdager
-            }
-
-            test("Dersom bestemmende fraværsdager mangler, legg til skjæringstidspunkt som bestemmende fraværsdag med ukjent orgnr") {
-                val skjaeringstidspunkt = 6.juni
-
-                val id =
-                    mockForespoerselDto()
-                        .copy(
-                            bestemmendeFravaersdager = emptyMap(),
-                        ).lagreNotNull()
-
-                val actual =
-                    db
-                        .hentForespoerselRow(id)
-                        ?.also {
-                            it[ForespoerselTable.skjaeringstidspunkt] = skjaeringstidspunkt
-                        }?.let(::tilForespoerselDto)
-
-                actual.shouldNotBeNull()
-                actual.skjaeringstidspunkt shouldBe skjaeringstidspunkt
-                actual.bestemmendeFravaersdager shouldBe mapOf(Orgnr("000000000") to skjaeringstidspunkt)
-            }
-
-            test("Dersom både bestemmende fraværsdager og skjæringstidspunkt mangler så er begge tomme") {
-                val id =
-                    mockForespoerselDto()
-                        .copy(
-                            bestemmendeFravaersdager = emptyMap(),
-                        ).lagreNotNull()
-
-                val actual =
-                    db
-                        .hentForespoerselRow(id)
-                        ?.let(::tilForespoerselDto)
-
-                actual.shouldNotBeNull()
-                actual.skjaeringstidspunkt.shouldBeNull()
-                actual.bestemmendeFravaersdager.shouldBeEmpty()
+                actualForespoersler[0] shouldBe forespoersel3Gruppe1
+                actualForespoersler[1] shouldBe forespoerselGruppe2
             }
         }
     })
@@ -1221,7 +1126,6 @@ class ForespoerselDaoTest :
 private fun Database.hentForespoersel(id: Long): ForespoerselDto? =
     hentForespoerselRow(id)
         ?.let(::tilForespoerselDto)
-        ?.copy(skjaeringstidspunkt = null)
 
 private fun Database.hentForespoerselRow(id: Long): ResultRow? =
     transaction(this) {

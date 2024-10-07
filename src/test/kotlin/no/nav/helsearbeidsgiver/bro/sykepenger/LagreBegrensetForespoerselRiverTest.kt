@@ -155,7 +155,6 @@ private fun mockBegrensetForespoerselDto(): ForespoerselDto =
     mockForespoerselDto().copy(
         type = Type.BEGRENSET,
         egenmeldingsperioder = emptyList(),
-        skjaeringstidspunkt = null,
         bestemmendeFravaersdager = emptyMap(),
         forespurtData = mockBegrensetForespurtDataListe(),
     )

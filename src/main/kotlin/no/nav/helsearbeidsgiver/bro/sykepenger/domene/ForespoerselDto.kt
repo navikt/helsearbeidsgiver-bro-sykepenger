@@ -19,7 +19,6 @@ data class ForespoerselDto(
     val vedtaksperiodeId: UUID,
     val egenmeldingsperioder: List<Periode>,
     val sykmeldingsperioder: List<Periode>,
-    val skjaeringstidspunkt: LocalDate?,
     val bestemmendeFravaersdager: Map<Orgnr, LocalDate>,
     val forespurtData: List<SpleisForespurtDataDto>,
     val besvarelse: BesvarelseMetadataDto?,
@@ -60,7 +59,7 @@ enum class Type {
      *
      * En begrenset forespørsel:
      *   - ber alltid om Inntekt, Refusjon og Arbeidsgiverperiode og sender aldri med forslag til hva disse skal være (forespurt data)
-     *   - mangler skjæringstidspunkt
+     *   - mangler bestemmende fraværsdager
      */
     BEGRENSET,
 

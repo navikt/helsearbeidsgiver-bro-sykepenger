@@ -6,7 +6,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.zipWithNextOrNull
-import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import org.jetbrains.exposed.sql.Database
@@ -273,38 +272,22 @@ class ForespoerselDao(
         }
 }
 
-fun tilForespoerselDto(row: ResultRow): ForespoerselDto {
-    val orgnr = row[ForespoerselTable.orgnr].let(::Orgnr)
-    val bestemmendeFravaersdager =
-        row[ForespoerselTable.bestemmendeFravaersdager]
-            .ifEmpty {
-                mapOf(
-                    // Gamle forespørsler som ikke har 'bestemmendeFravaersdager' _kan_ ha 'skjaeringstidspunkt',
-                    // men vi vet ikke hvilket orgnr det tilhører
-                    Orgnr("000000000") to row[ForespoerselTable.skjaeringstidspunkt],
-                ).mapValuesNotNull { it }
-            }
-
-    val skjaeringstidspunkt =
-        bestemmendeFravaersdager.minus(orgnr).minOfOrNull { it.value }
-
-    return ForespoerselDto(
+fun tilForespoerselDto(row: ResultRow): ForespoerselDto =
+    ForespoerselDto(
         forespoerselId = row[ForespoerselTable.forespoerselId],
         type = row[ForespoerselTable.type].let(Type::valueOf),
         status = row[ForespoerselTable.status].let(Status::valueOf),
-        orgnr = orgnr,
+        orgnr = row[ForespoerselTable.orgnr].let(::Orgnr),
         fnr = row[ForespoerselTable.fnr],
         vedtaksperiodeId = row[ForespoerselTable.vedtaksperiodeId],
         egenmeldingsperioder = row[ForespoerselTable.egenmeldingsperioder],
         sykmeldingsperioder = row[ForespoerselTable.sykmeldingsperioder],
-        skjaeringstidspunkt = skjaeringstidspunkt,
-        bestemmendeFravaersdager = bestemmendeFravaersdager,
+        bestemmendeFravaersdager = row[ForespoerselTable.bestemmendeFravaersdager],
         forespurtData = row[ForespoerselTable.forespurtData],
         besvarelse = tilBesvarelseMetadataDto(row),
         opprettet = row[ForespoerselTable.opprettet],
         oppdatert = row[ForespoerselTable.oppdatert],
     )
-}
 
 private fun tilBesvarelseMetadataDto(row: ResultRow): BesvarelseMetadataDto? =
     runCatching {
