@@ -35,7 +35,7 @@ object ForespoerselTable : Table("forespoersel") {
 }
 
 object BesvarelseTable : Table("besvarelse_metadata") {
-    val id =
+    private val id =
         integer("id").autoIncrement(
             idSeqName = "besvarelse_metadata_id_seq",
         )

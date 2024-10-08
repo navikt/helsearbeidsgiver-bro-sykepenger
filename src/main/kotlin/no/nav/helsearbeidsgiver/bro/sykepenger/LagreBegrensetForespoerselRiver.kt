@@ -67,6 +67,5 @@ class LagreBegrensetForespoerselRiver(
             sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),
             bestemmendeFravaersdager = emptyMap(),
             forespurtData = Spleis.Key.FORESPURT_DATA.les(SpleisForespurtDataDto.serializer().list(), melding),
-            besvarelse = null,
         )
 }

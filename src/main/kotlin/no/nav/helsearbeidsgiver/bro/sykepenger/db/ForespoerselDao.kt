@@ -1,6 +1,5 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.BesvarelseMetadataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
@@ -9,7 +8,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.zipWithNextOrNull
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.and
@@ -107,12 +105,7 @@ class ForespoerselDao(
     fun hentForespoerselForForespoerselId(forespoerselId: UUID): ForespoerselDto? =
         transaction(db) {
             ForespoerselTable
-                .join(
-                    BesvarelseTable,
-                    JoinType.LEFT,
-                    ForespoerselTable.id,
-                    BesvarelseTable.fkForespoerselId,
-                ).selectAll()
+                .selectAll()
                 .where {
                     ForespoerselTable.forespoerselId eq forespoerselId
                 }.map(::tilForespoerselDto)
@@ -154,12 +147,7 @@ class ForespoerselDao(
     ): List<ForespoerselDto> =
         transaction(db) {
             ForespoerselTable
-                .join(
-                    BesvarelseTable,
-                    JoinType.LEFT,
-                    ForespoerselTable.id,
-                    BesvarelseTable.fkForespoerselId,
-                ).selectAll()
+                .selectAll()
                 .where {
                     (ForespoerselTable.vedtaksperiodeId eq vedtaksperiodeId) and
                         (ForespoerselTable.status inList statuser.map { it.name })
@@ -201,12 +189,7 @@ class ForespoerselDao(
     private fun hentForespoerslerForVedtaksperiodeIdListe(vedtaksperiodeIdListe: List<UUID>): List<ForespoerselDto> =
         transaction(db) {
             ForespoerselTable
-                .join(
-                    BesvarelseTable,
-                    JoinType.LEFT,
-                    ForespoerselTable.id,
-                    BesvarelseTable.fkForespoerselId,
-                ).selectAll()
+                .selectAll()
                 .where { ForespoerselTable.vedtaksperiodeId inList vedtaksperiodeIdListe }
                 .map(::tilForespoerselDto)
                 .sortedBy { it.opprettet }
@@ -284,18 +267,9 @@ fun tilForespoerselDto(row: ResultRow): ForespoerselDto =
         sykmeldingsperioder = row[ForespoerselTable.sykmeldingsperioder],
         bestemmendeFravaersdager = row[ForespoerselTable.bestemmendeFravaersdager],
         forespurtData = row[ForespoerselTable.forespurtData],
-        besvarelse = tilBesvarelseMetadataDto(row),
         opprettet = row[ForespoerselTable.opprettet],
         oppdatert = row[ForespoerselTable.oppdatert],
     )
-
-private fun tilBesvarelseMetadataDto(row: ResultRow): BesvarelseMetadataDto? =
-    runCatching {
-        BesvarelseMetadataDto(
-            forespoerselBesvart = row[BesvarelseTable.besvart],
-            inntektsmeldingId = row[BesvarelseTable.inntektsmeldingId],
-        )
-    }.getOrNull()
 
 private fun List<ForespoerselDto>.finnEksponertForespoersel(): ForespoerselDto? =
     sortedByDescending { it.opprettet }

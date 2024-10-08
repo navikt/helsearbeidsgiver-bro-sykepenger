@@ -30,7 +30,6 @@ import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -496,15 +495,17 @@ class ForespoerselDaoTest :
                     MockUuid.inntektsmeldingId,
                 )
 
-                val forespoersel1 = db.hentForespoersel(id1)
-                val forespoersel2 = db.hentForespoersel(id2)
+                val forespoersel1 = db.hentForespoersel(id1).shouldNotBeNull()
+                val forespoersel2 = db.hentForespoersel(id2).shouldNotBeNull()
+                val besvarelse1 = db.hentBesvarelse(id1)
+                val besvarelse2 = db.hentBesvarelse(id2).shouldNotBeNull()
 
-                forespoersel1?.status shouldBe Status.FORKASTET
-                forespoersel1?.besvarelse shouldBe null
+                forespoersel1.status shouldBe Status.FORKASTET
+                besvarelse1 shouldBe null
 
-                forespoersel2?.status shouldBe Status.BESVART_SPLEIS
-                forespoersel2?.besvarelse?.inntektsmeldingId shouldBe MockUuid.inntektsmeldingId
-                forespoersel2?.besvarelse?.forespoerselBesvart shouldBe forespoerselBesvart
+                forespoersel2.status shouldBe Status.BESVART_SPLEIS
+                besvarelse2.inntektsmeldingId shouldBe MockUuid.inntektsmeldingId
+                besvarelse2.forespoerselBesvart shouldBe forespoerselBesvart
             }
 
             test("Oppdaterer status og forespørselBesvart for aktive forespørsel som mangler inntektsmeldingId") {
@@ -518,21 +519,23 @@ class ForespoerselDaoTest :
                     null,
                 )
 
-                val forespoersel1 = db.hentForespoersel(id1)
-                val forespoersel2 = db.hentForespoersel(id2)
+                val forespoersel1 = db.hentForespoersel(id1).shouldNotBeNull()
+                val forespoersel2 = db.hentForespoersel(id2).shouldNotBeNull()
+                val besvarelse1 = db.hentBesvarelse(id1)
+                val besvarelse2 = db.hentBesvarelse(id2).shouldNotBeNull()
 
-                forespoersel1?.status shouldBe Status.FORKASTET
-                forespoersel1?.besvarelse shouldBe null
+                forespoersel1.status shouldBe Status.FORKASTET
+                besvarelse1 shouldBe null
 
-                forespoersel2?.status shouldBe Status.BESVART_SPLEIS
-                forespoersel2?.besvarelse?.forespoerselBesvart shouldBe forespoerselBesvart
-                forespoersel2?.besvarelse?.inntektsmeldingId shouldBe null
+                forespoersel2.status shouldBe Status.BESVART_SPLEIS
+                besvarelse2.forespoerselBesvart shouldBe forespoerselBesvart
+                besvarelse2.inntektsmeldingId shouldBe null
             }
 
             test("Hvis forespørsel er besvart fra Simba skal ny besvarelse overskrive den gamle") {
                 val inntektsmeldingId = randomUuid()
 
-                val forespoerselId = mockForespoerselDto().lagreNotNull()
+                val id = mockForespoerselDto().lagreNotNull()
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(
                     vedtaksperiodeId = MockUuid.vedtaksperiodeId,
@@ -545,11 +548,12 @@ class ForespoerselDaoTest :
                     inntektsmeldingId = inntektsmeldingId,
                 )
 
-                val forespoersel = db.hentForespoersel(forespoerselId).shouldNotBeNull()
+                val forespoersel = db.hentForespoersel(id).shouldNotBeNull()
+                val besvarelse = db.hentBesvarelse(id).shouldNotBeNull()
 
                 forespoersel.status shouldBe Status.BESVART_SPLEIS
-                forespoersel.besvarelse?.forespoerselBesvart shouldBe 2.januar.atStartOfDay()
-                forespoersel.besvarelse?.inntektsmeldingId shouldBe inntektsmeldingId
+                besvarelse.forespoerselBesvart shouldBe 2.januar.atStartOfDay()
+                besvarelse.inntektsmeldingId shouldBe inntektsmeldingId
 
                 db.antallBesvarelser() shouldBeExactly 1
             }
@@ -558,7 +562,7 @@ class ForespoerselDaoTest :
                 val inntektsmeldingId1 = randomUuid()
                 val inntektsmeldingId2 = randomUuid()
 
-                val forespoerselId = mockForespoerselDto().lagreNotNull()
+                val id = mockForespoerselDto().lagreNotNull()
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
                     MockUuid.vedtaksperiodeId,
@@ -571,17 +575,19 @@ class ForespoerselDaoTest :
                     inntektsmeldingId = inntektsmeldingId2,
                 )
 
-                val forespoersel = db.hentForespoersel(forespoerselId)
-                forespoersel?.status shouldBe Status.BESVART_SPLEIS
-                forespoersel?.besvarelse?.forespoerselBesvart shouldBe 2.januar.atStartOfDay()
-                forespoersel?.besvarelse?.inntektsmeldingId shouldBe inntektsmeldingId2
+                val forespoersel = db.hentForespoersel(id).shouldNotBeNull()
+                val besvarelse = db.hentBesvarelse(id).shouldNotBeNull()
+
+                forespoersel.status shouldBe Status.BESVART_SPLEIS
+                besvarelse.forespoerselBesvart shouldBe 2.januar.atStartOfDay()
+                besvarelse.inntektsmeldingId shouldBe inntektsmeldingId2
 
                 db.antallBesvarelser() shouldBeExactly 1
             }
 
             test("Hvis forespørsel er besvart fra Spleis skal ny besvarelse overskrive den gamle, selv når inntektsmeldingId mangler") {
                 val inntektsmeldingId1 = randomUuid()
-                val forespoerselId = mockForespoerselDto().lagreNotNull()
+                val id = mockForespoerselDto().lagreNotNull()
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
                     MockUuid.vedtaksperiodeId,
@@ -594,10 +600,12 @@ class ForespoerselDaoTest :
                     inntektsmeldingId = null,
                 )
 
-                val forespoersel = db.hentForespoersel(forespoerselId)
-                forespoersel?.status shouldBe Status.BESVART_SPLEIS
-                forespoersel?.besvarelse?.forespoerselBesvart shouldBe 2.januar.atStartOfDay()
-                forespoersel?.besvarelse?.inntektsmeldingId shouldBe null
+                val forespoersel = db.hentForespoersel(id).shouldNotBeNull()
+                val besvarelse = db.hentBesvarelse(id).shouldNotBeNull()
+
+                forespoersel.status shouldBe Status.BESVART_SPLEIS
+                besvarelse.forespoerselBesvart shouldBe 2.januar.atStartOfDay()
+                besvarelse.inntektsmeldingId shouldBe null
 
                 db.antallBesvarelser() shouldBeExactly 1
             }
@@ -617,17 +625,19 @@ class ForespoerselDaoTest :
 
                 val forespoersel1 = db.hentForespoersel(id1).shouldNotBeNull()
                 val forespoersel2 = db.hentForespoersel(id2).shouldNotBeNull()
+                val besvarelse1 = db.hentBesvarelse(id1)
+                val besvarelse2 = db.hentBesvarelse(id2).shouldNotBeNull()
 
                 forespoersel1.status shouldBe Status.FORKASTET
-                forespoersel1.besvarelse shouldBe null
+                besvarelse1 shouldBe null
 
                 forespoersel2.status shouldBe Status.BESVART_SIMBA
-                forespoersel2.besvarelse?.forespoerselBesvart shouldBe besvart
-                forespoersel2.besvarelse?.inntektsmeldingId shouldBe null
+                besvarelse2.forespoerselBesvart shouldBe besvart
+                besvarelse2.inntektsmeldingId shouldBe null
             }
 
             test("Hvis forespørsel allerede er besvart fra Simba skal ny besvarelse overskrive den gamle") {
-                val forespoerselId = mockForespoerselDto().lagreNotNull()
+                val id = mockForespoerselDto().lagreNotNull()
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(
                     vedtaksperiodeId = MockUuid.vedtaksperiodeId,
@@ -639,17 +649,18 @@ class ForespoerselDaoTest :
                     besvart = 23.mars.atStartOfDay(),
                 )
 
-                val forespoersel = db.hentForespoersel(forespoerselId).shouldNotBeNull()
+                val forespoersel = db.hentForespoersel(id).shouldNotBeNull()
+                val besvarelse = db.hentBesvarelse(id).shouldNotBeNull()
 
                 forespoersel.status shouldBe Status.BESVART_SIMBA
-                forespoersel.besvarelse?.forespoerselBesvart shouldBe 23.mars.atStartOfDay()
-                forespoersel.besvarelse?.inntektsmeldingId shouldBe null
+                besvarelse.forespoerselBesvart shouldBe 23.mars.atStartOfDay()
+                besvarelse.inntektsmeldingId shouldBe null
 
                 db.antallBesvarelser() shouldBeExactly 1
             }
 
             test("Hvis forespørsel er besvart fra Spleis skal ny besvarelse IKKE overskrive den gamle") {
-                val forespoerselId = mockForespoerselDto().lagreNotNull()
+                val id = mockForespoerselDto().lagreNotNull()
                 val inntektsmeldingId = randomUuid()
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
@@ -663,11 +674,12 @@ class ForespoerselDaoTest :
                     besvart = 12.april.atStartOfDay(),
                 )
 
-                val forespoersel = db.hentForespoersel(forespoerselId).shouldNotBeNull()
+                val forespoersel = db.hentForespoersel(id).shouldNotBeNull()
+                val besvarelse = db.hentBesvarelse(id).shouldNotBeNull()
 
                 forespoersel.status shouldBe Status.BESVART_SPLEIS
-                forespoersel.besvarelse?.forespoerselBesvart shouldBe 3.februar.atStartOfDay()
-                forespoersel.besvarelse?.inntektsmeldingId shouldBe inntektsmeldingId
+                besvarelse.forespoerselBesvart shouldBe 3.februar.atStartOfDay()
+                besvarelse.inntektsmeldingId shouldBe inntektsmeldingId
 
                 db.antallBesvarelser() shouldBeExactly 1
             }
@@ -690,12 +702,14 @@ class ForespoerselDaoTest :
         context(ForespoerselDao::oppdaterForespoerslerSomForkastet.name) {
 
             test("Oppdaterer aktiv forespørsel til forkastet") {
-                val forespoerselId = mockForespoerselDto().lagreNotNull()
+                val id = mockForespoerselDto().lagreNotNull()
                 forespoerselDao.oppdaterForespoerslerSomForkastet(MockUuid.vedtaksperiodeId)
 
-                val forespoersel = db.hentForespoersel(forespoerselId)
-                forespoersel?.status shouldBe Status.FORKASTET
-                forespoersel?.besvarelse shouldBe null
+                val forespoersel = db.hentForespoersel(id).shouldNotBeNull()
+                val besvarelse = db.hentBesvarelse(id)
+
+                forespoersel.status shouldBe Status.FORKASTET
+                besvarelse shouldBe null
             }
 
             test("Oppdaterer ikke besvart fra Simba til forkastet") {
@@ -966,7 +980,6 @@ class ForespoerselDaoTest :
                 actual[0].shouldBeEqualToIgnoringFields(
                     a,
                     ForespoerselDto::status,
-                    ForespoerselDto::besvarelse,
                     ForespoerselDto::oppdatert,
                 )
 
@@ -974,7 +987,6 @@ class ForespoerselDaoTest :
                 actual[1].shouldBeEqualToIgnoringFields(
                     b,
                     ForespoerselDto::status,
-                    ForespoerselDto::besvarelse,
                     ForespoerselDto::oppdatert,
                 )
 
@@ -982,7 +994,6 @@ class ForespoerselDaoTest :
                 actual[2].shouldBeEqualToIgnoringFields(
                     c,
                     ForespoerselDto::status,
-                    ForespoerselDto::besvarelse,
                     ForespoerselDto::oppdatert,
                 )
             }
@@ -1024,7 +1035,6 @@ class ForespoerselDaoTest :
                 actual[0].shouldBeEqualToIgnoringFields(
                     b,
                     ForespoerselDto::status,
-                    ForespoerselDto::besvarelse,
                     ForespoerselDto::oppdatert,
                 )
 
@@ -1032,7 +1042,6 @@ class ForespoerselDaoTest :
                 actual[1].shouldBeEqualToIgnoringFields(
                     c,
                     ForespoerselDto::status,
-                    ForespoerselDto::besvarelse,
                     ForespoerselDto::oppdatert,
                 )
             }
@@ -1123,6 +1132,11 @@ class ForespoerselDaoTest :
         }
     })
 
+private data class Besvarelse(
+    val forespoerselBesvart: LocalDateTime,
+    val inntektsmeldingId: UUID?,
+)
+
 private fun Database.hentForespoersel(id: Long): ForespoerselDto? =
     hentForespoerselRow(id)
         ?.let(::tilForespoerselDto)
@@ -1130,15 +1144,25 @@ private fun Database.hentForespoersel(id: Long): ForespoerselDto? =
 private fun Database.hentForespoerselRow(id: Long): ResultRow? =
     transaction(this) {
         ForespoerselTable
-            .join(
-                BesvarelseTable,
-                JoinType.LEFT,
-                ForespoerselTable.id,
-                BesvarelseTable.fkForespoerselId,
-            ).selectAll()
+            .selectAll()
             .where {
                 ForespoerselTable.id eq id
             }.firstOrNull()
+    }
+
+private fun Database.hentBesvarelse(fkId: Long): Besvarelse? =
+    transaction(this) {
+        BesvarelseTable
+            .selectAll()
+            .where {
+                BesvarelseTable.fkForespoerselId eq fkId
+            }.firstOrNull()
+            ?.let {
+                Besvarelse(
+                    forespoerselBesvart = it[BesvarelseTable.besvart],
+                    inntektsmeldingId = it[BesvarelseTable.inntektsmeldingId],
+                )
+            }
     }
 
 private fun Database.oppdaterStatus(
