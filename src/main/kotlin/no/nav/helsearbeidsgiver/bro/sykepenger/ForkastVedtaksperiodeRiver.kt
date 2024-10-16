@@ -6,7 +6,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
+import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
@@ -18,6 +18,8 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
+import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 
 // Lytter på event om at forespørsel ikke er nødvendig lenger og forkaster forespørselen
 internal class ForkastVedtaksperiodeRiver(
@@ -61,19 +63,19 @@ internal class ForkastVedtaksperiodeRiver(
         )
         loggernaut.sikker.info("Mottok melding på arbeidsgiveropplysninger-topic med innhold:\n${toPretty()}")
 
-        val orgnummer = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding)
         val vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding)
 
+        // TODO: Bør vi bruke hentForespoerslerEksponertTilSimba ?
         val forespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
 
         if (forespoersel != null) {
             // TODO: Oppdater database med at vedtaksperiodeid er kastet til infotrygd
-            /*priProducer
+            priProducer
                 .send(
-                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FORKASTET.toJson(Pri.NotisType.serializer()),
+                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
-                ).ifTrue { loggernaut.aapen.info("Sa ifra om forkastet forespørsel til Simba.") }
-                .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om forkastet forespørsel til Simba.") }*/
+                ).ifTrue { loggernaut.aapen.info("Sa ifra til Simba om forespørsel kastet til Infotrygd.") }
+                .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra til Simba om forespørsel kastet til Infotrygd.") }
         }
     }
 }

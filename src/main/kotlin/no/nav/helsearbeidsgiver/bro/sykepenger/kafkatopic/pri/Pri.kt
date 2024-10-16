@@ -49,6 +49,7 @@ object Pri {
         FORESPOERSEL_BESVART,
         FORESPOERSEL_BESVART_SIMBA,
         FORESPOERSEL_FORKASTET,
+        FORESPOERSEL_KASTET_TIL_INFOTRYGD,
     }
 
     private object KeySerializer : AsStringSerializer<Key>(
