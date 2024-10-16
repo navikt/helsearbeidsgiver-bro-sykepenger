@@ -23,6 +23,7 @@ data class ForespoerselDto(
     val forespurtData: List<SpleisForespurtDataDto>,
     val opprettet: LocalDateTime = LocalDateTime.now().truncMillis(),
     val oppdatert: LocalDateTime = LocalDateTime.now().truncMillis(),
+    val kastetTilInfotrygd: LocalDateTime? = null,
 ) {
     fun erDuplikatAv(other: ForespoerselDto): Boolean =
         this ==

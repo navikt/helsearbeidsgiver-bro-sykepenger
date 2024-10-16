@@ -232,6 +232,21 @@ class ForespoerselDao(
                 sikkerLogger.info(msg)
             }
 
+    fun markerKastetTilInfotrygd(vedtaksperiodeId: UUID): List<Long> =
+        transaction(db) {
+            ForespoerselTable
+                .updateReturning(
+                    returning = listOf(ForespoerselTable.id),
+                    where = {
+                        (ForespoerselTable.vedtaksperiodeId eq vedtaksperiodeId)
+                    },
+                ) {
+                    it[kastetTilInfotrygd] = LocalDateTime.now()
+                }.map {
+                    it[ForespoerselTable.id]
+                }
+        }
+
     private fun insertOrUpdateBesvarelse(
         forespoerselId: Long,
         forespoerselBesvart: LocalDateTime,
@@ -269,6 +284,7 @@ fun tilForespoerselDto(row: ResultRow): ForespoerselDto =
         forespurtData = row[ForespoerselTable.forespurtData],
         opprettet = row[ForespoerselTable.opprettet],
         oppdatert = row[ForespoerselTable.oppdatert],
+        kastetTilInfotrygd = row[ForespoerselTable.kastetTilInfotrygd],
     )
 
 private fun List<ForespoerselDto>.finnEksponertForespoersel(): ForespoerselDto? =

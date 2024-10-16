@@ -30,6 +30,7 @@ object ForespoerselTable : Table("forespoersel") {
     val forespurtData = jsonb("forespurt_data", jsonConfig, SpleisForespurtDataDto.serializer().list())
     val opprettet = datetime("opprettet")
     val oppdatert = datetime("oppdatert")
+    val kastetTilInfotrygd = datetime("kastet_til_infotrygd").nullable()
 
     override val primaryKey = PrimaryKey(id)
 }
