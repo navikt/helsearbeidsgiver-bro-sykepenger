@@ -7,7 +7,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifySequence
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
@@ -23,15 +22,15 @@ class ForkastVedtaksperiodeRiverTest :
         val mockForespoerselDao = mockk<ForespoerselDao>(relaxed = true)
         val mockPriProducer = mockk<PriProducer>(relaxed = true)
 
+        val forespoersel = mockForespoerselDto()
+
         ForkastVedtaksperiodeRiver(
             rapid = testRapid,
             forespoerselDao = mockForespoerselDao,
             priProducer = mockPriProducer,
         )
 
-        fun mockForkastVedtaksperiodeMelding(
-            vedtaksperiodeId: UUID,
-        ) {
+        fun mockForkastVedtaksperiodeMelding(vedtaksperiodeId: UUID) {
             testRapid.sendJson(
                 Spleis.Key.TYPE to Spleis.Event.VEDTAKSPERIODE_FORKASTET.toJson(Spleis.Event.serializer()),
                 Spleis.Key.VEDTAKSPERIODE_ID to vedtaksperiodeId.toJson(),
@@ -40,29 +39,22 @@ class ForkastVedtaksperiodeRiverTest :
 
         beforeEach {
             clearAllMocks()
+
+            every {
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId))
+            } returns listOf(forespoersel)
         }
 
         test("Innkommende event markerer vedtaksperiode kastet til infotrygd") {
-            val forespoersel = mockForespoerselDto()
-            every {
-                mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
-            } returns forespoersel
-
             mockForkastVedtaksperiodeMelding(vedtaksperiodeId)
 
             verifySequence {
-                mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId))
                 mockForespoerselDao.markerKastetTilInfotrygd(vedtaksperiodeId)
             }
         }
 
         test("Sier ifra til Simba om at påminnelse for forespørsel skal avbestilles") {
-            val forespoersel = mockForespoerselDto()
-
-            every {
-                mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
-            } returns forespoersel
-
             mockForkastVedtaksperiodeMelding(vedtaksperiodeId)
 
             verifySequence {

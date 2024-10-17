@@ -64,8 +64,7 @@ internal class ForkastVedtaksperiodeRiver(
 
         val vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding)
 
-        // TODO: Bør vi bruke hentForespoerslerEksponertTilSimba ?
-        val forespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
+        val forespoersel = forespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId)).firstOrNull()
 
         if (forespoersel != null) {
             forespoerselDao.markerKastetTilInfotrygd(vedtaksperiodeId)
