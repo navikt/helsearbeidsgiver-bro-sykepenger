@@ -22,7 +22,6 @@ class ForkastVedtaksperiodeRiverTest :
         val testRapid = TestRapid()
         val mockForespoerselDao = mockk<ForespoerselDao>(relaxed = true)
         val mockPriProducer = mockk<PriProducer>(relaxed = true)
-        val orgnummer = Orgnr("123456789")
 
         ForkastVedtaksperiodeRiver(
             rapid = testRapid,
@@ -31,13 +30,10 @@ class ForkastVedtaksperiodeRiverTest :
         )
 
         fun mockForkastVedtaksperiodeMelding(
-            orgnummer: Orgnr,
             vedtaksperiodeId: UUID,
         ) {
             testRapid.sendJson(
-                // TODO: Trenger vi fnr i meldingen?
                 Spleis.Key.TYPE to Spleis.Event.VEDTAKSPERIODE_FORKASTET.toJson(Spleis.Event.serializer()),
-                Spleis.Key.ORGANISASJONSNUMMER to orgnummer.toJson(Orgnr.serializer()),
                 Spleis.Key.VEDTAKSPERIODE_ID to vedtaksperiodeId.toJson(),
             )
         }
@@ -47,13 +43,17 @@ class ForkastVedtaksperiodeRiverTest :
         }
 
         test("Innkommende event markerer vedtaksperiode kastet til infotrygd") {
-            mockForkastVedtaksperiodeMelding(orgnummer, vedtaksperiodeId)
+            val forespoersel = mockForespoerselDto()
+            every {
+                mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
+            } returns forespoersel
+
+            mockForkastVedtaksperiodeMelding(vedtaksperiodeId)
 
             verifySequence {
                 mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
-                // mockForespoerselDao.oppdaterForespoerslerSomForkastet(vedtaksperiodeId)
+                mockForespoerselDao.markerKastetTilInfotrygd(vedtaksperiodeId)
             }
-            // TODO: Sjekke at vi har oppdatert databasen
         }
 
         test("Sier ifra til Simba om at påminnelse for forespørsel skal avbestilles") {
@@ -63,7 +63,7 @@ class ForkastVedtaksperiodeRiverTest :
                 mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
             } returns forespoersel
 
-            mockForkastVedtaksperiodeMelding(orgnummer, vedtaksperiodeId)
+            mockForkastVedtaksperiodeMelding(vedtaksperiodeId)
 
             verifySequence {
                 mockPriProducer.send(

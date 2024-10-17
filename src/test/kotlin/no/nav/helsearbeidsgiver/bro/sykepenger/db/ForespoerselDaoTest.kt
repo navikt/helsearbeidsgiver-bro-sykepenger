@@ -4,6 +4,8 @@ import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
+import io.kotest.matchers.equals.shouldBeEqual
+import io.kotest.matchers.equals.shouldNotBeEqual
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -1132,23 +1134,37 @@ class ForespoerselDaoTest :
         }
 
         test(
-            "Oppdaterer alle aktive forespørsler knyttet til en vedtaksperiodeId med tidspunkt for når vedtaksperiode kastes til infotrygd",
+            "Oppdaterer alle forespørsler knyttet til en vedtaksperiodeId med tidspunkt for når vedtaksperioden kastes til infotrygd",
         ) {
             val (id1, id2) =
                 List(2) {
                     mockForespoerselDto().lagreNotNull()
                 }
-            forespoerselDao.markerKastetTilInfotrygd(MockUuid.vedtaksperiodeId)
+
             val (
-                forespoersel1,
-                forespoersel2,
+                forespoersel1Foer,
+                forespoersel2Foer,
             ) =
                 listOf(id1, id2)
                     .map(db::hentForespoersel)
                     .map { it.shouldNotBeNull() }
 
-            forespoersel1.kastetTilInfotrygd.shouldNotBeNull()
-            forespoersel2.kastetTilInfotrygd.shouldNotBeNull()
+            forespoersel1Foer.kastetTilInfotrygd.shouldBeNull()
+            forespoersel2Foer.kastetTilInfotrygd.shouldBeNull()
+
+            forespoerselDao.markerKastetTilInfotrygd(MockUuid.vedtaksperiodeId)
+            val (
+                forespoersel1Etter,
+                forespoersel2Etter,
+            ) =
+                listOf(id1, id2)
+                    .map(db::hentForespoersel)
+                    .map { it.shouldNotBeNull() }
+
+            forespoersel1Etter.kastetTilInfotrygd.shouldNotBeNull()
+            forespoersel2Etter.kastetTilInfotrygd.shouldNotBeNull()
+            forespoersel1Etter.kastetTilInfotrygd shouldBe forespoersel2Etter.kastetTilInfotrygd
+
         }
     })
 

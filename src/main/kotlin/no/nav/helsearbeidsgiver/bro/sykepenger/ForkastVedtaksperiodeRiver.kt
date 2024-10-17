@@ -35,7 +35,6 @@ internal class ForkastVedtaksperiodeRiver(
                 validate { msg ->
                     msg.demandValues(Spleis.Key.TYPE to Spleis.Event.VEDTAKSPERIODE_FORKASTET.name)
                     msg.requireKeys(
-                        Spleis.Key.ORGANISASJONSNUMMER,
                         Spleis.Key.VEDTAKSPERIODE_ID,
                     )
                 }
@@ -69,7 +68,8 @@ internal class ForkastVedtaksperiodeRiver(
         val forespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
 
         if (forespoersel != null) {
-            // TODO: Oppdater database med at vedtaksperiodeid er kastet til infotrygd
+            forespoerselDao.markerKastetTilInfotrygd(vedtaksperiodeId)
+
             priProducer
                 .send(
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(Pri.NotisType.serializer()),
