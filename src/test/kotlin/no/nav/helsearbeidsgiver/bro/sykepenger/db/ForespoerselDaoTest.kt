@@ -1130,6 +1130,39 @@ class ForespoerselDaoTest :
                 actualForespoersler[1] shouldBe forespoerselGruppe2
             }
         }
+
+        test(
+            "Oppdaterer alle forespørsler knyttet til en vedtaksperiodeId med tidspunkt for når vedtaksperioden kastes til infotrygd",
+        ) {
+            val (id1, id2) =
+                List(2) {
+                    mockForespoerselDto().lagreNotNull()
+                }
+
+            val (
+                forespoersel1Foer,
+                forespoersel2Foer,
+            ) =
+                listOf(id1, id2)
+                    .map(db::hentForespoersel)
+                    .map { it.shouldNotBeNull() }
+
+            forespoersel1Foer.kastetTilInfotrygd.shouldBeNull()
+            forespoersel2Foer.kastetTilInfotrygd.shouldBeNull()
+
+            forespoerselDao.markerKastetTilInfotrygd(MockUuid.vedtaksperiodeId)
+            val (
+                forespoersel1Etter,
+                forespoersel2Etter,
+            ) =
+                listOf(id1, id2)
+                    .map(db::hentForespoersel)
+                    .map { it.shouldNotBeNull() }
+
+            forespoersel1Etter.kastetTilInfotrygd.shouldNotBeNull()
+            forespoersel2Etter.kastetTilInfotrygd.shouldNotBeNull()
+            forespoersel1Etter.kastetTilInfotrygd shouldBe forespoersel2Etter.kastetTilInfotrygd
+        }
     })
 
 private data class Besvarelse(

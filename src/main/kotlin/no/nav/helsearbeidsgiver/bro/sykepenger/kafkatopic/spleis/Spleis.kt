@@ -41,6 +41,7 @@ object Spleis {
         TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER_BEGRENSET,
         TRENGER_IKKE_OPPLYSNINGER_FRA_ARBEIDSGIVER,
         INNTEKTSMELDING_HÅNDTERT,
+        VEDTAKSPERIODE_FORKASTET,
     }
 
     private object KeySerializer : AsStringSerializer<Key>(
