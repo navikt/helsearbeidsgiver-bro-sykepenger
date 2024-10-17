@@ -24,6 +24,7 @@ fun main() {
     MarkerBesvartFraSpleisRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
     ForkastForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
     LagreBegrensetForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
+    ForkastVedtaksperiodeRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
 
     rapid.registerDbLifecycle()
 
