@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import io.mockk.verifySequence
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
@@ -39,13 +40,13 @@ class ForkastVedtaksperiodeRiverTest :
 
         beforeEach {
             clearAllMocks()
-
-            every {
-                mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId))
-            } returns listOf(forespoersel)
         }
 
         test("Innkommende event markerer vedtaksperiode kastet til infotrygd") {
+            every {
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId))
+            } returns listOf(forespoersel)
+
             mockForkastVedtaksperiodeMelding(vedtaksperiodeId)
 
             verifySequence {
@@ -55,6 +56,10 @@ class ForkastVedtaksperiodeRiverTest :
         }
 
         test("Sier ifra til Simba om at påminnelse for forespørsel skal avbestilles") {
+            every {
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId))
+            } returns listOf(forespoersel)
+
             mockForkastVedtaksperiodeMelding(vedtaksperiodeId)
 
             verifySequence {
@@ -62,6 +67,34 @@ class ForkastVedtaksperiodeRiverTest :
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
                 )
+            }
+        }
+
+        test(
+            "Sier ikke ifra til Simba om at påminnelse for forespørsel skal avbestilles dersom vi ikke finner forespørsler for vedtaksperiode-id",
+        ) {
+            mockForkastVedtaksperiodeMelding(vedtaksperiodeId)
+
+            every {
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId))
+            } returns emptyList()
+
+            verify(exactly = 0) {
+                mockPriProducer.send(any(), any())
+            }
+        }
+
+        test(
+            "Markerer ikke vedtaksperiode kastet til infotrygd dersom vi ikke finner forespørsler for vedtaksperiode-id",
+        ) {
+            mockForkastVedtaksperiodeMelding(vedtaksperiodeId)
+
+            every {
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId))
+            } returns emptyList()
+
+            verify(exactly = 0) {
+                mockForespoerselDao.markerKastetTilInfotrygd(any())
             }
         }
     })
