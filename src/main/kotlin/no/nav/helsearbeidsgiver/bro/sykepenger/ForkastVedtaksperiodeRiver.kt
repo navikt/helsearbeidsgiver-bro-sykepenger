@@ -21,7 +21,7 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 
-// Lytter på event om at forespørsel ikke er nødvendig lenger og forkaster forespørselen
+// Lytter på event om at vedtaksperiode er kastet til Infotrygd
 internal class ForkastVedtaksperiodeRiver(
     rapid: RapidsConnection,
     private val forespoerselDao: ForespoerselDao,
