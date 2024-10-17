@@ -4,8 +4,6 @@ import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
-import io.kotest.matchers.equals.shouldBeEqual
-import io.kotest.matchers.equals.shouldNotBeEqual
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -1164,7 +1162,6 @@ class ForespoerselDaoTest :
             forespoersel1Etter.kastetTilInfotrygd.shouldNotBeNull()
             forespoersel2Etter.kastetTilInfotrygd.shouldNotBeNull()
             forespoersel1Etter.kastetTilInfotrygd shouldBe forespoersel2Etter.kastetTilInfotrygd
-
         }
     })
 
