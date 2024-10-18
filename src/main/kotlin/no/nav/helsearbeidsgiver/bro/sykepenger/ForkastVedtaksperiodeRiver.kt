@@ -73,8 +73,8 @@ internal class ForkastVedtaksperiodeRiver(
                 .send(
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
-                ).ifTrue { loggernaut.aapen.info("Sa ifra til Simba om forespørsel kastet til Infotrygd.") }
-                .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra til Simba om forespørsel kastet til Infotrygd.") }
+                ).ifTrue { loggernaut.info("Sa ifra til Simba om forespørsel kastet til Infotrygd.") }
+                .ifFalse { loggernaut.error("Klarte ikke si ifra til Simba om forespørsel kastet til Infotrygd.") }
         }
     }
 }
