@@ -23,7 +23,7 @@ class ForkastVedtaksperiodeRiverTest :
         val mockForespoerselDao = mockk<ForespoerselDao>(relaxed = true)
         val mockPriProducer = mockk<PriProducer>(relaxed = true)
 
-        val forespoersel = mockForespoerselDto()
+        val mockForespoersel = mockForespoerselDto()
 
         ForkastVedtaksperiodeRiver(
             rapid = testRapid,
@@ -45,7 +45,7 @@ class ForkastVedtaksperiodeRiverTest :
         test("Innkommende event markerer vedtaksperiode kastet til infotrygd") {
             every {
                 mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId))
-            } returns listOf(forespoersel)
+            } returns listOf(mockForespoersel)
 
             mockForkastVedtaksperiodeMelding(vedtaksperiodeId)
 
@@ -58,14 +58,14 @@ class ForkastVedtaksperiodeRiverTest :
         test("Sier ifra til Simba om at påminnelse for forespørsel skal avbestilles") {
             every {
                 mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId))
-            } returns listOf(forespoersel)
+            } returns listOf(mockForespoersel)
 
             mockForkastVedtaksperiodeMelding(vedtaksperiodeId)
 
             verifySequence {
                 mockPriProducer.send(
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(Pri.NotisType.serializer()),
-                    Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
+                    Pri.Key.FORESPOERSEL_ID to mockForespoersel.forespoerselId.toJson(),
                 )
             }
         }

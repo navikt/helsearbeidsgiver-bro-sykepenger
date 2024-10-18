@@ -49,12 +49,12 @@ internal class ForkastVedtaksperiodeRiver(
             packet
                 .toJson()
                 .parseJson()
-                .oppdaterForespoersel()
+                .oppdaterForespoersler()
         }.onFailure(loggernaut::ukjentFeil)
             .getOrThrow()
     }
 
-    private fun JsonElement.oppdaterForespoersel() {
+    private fun JsonElement.oppdaterForespoersler() {
         val melding = fromJsonMapFiltered(Spleis.Key.serializer())
 
         loggernaut.aapen.info(
