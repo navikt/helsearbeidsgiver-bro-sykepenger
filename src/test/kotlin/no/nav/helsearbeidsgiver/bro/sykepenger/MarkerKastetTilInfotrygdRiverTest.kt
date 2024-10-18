@@ -17,7 +17,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import java.util.UUID
 
-class ForkastVedtaksperiodeRiverTest :
+class MarkerKastetTilInfotrygdRiverTest :
     FunSpec({
         val testRapid = TestRapid()
         val mockForespoerselDao = mockk<ForespoerselDao>(relaxed = true)
@@ -25,13 +25,13 @@ class ForkastVedtaksperiodeRiverTest :
 
         val mockForespoersel = mockForespoerselDto()
 
-        ForkastVedtaksperiodeRiver(
+        MarkerKastetTilInfotrygdRiver(
             rapid = testRapid,
             forespoerselDao = mockForespoerselDao,
             priProducer = mockPriProducer,
         )
 
-        fun mockForkastVedtaksperiodeMelding(vedtaksperiodeId: UUID) {
+        fun mockMarkerKastetTilInfotrygdMelding(vedtaksperiodeId: UUID) {
             testRapid.sendJson(
                 Spleis.Key.TYPE to Spleis.Event.VEDTAKSPERIODE_FORKASTET.toJson(Spleis.Event.serializer()),
                 Spleis.Key.VEDTAKSPERIODE_ID to vedtaksperiodeId.toJson(),
@@ -47,7 +47,7 @@ class ForkastVedtaksperiodeRiverTest :
                 mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId))
             } returns listOf(mockForespoersel)
 
-            mockForkastVedtaksperiodeMelding(vedtaksperiodeId)
+            mockMarkerKastetTilInfotrygdMelding(vedtaksperiodeId)
 
             verifySequence {
                 mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId))
@@ -60,7 +60,7 @@ class ForkastVedtaksperiodeRiverTest :
                 mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId))
             } returns listOf(mockForespoersel)
 
-            mockForkastVedtaksperiodeMelding(vedtaksperiodeId)
+            mockMarkerKastetTilInfotrygdMelding(vedtaksperiodeId)
 
             verifySequence {
                 mockPriProducer.send(
@@ -73,7 +73,7 @@ class ForkastVedtaksperiodeRiverTest :
         test(
             "Sier ikke ifra til Simba om at påminnelse for forespørsel skal avbestilles dersom vi ikke finner forespørsler for vedtaksperiode-id",
         ) {
-            mockForkastVedtaksperiodeMelding(vedtaksperiodeId)
+            mockMarkerKastetTilInfotrygdMelding(vedtaksperiodeId)
 
             every {
                 mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId))
@@ -87,7 +87,7 @@ class ForkastVedtaksperiodeRiverTest :
         test(
             "Markerer ikke vedtaksperiode kastet til infotrygd dersom vi ikke finner forespørsler for vedtaksperiode-id",
         ) {
-            mockForkastVedtaksperiodeMelding(vedtaksperiodeId)
+            mockMarkerKastetTilInfotrygdMelding(vedtaksperiodeId)
 
             every {
                 mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId))

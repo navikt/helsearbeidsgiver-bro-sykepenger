@@ -22,7 +22,7 @@ import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 
 // Lytter på event om at vedtaksperiode er kastet til Infotrygd
-internal class ForkastVedtaksperiodeRiver(
+class MarkerKastetTilInfotrygdRiver(
     rapid: RapidsConnection,
     private val forespoerselDao: ForespoerselDao,
     private val priProducer: PriProducer,
