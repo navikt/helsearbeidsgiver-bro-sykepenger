@@ -44,6 +44,7 @@ class ForkastForespoerselRiverTest :
 
         beforeEach {
             clearAllMocks()
+            testRapid.reset()
         }
 
         test("Innkommende event oppdaterer aktive forespørsler som forkastet") {

@@ -1130,6 +1130,44 @@ class ForespoerselDaoTest :
                 actualForespoersler[1] shouldBe forespoerselGruppe2
             }
         }
+
+        test(
+            "Oppdaterer alle forespørsler knyttet til en vedtaksperiodeId med tidspunkt for når vedtaksperioden kastes til infotrygd",
+        ) {
+            val vid2 = UUID.randomUUID()
+            val id1 = mockForespoerselDto().lagreNotNull()
+            val id2 = mockForespoerselDto().lagreNotNull()
+            val id3 = mockForespoerselDto().copy(vedtaksperiodeId = vid2).lagreNotNull()
+
+            val (
+                forespoersel1Foer,
+                forespoersel2Foer,
+                forespoersel3Foer,
+            ) =
+                listOf(id1, id2, id3)
+                    .map(db::hentForespoersel)
+                    .map { it.shouldNotBeNull() }
+
+            forespoersel1Foer.kastetTilInfotrygd.shouldBeNull()
+            forespoersel2Foer.kastetTilInfotrygd.shouldBeNull()
+            forespoersel3Foer.kastetTilInfotrygd.shouldBeNull()
+
+            forespoerselDao.markerKastetTilInfotrygd(MockUuid.vedtaksperiodeId)
+
+            val (
+                forespoersel1Etter,
+                forespoersel2Etter,
+                forespoersel3Etter,
+            ) =
+                listOf(id1, id2, id3)
+                    .map(db::hentForespoersel)
+                    .map { it.shouldNotBeNull() }
+
+            forespoersel1Etter.kastetTilInfotrygd.shouldNotBeNull()
+            forespoersel2Etter.kastetTilInfotrygd.shouldNotBeNull()
+            forespoersel3Etter.kastetTilInfotrygd.shouldBeNull()
+            forespoersel1Etter.kastetTilInfotrygd shouldBe forespoersel2Etter.kastetTilInfotrygd
+        }
     })
 
 private data class Besvarelse(
