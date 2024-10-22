@@ -238,7 +238,7 @@ fun mockJsonElement(): JsonElement = """{"aTestKey":"aTestValue"}""".parseJson()
 
 fun ForespoerselMottatt.toKeyMap() =
     mapOf(
-        Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(Pri.NotisType.serializer()),
+        Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
         Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         Pri.Key.ORGNR to orgnr.toJson(Orgnr.serializer()),
         Pri.Key.FNR to fnr.toJson(),

@@ -8,7 +8,6 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
@@ -105,7 +104,7 @@ sealed class LagreForespoerselRiver(
         if (aktivForespoersel == null) {
             priProducer
                 .send(
-                    Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(Pri.NotisType.serializer()),
+                    Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to nyForespoersel.forespoerselId.toJson(),
                     Pri.Key.ORGNR to nyForespoersel.orgnr.toJson(Orgnr.serializer()),
                     Pri.Key.FNR to nyForespoersel.fnr.toJson(),
