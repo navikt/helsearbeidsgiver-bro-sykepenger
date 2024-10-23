@@ -1,5 +1,6 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.testutils
 
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
@@ -154,6 +155,7 @@ fun mockForespoerselMottatt(): ForespoerselMottatt =
         forespoerselId = randomUuid(),
         orgnr = "287429436".let(::Orgnr),
         fnr = "abc",
+        skalHaPaaminnelse = true,
     )
 
 fun mockForespoerselSvarSuksess(): ForespoerselSimba {
@@ -236,10 +238,11 @@ fun mockJsonElement(): JsonElement = """{"aTestKey":"aTestValue"}""".parseJson()
 
 fun ForespoerselMottatt.toKeyMap() =
     mapOf(
-        Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(Pri.NotisType.serializer()),
+        Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
         Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         Pri.Key.ORGNR to orgnr.toJson(Orgnr.serializer()),
         Pri.Key.FNR to fnr.toJson(),
+        Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
     )
 
 private fun randomDigitString(length: Int): String =

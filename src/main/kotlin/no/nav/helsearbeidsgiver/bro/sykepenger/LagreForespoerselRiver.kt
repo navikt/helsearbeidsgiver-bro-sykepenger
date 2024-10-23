@@ -8,9 +8,9 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
@@ -82,6 +82,8 @@ sealed class LagreForespoerselRiver(
         val aktivForespoersel =
             forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(nyForespoersel.vedtaksperiodeId)
 
+        val skalHaPaaminnelse = nyForespoersel.type == Type.KOMPLETT
+
         if (aktivForespoersel == null || !nyForespoersel.erDuplikatAv(aktivForespoersel)) {
             forespoerselDao
                 .lagre(nyForespoersel)
@@ -102,10 +104,11 @@ sealed class LagreForespoerselRiver(
         if (aktivForespoersel == null) {
             priProducer
                 .send(
-                    Pri.Key.NOTIS to ForespoerselMottatt.notisType.toJson(Pri.NotisType.serializer()),
+                    Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to nyForespoersel.forespoerselId.toJson(),
                     Pri.Key.ORGNR to nyForespoersel.orgnr.toJson(Orgnr.serializer()),
                     Pri.Key.FNR to nyForespoersel.fnr.toJson(),
+                    Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
                 ).ifTrue { loggernaut.aapen.info("Sa ifra om mottatt forespørsel til Simba.") }
                 .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
 

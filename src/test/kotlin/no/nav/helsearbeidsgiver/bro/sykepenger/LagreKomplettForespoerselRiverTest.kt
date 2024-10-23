@@ -72,6 +72,7 @@ class LagreKomplettForespoerselRiverTest :
                     forespoerselId = forespoersel.forespoerselId,
                     orgnr = forespoersel.orgnr,
                     fnr = forespoersel.fnr,
+                    skalHaPaaminnelse = true,
                 )
 
             verifySequence {

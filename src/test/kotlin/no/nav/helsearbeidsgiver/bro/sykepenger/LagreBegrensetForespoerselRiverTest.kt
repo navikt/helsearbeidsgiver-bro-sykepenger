@@ -73,6 +73,7 @@ class LagreBegrensetForespoerselRiverTest :
                     forespoerselId = forespoersel.forespoerselId,
                     orgnr = forespoersel.orgnr,
                     fnr = forespoersel.fnr,
+                    skalHaPaaminnelse = false,
                 )
 
             verifySequence {
