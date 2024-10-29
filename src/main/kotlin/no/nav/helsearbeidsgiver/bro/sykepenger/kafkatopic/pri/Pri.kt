@@ -24,6 +24,7 @@ object Pri {
         SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
         VEDTAKSPERIODE_ID_LISTE("vedtaksperiode_id_liste"),
         SKAL_HA_PAAMINNELSE("skal_ha_paaminnelse"),
+        FORESPOERSEL("forespoersel"),
         ;
 
         override fun toString(): String = verdi

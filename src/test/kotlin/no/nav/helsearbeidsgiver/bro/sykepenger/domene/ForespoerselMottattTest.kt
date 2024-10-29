@@ -42,6 +42,7 @@ private fun ForespoerselMottatt.hardcodedJson(): String =
         "${Pri.Key.FORESPOERSEL_ID}": "$forespoerselId",
         "${Pri.Key.ORGNR}": "${orgnr.verdi}",
         "${Pri.Key.FNR}": "$fnr",
-        "${Pri.Key.SKAL_HA_PAAMINNELSE}": $skalHaPaaminnelse
+        "${Pri.Key.SKAL_HA_PAAMINNELSE}": $skalHaPaaminnelse,
+        "${Pri.Key.FORESPOERSEL}": ${forespoersel.toJsonStr(ForespoerselSimba.serializer())}
     }
     """.removeJsonWhitespace()
