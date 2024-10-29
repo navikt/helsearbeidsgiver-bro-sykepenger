@@ -151,13 +151,13 @@ fun mockSpleisFastsattInntekt(): SpleisFastsattInntekt =
     )
 
 fun mockForespoerselMottatt(): ForespoerselMottatt {
-    val orgnr = "287429436".let(::Orgnr)
+    val forespoersel = mockForespoerselSvarSuksess()
     return ForespoerselMottatt(
-        forespoerselId = randomUuid(),
-        orgnr = orgnr,
-        fnr = "abc",
-        skalHaPaaminnelse = true,
-        forespoersel = mockForespoerselSvarSuksess().copy(orgnr = orgnr),
+        forespoerselId = forespoersel.forespoerselId,
+        orgnr = forespoersel.orgnr,
+        fnr = forespoersel.fnr,
+        skalHaPaaminnelse = forespoersel.type == Type.KOMPLETT,
+        forespoersel = forespoersel,
     )
 }
 
