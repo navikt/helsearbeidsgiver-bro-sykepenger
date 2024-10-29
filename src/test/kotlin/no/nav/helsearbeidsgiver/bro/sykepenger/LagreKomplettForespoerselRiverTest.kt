@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.bestemmendeFravaersdagerSerializer
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
@@ -73,6 +74,7 @@ class LagreKomplettForespoerselRiverTest :
                     orgnr = forespoersel.orgnr,
                     fnr = forespoersel.fnr,
                     skalHaPaaminnelse = true,
+                    forespoersel = ForespoerselSimba(forespoersel),
                 )
 
             verifySequence {

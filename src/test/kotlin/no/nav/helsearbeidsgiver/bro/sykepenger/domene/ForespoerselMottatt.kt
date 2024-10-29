@@ -15,4 +15,5 @@ data class ForespoerselMottatt(
     val fnr: String,
     @SerialName("skal_ha_paaminnelse")
     val skalHaPaaminnelse: Boolean,
+    val forespoersel: ForespoerselSimba,
 )

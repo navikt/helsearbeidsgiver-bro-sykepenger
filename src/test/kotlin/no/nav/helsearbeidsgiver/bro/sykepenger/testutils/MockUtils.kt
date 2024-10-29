@@ -150,13 +150,16 @@ fun mockSpleisFastsattInntekt(): SpleisFastsattInntekt =
         fastsattInntekt = 31415.92,
     )
 
-fun mockForespoerselMottatt(): ForespoerselMottatt =
-    ForespoerselMottatt(
-        forespoerselId = randomUuid(),
-        orgnr = "287429436".let(::Orgnr),
-        fnr = "abc",
-        skalHaPaaminnelse = true,
+fun mockForespoerselMottatt(): ForespoerselMottatt {
+    val forespoersel = mockForespoerselSvarSuksess()
+    return ForespoerselMottatt(
+        forespoerselId = forespoersel.forespoerselId,
+        orgnr = forespoersel.orgnr,
+        fnr = forespoersel.fnr,
+        skalHaPaaminnelse = forespoersel.type == Type.KOMPLETT,
+        forespoersel = forespoersel,
     )
+}
 
 fun mockForespoerselSvarSuksess(): ForespoerselSimba {
     val orgnr = "569046822".let(::Orgnr)
@@ -243,6 +246,7 @@ fun ForespoerselMottatt.toKeyMap() =
         Pri.Key.ORGNR to orgnr.toJson(Orgnr.serializer()),
         Pri.Key.FNR to fnr.toJson(),
         Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
+        Pri.Key.FORESPOERSEL to forespoersel.toJson(ForespoerselSimba.serializer()),
     )
 
 private fun randomDigitString(length: Int): String =
