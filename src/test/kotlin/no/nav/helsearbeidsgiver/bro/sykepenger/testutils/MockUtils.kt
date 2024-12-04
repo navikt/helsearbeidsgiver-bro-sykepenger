@@ -175,6 +175,7 @@ fun mockForespoerselSvarSuksess(): ForespoerselSimba {
         bestemmendeFravaersdager = mapOf(orgnr to 10.november(1999)),
         forespurtData = mockForespurtData(),
         erBesvart = false,
+        opprettetUpresisIkkeBruk = 17.januar,
     )
 }
 
