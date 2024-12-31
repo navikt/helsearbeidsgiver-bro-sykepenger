@@ -11,7 +11,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Inntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.InntektsmeldingHaandtertDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisArbeidsgiverperiode
@@ -32,9 +31,11 @@ import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.november
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDateTime
 import java.util.UUID
-import kotlin.random.Random
 
 object MockUuid {
     val vedtaksperiodeId: UUID = "01234567-abcd-0123-abcd-012345678901".let(UUID::fromString)
@@ -43,14 +44,14 @@ object MockUuid {
 }
 
 fun mockForespoerselDto(): ForespoerselDto {
-    val orgnr = randomDigitString(9).let(::Orgnr)
+    val orgnr = Orgnr.genererGyldig()
 
     return ForespoerselDto(
         forespoerselId = randomUuid(),
         type = Type.KOMPLETT,
         status = Status.AKTIV,
         orgnr = orgnr,
-        fnr = randomDigitString(11),
+        fnr = Fnr.genererGyldig(),
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         sykmeldingsperioder =
@@ -61,8 +62,8 @@ fun mockForespoerselDto(): ForespoerselDto {
         bestemmendeFravaersdager =
             mapOf(
                 orgnr to 15.januar,
-                "234234234".let(::Orgnr) to 17.januar,
-                "678678678".let(::Orgnr) to 19.januar,
+                Orgnr.genererGyldig() to 17.januar,
+                Orgnr.genererGyldig() to 19.januar,
             ),
         forespurtData = mockSpleisForespurtDataListe(),
     )
@@ -162,12 +163,12 @@ fun mockForespoerselMottatt(): ForespoerselMottatt {
 }
 
 fun mockForespoerselSvarSuksess(): ForespoerselSimba {
-    val orgnr = "569046822".let(::Orgnr)
+    val orgnr = Orgnr.genererGyldig()
 
     return ForespoerselSimba(
         type = Type.KOMPLETT,
         orgnr = orgnr,
-        fnr = "abc",
+        fnr = Fnr.genererGyldig(),
         forespoerselId = UUID.randomUUID(),
         vedtaksperiodeId = UUID.randomUUID(),
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
@@ -231,8 +232,8 @@ fun mockRefusjon(): Refusjon =
 
 fun mockInntektsmeldingHaandtertDto(dokumentId: UUID? = MockUuid.inntektsmeldingId): InntektsmeldingHaandtertDto =
     InntektsmeldingHaandtertDto(
-        orgnr = "287429436".let(::Orgnr),
-        fnr = "fnr",
+        orgnr = Orgnr.genererGyldig(),
+        fnr = Fnr.genererGyldig(),
         vedtaksperiodeId = MockUuid.vedtaksperiodeId,
         inntektsmeldingId = dokumentId,
         haandtert = LocalDateTime.MAX,
@@ -245,11 +246,7 @@ fun ForespoerselMottatt.toKeyMap() =
         Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
         Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         Pri.Key.ORGNR to orgnr.toJson(Orgnr.serializer()),
-        Pri.Key.FNR to fnr.toJson(),
+        Pri.Key.FNR to fnr.toJson(Fnr.serializer()),
         Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
         Pri.Key.FORESPOERSEL to forespoersel.toJson(ForespoerselSimba.serializer()),
     )
-
-private fun randomDigitString(length: Int): String =
-    List(length) { Random.nextInt(10) }
-        .joinToString(separator = "")

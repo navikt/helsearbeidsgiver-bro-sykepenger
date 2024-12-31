@@ -1,13 +1,14 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.zipWithNextOrNull
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Transaction
@@ -41,7 +42,7 @@ class ForespoerselDao(
                     it[type] = forespoersel.type.name
                     it[status] = forespoersel.status.name
                     it[orgnr] = forespoersel.orgnr.verdi
-                    it[fnr] = forespoersel.fnr
+                    it[fnr] = forespoersel.fnr.verdi
                     it[vedtaksperiodeId] = forespoersel.vedtaksperiodeId
                     it[egenmeldingsperioder] = forespoersel.egenmeldingsperioder
                     it[sykmeldingsperioder] = forespoersel.sykmeldingsperioder
@@ -158,14 +159,14 @@ class ForespoerselDao(
 
     fun hentAktiveForespoerslerForOrgnrOgFnr(
         orgnr: Orgnr,
-        fnr: String,
+        fnr: Fnr,
     ): List<ForespoerselDto> =
         transaction(db) {
             ForespoerselTable
                 .selectAll()
                 .where {
                     (ForespoerselTable.orgnr eq orgnr.verdi) and
-                        (ForespoerselTable.fnr eq fnr)
+                        (ForespoerselTable.fnr eq fnr.verdi)
                 }.map {
                     it[ForespoerselTable.vedtaksperiodeId] to tilForespoerselDto(it)
                 }.toAggregateMap()
@@ -281,7 +282,7 @@ fun tilForespoerselDto(row: ResultRow): ForespoerselDto =
         type = row[ForespoerselTable.type].let(Type::valueOf),
         status = row[ForespoerselTable.status].let(Status::valueOf),
         orgnr = row[ForespoerselTable.orgnr].let(::Orgnr),
-        fnr = row[ForespoerselTable.fnr],
+        fnr = row[ForespoerselTable.fnr].let(::Fnr),
         vedtaksperiodeId = row[ForespoerselTable.vedtaksperiodeId],
         egenmeldingsperioder = row[ForespoerselTable.egenmeldingsperioder],
         sykmeldingsperioder = row[ForespoerselTable.sykmeldingsperioder],

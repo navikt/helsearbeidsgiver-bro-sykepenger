@@ -6,6 +6,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -15,7 +17,7 @@ data class ForespoerselDto(
     val type: Type,
     val status: Status,
     val orgnr: Orgnr,
-    val fnr: String,
+    val fnr: Fnr,
     val vedtaksperiodeId: UUID,
     val egenmeldingsperioder: List<Periode>,
     val sykmeldingsperioder: List<Periode>,
