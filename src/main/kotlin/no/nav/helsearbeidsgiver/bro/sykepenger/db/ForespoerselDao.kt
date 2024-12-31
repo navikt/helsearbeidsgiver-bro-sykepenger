@@ -116,45 +116,38 @@ class ForespoerselDao(
     fun hentNyesteForespoerselForForespoerselId(
         forespoerselId: UUID,
         statuser: Set<Status>,
-    ): ForespoerselDto? =
-        hentVedtaksperiodeId(forespoerselId)?.let { vedtaksperiodeId ->
-            hentForespoerslerForVedtaksperiodeId(
-                vedtaksperiodeId = vedtaksperiodeId,
-                statuser = statuser,
-            ).maxByOrNull { it.opprettet }
+    ): ForespoerselDto? {
+        val vedtaksperiodeId = hentVedtaksperiodeId(forespoerselId)
+
+        return if (vedtaksperiodeId == null) {
+            null
+        } else {
+            hentForespoerslerForVedtaksperiodeIdListe(setOf(vedtaksperiodeId))
+                .finnNyesteForespoersel(statuser)
+        }
+    }
+
+    fun hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId: UUID): ForespoerselDto? {
+        val forespoersler = hentForespoerslerForVedtaksperiodeIdListe(setOf(vedtaksperiodeId))
+
+        if (forespoersler.filter { it.status == Status.AKTIV }.size > 1) {
+            "Fant flere aktive forespørsler for vedtaksperiode: $vedtaksperiodeId".also {
+                logger.error(it)
+                sikkerLogger.error(it)
+            }
         }
 
-    fun hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId: UUID): ForespoerselDto? =
-        hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId, setOf(Status.AKTIV))
-            .also { forespoersler ->
-                if (forespoersler.size > 1) {
-                    "Fant flere aktive forespørsler for vedtaksperiode: $vedtaksperiodeId".also {
-                        logger.error(it)
-                        sikkerLogger.error(it)
-                    }
-                }
-            }.maxByOrNull { it.opprettet }
+        return forespoersler.finnNyesteForespoersel(setOf(Status.AKTIV))
+    }
 
+    // TODO liste -> set
     fun hentForespoerslerEksponertTilSimba(vedtaksperiodeIdListe: List<UUID>): List<ForespoerselDto> =
-        hentForespoerslerForVedtaksperiodeIdListe(vedtaksperiodeIdListe)
+        hentForespoerslerForVedtaksperiodeIdListe(vedtaksperiodeIdListe.toSet())
             .groupBy { it.vedtaksperiodeId }
             .mapNotNull { (_, forespoersler) ->
+                // TODO bytt til 'finnNyesteForespoersel'
                 forespoersler.finnEksponertForespoersel()
             }
-
-    fun hentForespoerslerForVedtaksperiodeId(
-        vedtaksperiodeId: UUID,
-        statuser: Set<Status>,
-    ): List<ForespoerselDto> =
-        transaction(db) {
-            ForespoerselTable
-                .selectAll()
-                .where {
-                    (ForespoerselTable.vedtaksperiodeId eq vedtaksperiodeId) and
-                        (ForespoerselTable.status inList statuser.map { it.name })
-                }.map(::tilForespoerselDto)
-                .sortedBy { it.opprettet }
-        }
 
     fun hentAktiveForespoerslerForOrgnrOgFnr(
         orgnr: Orgnr,
@@ -168,26 +161,13 @@ class ForespoerselDao(
                         (ForespoerselTable.fnr eq fnr)
                 }.map {
                     it[ForespoerselTable.vedtaksperiodeId] to tilForespoerselDto(it)
-                }.toAggregateMap()
-                .mapNotNull { (_, forespoersler) ->
-                    val aktivForespoersel =
-                        forespoersler
-                            .sortedByDescending { it.opprettet }
-                            .firstOrNull { it.status == Status.AKTIV }
-
-                    val eksponertForespoerselId = forespoersler.finnEksponertForespoersel()?.forespoerselId
-
-                    if (aktivForespoersel != null && eksponertForespoerselId != null) {
-                        aktivForespoersel.copy(
-                            forespoerselId = eksponertForespoerselId,
-                        )
-                    } else {
-                        null
-                    }
                 }
-        }
+        }.toAggregateMap()
+            .mapNotNull { (_, forespoersler) ->
+                forespoersler.finnNyesteForespoersel(setOf(Status.AKTIV))
+            }
 
-    private fun hentForespoerslerForVedtaksperiodeIdListe(vedtaksperiodeIdListe: List<UUID>): List<ForespoerselDto> =
+    fun hentForespoerslerForVedtaksperiodeIdListe(vedtaksperiodeIdListe: Set<UUID>): List<ForespoerselDto> =
         transaction(db) {
             ForespoerselTable
                 .selectAll()
@@ -239,7 +219,7 @@ class ForespoerselDao(
                 .updateReturning(
                     returning = listOf(ForespoerselTable.id),
                     where = {
-                        (ForespoerselTable.vedtaksperiodeId eq vedtaksperiodeId)
+                        ForespoerselTable.vedtaksperiodeId eq vedtaksperiodeId
                     },
                 ) {
                     it[kastetTilInfotrygd] = LocalDateTime.now().truncMillis()
@@ -291,6 +271,23 @@ fun tilForespoerselDto(row: ResultRow): ForespoerselDto =
         oppdatert = row[ForespoerselTable.oppdatert],
         kastetTilInfotrygd = row[ForespoerselTable.kastetTilInfotrygd],
     )
+
+private fun List<ForespoerselDto>.finnNyesteForespoersel(statuser: Set<Status>): ForespoerselDto? {
+    val nyesteForespoersel =
+        sortedByDescending { it.opprettet }
+            .firstOrNull { it.status in statuser }
+
+    val eksponertForespoerselId = finnEksponertForespoersel()?.forespoerselId
+
+    return if (nyesteForespoersel != null && eksponertForespoerselId != null) {
+        // Simba kjenner kun til eksponerte forespørsel-ID-er, så vi må bytte for ID-en matcher Simbas systemer
+        nyesteForespoersel.copy(
+            forespoerselId = eksponertForespoerselId,
+        )
+    } else {
+        null
+    }
+}
 
 private fun List<ForespoerselDto>.finnEksponertForespoersel(): ForespoerselDto? =
     sortedByDescending { it.opprettet }

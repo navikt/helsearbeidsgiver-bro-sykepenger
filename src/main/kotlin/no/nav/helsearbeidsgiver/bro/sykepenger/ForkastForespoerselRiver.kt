@@ -6,7 +6,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
@@ -64,17 +63,13 @@ internal class ForkastForespoerselRiver(
         )
         loggernaut.sikker.info("Mottok melding på arbeidsgiveropplysninger-topic med innhold:\n${toPretty()}")
 
-        val orgnummer = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding)
         val vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding)
 
         val forespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
 
         if (forespoersel != null) {
             forespoerselDao.oppdaterForespoerslerSomForkastet(vedtaksperiodeId)
-            "Oppdaterte status til forkastet for forespørsel ${forespoersel.forespoerselId}.".also {
-                loggernaut.aapen.info(it)
-                loggernaut.sikker.info(it)
-            }
+            loggernaut.info("Oppdaterte status til forkastet for forespørsel '${forespoersel.forespoerselId}' (eksponert ID).")
 
             priProducer
                 .send(
