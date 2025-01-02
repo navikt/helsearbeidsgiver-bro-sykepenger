@@ -20,7 +20,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.requireKeys
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
-import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import java.util.UUID
@@ -54,7 +54,7 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiver(
 
         val vedtaksperiodeIdListe =
             Pri.Key.VEDTAKSPERIODE_ID_LISTE.les(
-                UuidSerializer.list(),
+                UuidSerializer.set(),
                 json.fromJsonMapFiltered(Pri.Key.serializer()),
             )
 
@@ -63,7 +63,7 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiver(
         }.onFailure(loggernaut::ukjentFeil)
     }
 
-    private fun JsonElement.sendSvar(vedtaksperiodeIdListe: List<UUID>) {
+    private fun JsonElement.sendSvar(vedtaksperiodeIdListe: Set<UUID>) {
         val melding = fromJsonMapFiltered(Pri.Key.serializer())
 
         "Mottok melding på pri-topic".also {

@@ -96,9 +96,8 @@ class MarkerBesvartFraSpleisRiver(
 
             val forespoerselIdEksponertTilSimba =
                 forespoerselDao
-                    .hentForespoerslerEksponertTilSimba(
-                        listOf(inntektsmeldingHaandtert.vedtaksperiodeId),
-                    ).firstOrNull()
+                    .hentForespoerslerEksponertTilSimba(setOf(inntektsmeldingHaandtert.vedtaksperiodeId))
+                    .firstOrNull()
                     ?.forespoerselId
 
             if (forespoerselIdEksponertTilSimba == null) {

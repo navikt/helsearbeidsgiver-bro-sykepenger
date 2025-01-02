@@ -61,7 +61,7 @@ class MarkerBesvartFraSpleisRiverTest :
                     inntektsmeldingHaandtert.haandtert,
                     inntektsmeldingHaandtert.inntektsmeldingId,
                 )
-                mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(inntektsmeldingHaandtert.vedtaksperiodeId))
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(inntektsmeldingHaandtert.vedtaksperiodeId))
             }
         }
 
@@ -79,7 +79,7 @@ class MarkerBesvartFraSpleisRiverTest :
                     inntektsmeldingHaandtert.haandtert,
                     inntektsmeldingHaandtert.inntektsmeldingId,
                 )
-                mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(inntektsmeldingHaandtert.vedtaksperiodeId))
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(inntektsmeldingHaandtert.vedtaksperiodeId))
             }
         }
 
@@ -91,7 +91,7 @@ class MarkerBesvartFraSpleisRiverTest :
 
             every {
                 mockForespoerselDao
-                    .hentForespoerslerEksponertTilSimba(listOf(inntektsmeldingHaandtert.vedtaksperiodeId))
+                    .hentForespoerslerEksponertTilSimba(setOf(inntektsmeldingHaandtert.vedtaksperiodeId))
                     .firstOrNull()
                     ?.forespoerselId
             } returns expectedForespoerselId
@@ -132,7 +132,7 @@ class MarkerBesvartFraSpleisRiverTest :
 
             every {
                 mockForespoerselDao
-                    .hentForespoerslerEksponertTilSimba(listOf(inntektsmeldingHaandtert.vedtaksperiodeId))
+                    .hentForespoerslerEksponertTilSimba(setOf(inntektsmeldingHaandtert.vedtaksperiodeId))
                     .firstOrNull()
                     ?.forespoerselId
             } returns expectedForespoerselId
@@ -161,7 +161,7 @@ class MarkerBesvartFraSpleisRiverTest :
 
             every {
                 mockForespoerselDao
-                    .hentForespoerslerEksponertTilSimba(listOf(inntektsmeldingHaandtert.vedtaksperiodeId))
+                    .hentForespoerslerEksponertTilSimba(setOf(inntektsmeldingHaandtert.vedtaksperiodeId))
                     .firstOrNull()
                     ?.forespoerselId
             } returns expectedForespoerselId
