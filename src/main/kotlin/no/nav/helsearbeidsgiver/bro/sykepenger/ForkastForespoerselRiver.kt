@@ -20,7 +20,6 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 
 // Lytter på event om at forespørsel ikke er nødvendig lenger og forkaster forespørselen
 internal class ForkastForespoerselRiver(
