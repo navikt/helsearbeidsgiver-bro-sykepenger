@@ -115,10 +115,10 @@ sealed class LagreForespoerselRiver(
                 .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
 
             val besvarteForespoersler =
-                forespoerselDao.hentForespoerslerForVedtaksperiodeId(
-                    nyForespoersel.vedtaksperiodeId,
-                    setOf(Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
-                )
+                forespoerselDao
+                    .hentForespoerslerForVedtaksperiodeIdListe(setOf(nyForespoersel.vedtaksperiodeId))
+                    .filter { it.status in setOf(Status.BESVART_SIMBA, Status.BESVART_SPLEIS) }
+
             if (besvarteForespoersler.size > 3) {
                 loggernaut.warn(
                     "Ny IM har nettopp blitt etterspurt for vedtaksperiode-ID ${nyForespoersel.vedtaksperiodeId}, " +

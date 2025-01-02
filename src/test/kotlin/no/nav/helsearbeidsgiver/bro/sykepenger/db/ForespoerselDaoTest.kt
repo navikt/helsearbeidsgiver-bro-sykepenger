@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
 import io.kotest.assertions.throwables.shouldThrowAny
+import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
@@ -108,10 +109,14 @@ class ForespoerselDaoTest :
 
         context(ForespoerselDao::hentNyesteForespoerselForForespoerselId.name) {
             test("Henter eneste forespørsel med ønsket status i databasen knyttet til en forespoerselId") {
+                val eksponertId = UUID.randomUUID()
+
                 val forkastetForespoersel =
                     mockForespoerselDto()
-                        .copy(sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)))
-                        .also(ForespoerselDto::lagreNotNull)
+                        .copy(
+                            forespoerselId = eksponertId,
+                            sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)),
+                        ).also(ForespoerselDto::lagreNotNull)
 
                 val aktivForespoersel =
                     mockForespoerselDto()
@@ -130,16 +135,19 @@ class ForespoerselDaoTest :
                             statuser = setOf(Status.AKTIV),
                         ).shouldNotBeNull()
 
-                actualForespoersel shouldBe aktivForespoersel
+                actualForespoersel shouldBe aktivForespoersel.copy(forespoerselId = eksponertId)
             }
 
             context("Returnerer nyeste forespørsel med ønsket status dersom det er flere") {
                 // Forespørselen før den besvarte forblir aktiv, selv når neste forespørsel settes til besvart.
                 // Skal ikke skje i den virkelige verden.
                 test("inneholder forkastet, aktiv, besvart_spleis - ønsker aktiv") {
+                    val eksponertId = UUID.randomUUID()
+
                     val foersteForespoersel =
                         mockForespoerselDto()
                             .copy(
+                                forespoerselId = eksponertId,
                                 sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)),
                                 opprettet = 2.timerSiden(),
                             ).also(ForespoerselDto::lagreNotNull)
@@ -164,10 +172,8 @@ class ForespoerselDaoTest :
 
                     // Verifiser status på lagrede forespørsler
                     forespoerselDao
-                        .hentForespoerslerForVedtaksperiodeId(
-                            vedtaksperiodeId = foersteForespoersel.vedtaksperiodeId,
-                            statuser = Status.entries.toSet(),
-                        ).sortedBy { it.opprettet }
+                        .hentForespoerslerForVedtaksperiodeIdListe(setOf(foersteForespoersel.vedtaksperiodeId))
+                        .sortedBy { it.opprettet }
                         .map { it.status }
                         .shouldContainExactly(
                             Status.FORKASTET,
@@ -182,15 +188,22 @@ class ForespoerselDaoTest :
                                 statuser = setOf(Status.AKTIV),
                             ).shouldNotBeNull()
 
-                    actualForespoersel.shouldBeEqualToIgnoringFields(aktivForespoersel, ForespoerselDto::oppdatert)
+                    actualForespoersel shouldBe
+                        aktivForespoersel.copy(
+                            forespoerselId = eksponertId,
+                            oppdatert = actualForespoersel.oppdatert, // ignorer oppdatert-felt
+                        )
                 }
 
                 // Forespørselen før den besvarte forblir aktiv, selv når neste forespørsel settes til besvart.
                 // Skal ikke skje i den virkelige verden.
                 test("inneholder forkastet, aktiv, besvart_spleis - ønsker aktiv eller besvart_spleis") {
+                    val eksponertId = UUID.randomUUID()
+
                     val foersteForespoersel =
                         mockForespoerselDto()
                             .copy(
+                                forespoerselId = eksponertId,
                                 sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)),
                                 opprettet = 2.timerSiden(),
                             ).also(ForespoerselDto::lagreNotNull)
@@ -214,10 +227,8 @@ class ForespoerselDaoTest :
 
                     // Verifiser status på lagrede forespørsler
                     forespoerselDao
-                        .hentForespoerslerForVedtaksperiodeId(
-                            vedtaksperiodeId = foersteForespoersel.vedtaksperiodeId,
-                            statuser = Status.entries.toSet(),
-                        ).sortedBy { it.opprettet }
+                        .hentForespoerslerForVedtaksperiodeIdListe(setOf(foersteForespoersel.vedtaksperiodeId))
+                        .sortedBy { it.opprettet }
                         .map { it.status }
                         .shouldContainExactly(
                             Status.FORKASTET,
@@ -232,7 +243,7 @@ class ForespoerselDaoTest :
                                 statuser = setOf(Status.AKTIV, Status.BESVART_SPLEIS),
                             ).shouldNotBeNull()
 
-                    actualForespoersel shouldBe besvartForespoersel
+                    actualForespoersel shouldBe besvartForespoersel.copy(forespoerselId = eksponertId)
                 }
 
                 test("inneholder forkastet, besvart_simba, besvart_spleis, aktiv - ønsker aktiv eller besvart_spleis") {
@@ -266,10 +277,8 @@ class ForespoerselDaoTest :
 
                     // Verifiser status på lagrede forespørsler
                     forespoerselDao
-                        .hentForespoerslerForVedtaksperiodeId(
-                            vedtaksperiodeId = foersteForespoersel.vedtaksperiodeId,
-                            statuser = Status.entries.toSet(),
-                        ).sortedBy { it.opprettet }
+                        .hentForespoerslerForVedtaksperiodeIdListe(setOf(foersteForespoersel.vedtaksperiodeId))
+                        .sortedBy { it.opprettet }
                         .map { it.status }
                         .shouldContainExactly(
                             Status.FORKASTET,
@@ -285,13 +294,19 @@ class ForespoerselDaoTest :
                                 statuser = setOf(Status.AKTIV, Status.BESVART_SPLEIS),
                             ).shouldNotBeNull()
 
+                    // Siden den aktive kommer etter en besvart så er den også den eksponerte forespørselen
                     actualForespoersel shouldBe aktivForespoersel
                 }
 
                 test("inneholder 2 aktive (skal ikke skje) - henter nyeste aktive") {
+                    val eksponertId = UUID.randomUUID()
+
                     val gammelForespoersel =
                         mockForespoerselDto()
-                            .copy(sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)))
+                            .copy(
+                                forespoerselId = eksponertId,
+                                sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)),
+                            )
 
                     val gammelForespoerselId = gammelForespoersel.lagreNotNull()
 
@@ -304,10 +319,8 @@ class ForespoerselDaoTest :
 
                     // Verifiser status på lagrede forespørsler
                     forespoerselDao
-                        .hentForespoerslerForVedtaksperiodeId(
-                            vedtaksperiodeId = gammelForespoersel.vedtaksperiodeId,
-                            statuser = Status.entries.toSet(),
-                        ).sortedBy { it.opprettet }
+                        .hentForespoerslerForVedtaksperiodeIdListe(setOf(gammelForespoersel.vedtaksperiodeId))
+                        .sortedBy { it.opprettet }
                         .map { it.status }
                         .shouldContainExactly(
                             Status.AKTIV,
@@ -321,7 +334,57 @@ class ForespoerselDaoTest :
                                 statuser = setOf(Status.AKTIV),
                             ).shouldNotBeNull()
 
-                    actualForespoersel shouldBe nyForespoersel
+                    actualForespoersel shouldBe nyForespoersel.copy(forespoerselId = eksponertId)
+                }
+            }
+
+            context("Henter nyeste forespørsel med korrekt forespørsel-ID") {
+                withData(
+                    mapOf(
+                        "når tidligere forespørsel er besvart fra Simba" to Status.BESVART_SIMBA,
+                        "når tidligere forespørsel er besvart fra Spleis" to Status.BESVART_SPLEIS,
+                    ),
+                ) { besvartStatus ->
+                    mockForespoerselDto()
+                        .copy(
+                            status = besvartStatus,
+                            sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)),
+                            opprettet = 2.timerSiden(),
+                        ).lagreNotNull()
+
+                    val eksponertForespoersel =
+                        mockForespoerselDto()
+                            .copy(
+                                sykmeldingsperioder = listOf(Periode(2.januar, 30.januar)),
+                                opprettet = 1.timerSiden(),
+                            ).also(ForespoerselDto::lagreNotNull)
+
+                    val aktivForespoersel =
+                        mockForespoerselDto()
+                            .copy(
+                                sykmeldingsperioder = listOf(Periode(3.januar, 29.januar)),
+                                opprettet = now(),
+                            ).also(ForespoerselDto::lagreNotNull)
+
+                    // Verifiser status på lagrede forespørsler
+                    forespoerselDao
+                        .hentForespoerslerForVedtaksperiodeIdListe(setOf(aktivForespoersel.vedtaksperiodeId))
+                        .sortedBy { it.opprettet }
+                        .map { it.status }
+                        .shouldContainExactly(
+                            besvartStatus,
+                            Status.FORKASTET,
+                            Status.AKTIV,
+                        )
+
+                    val actualForespoersel =
+                        forespoerselDao
+                            .hentNyesteForespoerselForForespoerselId(
+                                forespoerselId = aktivForespoersel.forespoerselId,
+                                statuser = setOf(Status.AKTIV),
+                            ).shouldNotBeNull()
+
+                    actualForespoersel shouldBe aktivForespoersel.copy(forespoerselId = eksponertForespoersel.forespoerselId)
                 }
             }
 
@@ -358,10 +421,14 @@ class ForespoerselDaoTest :
 
         context(ForespoerselDao::hentAktivForespoerselForVedtaksperiodeId.name) {
             test("Henter eneste aktive forespørsel i databasen knyttet til en vedtaksperiodeId") {
+                val eksponertId = UUID.randomUUID()
+
                 val forkastetForespoersel =
                     mockForespoerselDto()
-                        .copy(sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)))
-                        .also(ForespoerselDto::lagreNotNull)
+                        .copy(
+                            forespoerselId = eksponertId,
+                            sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)),
+                        ).also(ForespoerselDto::lagreNotNull)
 
                 val aktivForespoersel =
                     mockForespoerselDto()
@@ -378,13 +445,18 @@ class ForespoerselDaoTest :
                         .hentAktivForespoerselForVedtaksperiodeId(forkastetForespoersel.vedtaksperiodeId)
                         .shouldNotBeNull()
 
-                actualForespoersel shouldBe aktivForespoersel
+                actualForespoersel shouldBe aktivForespoersel.copy(forespoerselId = eksponertId)
             }
 
             test("Skal returnere siste aktive forespørsel dersom det er flere (skal ikke skje)") {
+                val eksponertId = UUID.randomUUID()
+
                 val gammelForespoersel =
                     mockForespoerselDto()
-                        .copy(sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)))
+                        .copy(
+                            forespoerselId = eksponertId,
+                            sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)),
+                        )
 
                 val gammelForespoerselId = gammelForespoersel.lagreNotNull()
 
@@ -405,7 +477,39 @@ class ForespoerselDaoTest :
                         .hentAktivForespoerselForVedtaksperiodeId(gammelForespoersel.vedtaksperiodeId)
                         .shouldNotBeNull()
 
-                actualForespoersel shouldBe nyForespoersel
+                actualForespoersel shouldBe nyForespoersel.copy(forespoerselId = eksponertId)
+            }
+
+            context("Henter aktiv forespørsel med korrekt forespørsel-ID") {
+                withData(
+                    mapOf(
+                        "når tidligere forespørsel er besvart fra Simba" to Status.BESVART_SIMBA,
+                        "når tidligere forespørsel er besvart fra Spleis" to Status.BESVART_SPLEIS,
+                    ),
+                ) { besvartStatus ->
+                    mockForespoerselDto()
+                        .copy(
+                            status = besvartStatus,
+                            sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)),
+                        ).lagreNotNull()
+
+                    val eksponertForespoersel =
+                        mockForespoerselDto()
+                            .copy(sykmeldingsperioder = listOf(Periode(2.januar, 30.januar)))
+                            .also(ForespoerselDto::lagreNotNull)
+
+                    val aktivForespoersel =
+                        mockForespoerselDto()
+                            .copy(sykmeldingsperioder = listOf(Periode(3.januar, 29.januar)))
+                            .also(ForespoerselDto::lagreNotNull)
+
+                    val actualForespoersel =
+                        forespoerselDao
+                            .hentAktivForespoerselForVedtaksperiodeId(aktivForespoersel.vedtaksperiodeId)
+                            .shouldNotBeNull()
+
+                    actualForespoersel shouldBe aktivForespoersel.copy(forespoerselId = eksponertForespoersel.forespoerselId)
+                }
             }
 
             test("Skal returnere 'null' dersom ingen matchende forespørsler finnes") {
@@ -950,12 +1054,13 @@ class ForespoerselDaoTest :
             }
         }
 
-        context(ForespoerselDao::hentForespoerslerForVedtaksperiodeId.name) {
+        context(ForespoerselDao::hentForespoerslerForVedtaksperiodeIdListe.name) {
 
-            test("Henter alle forespørsler knyttet til en vedtaksperiodeId") {
+            test("Henter alle forespørsler knyttet til én vedtaksperiodeId") {
                 val a = mockForespoerselDto()
                 val b = mockForespoerselDto().oekOpprettet(1)
                 val c = mockForespoerselDto().oekOpprettet(2)
+                val d = mockForespoerselDto().copy(vedtaksperiodeId = UUID.randomUUID())
 
                 a.lagreNotNull()
                 b.lagreNotNull()
@@ -967,12 +1072,9 @@ class ForespoerselDaoTest :
                 )
 
                 c.lagreNotNull()
+                d.lagreNotNull()
 
-                val actual =
-                    forespoerselDao.hentForespoerslerForVedtaksperiodeId(
-                        vedtaksperiodeId = MockUuid.vedtaksperiodeId,
-                        statuser = Status.entries.toSet(),
-                    )
+                val actual = forespoerselDao.hentForespoerslerForVedtaksperiodeIdListe(setOf(MockUuid.vedtaksperiodeId))
 
                 actual shouldHaveSize 3
 
@@ -998,48 +1100,40 @@ class ForespoerselDaoTest :
                 )
             }
 
-            test("Henter forespørsler med gitt status som er knyttet til en vedtaksperiodeId") {
-                val a = mockForespoerselDto()
-                val b = mockForespoerselDto().oekOpprettet(1)
-                val c = mockForespoerselDto().oekOpprettet(2)
-                val d = mockForespoerselDto().oekOpprettet(3)
+            test("Henter alle forespørsler knyttet til flere vedtaksperiodeId") {
+                val a = mockForespoerselDto().copy(vedtaksperiodeId = UUID.randomUUID())
+                val b = mockForespoerselDto().copy(vedtaksperiodeId = UUID.randomUUID())
+                val c = mockForespoerselDto().copy(vedtaksperiodeId = b.vedtaksperiodeId)
+                val d = mockForespoerselDto().copy(vedtaksperiodeId = UUID.randomUUID())
 
                 a.lagreNotNull()
                 b.lagreNotNull()
-
-                forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
-                    MockUuid.vedtaksperiodeId,
-                    now(),
-                    randomUuid(),
-                )
-
                 c.lagreNotNull()
-
-                forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
-                    MockUuid.vedtaksperiodeId,
-                    now(),
-                    randomUuid(),
-                )
-
                 d.lagreNotNull()
 
                 val actual =
-                    forespoerselDao.hentForespoerslerForVedtaksperiodeId(
-                        vedtaksperiodeId = MockUuid.vedtaksperiodeId,
-                        statuser = setOf(Status.BESVART_SPLEIS),
+                    forespoerselDao.hentForespoerslerForVedtaksperiodeIdListe(
+                        setOf(a.vedtaksperiodeId, b.vedtaksperiodeId),
                     )
 
-                actual shouldHaveSize 2
+                actual shouldHaveSize 3
 
-                actual[0].status shouldBe Status.BESVART_SPLEIS
+                actual[0].status shouldBe Status.AKTIV
                 actual[0].shouldBeEqualToIgnoringFields(
+                    a,
+                    ForespoerselDto::status,
+                    ForespoerselDto::oppdatert,
+                )
+
+                actual[1].status shouldBe Status.FORKASTET
+                actual[1].shouldBeEqualToIgnoringFields(
                     b,
                     ForespoerselDto::status,
                     ForespoerselDto::oppdatert,
                 )
 
-                actual[1].status shouldBe Status.BESVART_SPLEIS
-                actual[1].shouldBeEqualToIgnoringFields(
+                actual[2].status shouldBe Status.AKTIV
+                actual[2].shouldBeEqualToIgnoringFields(
                     c,
                     ForespoerselDto::status,
                     ForespoerselDto::oppdatert,

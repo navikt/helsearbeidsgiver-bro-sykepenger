@@ -89,7 +89,7 @@ class LagreKomplettForespoerselRiverTest :
                     *expectedPublished.toKeyMap().toList().toTypedArray(),
                 )
 
-                mockForespoerselDao.hentForespoerslerForVedtaksperiodeId(forespoersel.vedtaksperiodeId, any())
+                mockForespoerselDao.hentForespoerslerForVedtaksperiodeIdListe(setOf(forespoersel.vedtaksperiodeId))
             }
         }
 
