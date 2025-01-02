@@ -384,7 +384,7 @@ class ForespoerselDaoTest :
                                 statuser = setOf(Status.AKTIV),
                             ).shouldNotBeNull()
 
-                    actualForespoersel shouldBe aktivForespoersel.copy(eksponertForespoersel.forespoerselId)
+                    actualForespoersel shouldBe aktivForespoersel.copy(forespoerselId = eksponertForespoersel.forespoerselId)
                 }
             }
 
