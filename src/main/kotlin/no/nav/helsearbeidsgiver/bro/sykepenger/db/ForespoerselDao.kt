@@ -280,7 +280,7 @@ private fun List<ForespoerselDto>.finnNyesteForespoersel(statuser: Set<Status>):
     val eksponertForespoerselId = finnEksponertForespoersel()?.forespoerselId
 
     return if (nyesteForespoersel != null && eksponertForespoerselId != null) {
-        // Simba kjenner kun til eksponerte forespørsel-ID-er, så vi må bytte for ID-en matcher Simbas systemer
+        // Simba kjenner kun til eksponerte forespørsel-ID-er, så vi må bytte for at ID-en skal matche Simbas systemer.
         nyesteForespoersel.copy(
             forespoerselId = eksponertForespoerselId,
         )
