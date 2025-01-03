@@ -6,6 +6,9 @@ import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.utils.test.date.september
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -32,8 +35,8 @@ class ForespoerselDtoTest :
                 mapOf<String, (ForespoerselDto) -> ForespoerselDto>(
                     "Oppdager ulik 'type'" to { it.copy(type = Type.BEGRENSET) },
                     "Oppdager ulik 'status'" to { it.copy(status = Status.FORKASTET) },
-                    "Oppdager ulik 'orgnr'" to { it.copy(orgnr = "999777555".let(::Orgnr)) },
-                    "Oppdager ulik 'fnr'" to { it.copy(fnr = "22244466688") },
+                    "Oppdager ulik 'orgnr'" to { it.copy(orgnr = Orgnr.genererGyldig()) },
+                    "Oppdager ulik 'fnr'" to { it.copy(fnr = Fnr.genererGyldig()) },
                     "Oppdager ulik 'vedtaksperiodeId'" to { it.copy(vedtaksperiodeId = UUID.randomUUID()) },
                     "Oppdager ulik 'egenmeldingsperioder'" to {
                         it.copy(egenmeldingsperioder = listOf(Periode(2.september(1774), 4.september(1774))))

@@ -10,7 +10,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.HentForespoerslerForFnrOgOrgnrSvar
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
@@ -22,6 +21,8 @@ import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 
 // Tilgjengeliggjør aktive forespørsler på fnr og orgnr
 class TilgjengeliggjoerForespoerslerForFnrOgOrgnrRiver(
@@ -57,7 +58,7 @@ class TilgjengeliggjoerForespoerslerForFnrOgOrgnrRiver(
             )
         val fnr =
             Pri.Key.FNR.les(
-                String.serializer(),
+                Fnr.serializer(),
                 json.fromJsonMapFiltered(Pri.Key.serializer()),
             )
 
@@ -68,7 +69,7 @@ class TilgjengeliggjoerForespoerslerForFnrOgOrgnrRiver(
 
     private fun JsonElement.sendSvar(
         orgnr: Orgnr,
-        fnr: String,
+        fnr: Fnr,
     ) {
         val melding = fromJsonMapFiltered(Pri.Key.serializer())
 

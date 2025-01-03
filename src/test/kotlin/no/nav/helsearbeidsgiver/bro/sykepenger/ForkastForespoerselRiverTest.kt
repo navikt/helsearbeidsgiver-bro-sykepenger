@@ -8,7 +8,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
@@ -16,6 +15,8 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid.vedtaksperiode
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 class ForkastForespoerselRiverTest :
@@ -23,7 +24,7 @@ class ForkastForespoerselRiverTest :
         val testRapid = TestRapid()
         val mockForespoerselDao = mockk<ForespoerselDao>(relaxed = true)
         val mockPriProducer = mockk<PriProducer>(relaxed = true)
-        val orgnummer = Orgnr("123456789")
+        val orgnummer = Orgnr.genererGyldig()
 
         ForkastForespoerselRiver(
             rapid = testRapid,

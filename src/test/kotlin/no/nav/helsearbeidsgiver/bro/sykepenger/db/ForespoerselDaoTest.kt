@@ -12,7 +12,6 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type.BEGRENSET
@@ -31,6 +30,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.november
 import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.selectAll
@@ -1213,8 +1213,8 @@ class ForespoerselDaoTest :
 
         context(ForespoerselDao::hentAktiveForespoerslerForOrgnrOgFnr.name) {
             test("Henter kun aktive forespørsler for korrekt orgnr og fnr") {
-                val orgnr = "517780391".let(::Orgnr)
-                val fnr = Fnr.genererGyldig().verdi
+                val orgnr = Orgnr.genererGyldig()
+                val fnr = Fnr.genererGyldig()
                 val vedtaksperiodeId1 = UUID.randomUUID()
                 val vedtaksperiodeId2 = UUID.randomUUID()
 
@@ -1255,14 +1255,14 @@ class ForespoerselDaoTest :
 
                 val forespoerselAnnetOrgnr =
                     mockForespoerselDto().copy(
-                        orgnr = "999303111".let(::Orgnr),
+                        orgnr = Orgnr.genererGyldig(),
                         vedtaksperiodeId = UUID.randomUUID(),
                         sykmeldingsperioder = listOf(5.august til 5.august),
                     )
 
                 val forespoerselAnnetFnr =
                     mockForespoerselDto().copy(
-                        fnr = Fnr.genererGyldig().verdi,
+                        fnr = Fnr.genererGyldig(),
                         vedtaksperiodeId = UUID.randomUUID(),
                         sykmeldingsperioder = listOf(5.august til 5.august),
                     )
