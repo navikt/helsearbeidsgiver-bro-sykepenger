@@ -2,6 +2,7 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
 import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.datatest.withData
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
@@ -855,19 +856,21 @@ class ForespoerselDaoTest :
                     randomUuid(),
                 )
 
+                val c = db.hentForespoersel(idC).shouldNotBeNull()
+                val e = db.hentForespoersel(idE).shouldNotBeNull()
+
                 db.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
                 db.hentForespoersel(idB)?.status shouldBe Status.BESVART_SPLEIS
-                db.hentForespoersel(idC)?.status shouldBe Status.FORKASTET
+                c.status shouldBe Status.FORKASTET
                 db.hentForespoersel(idD)?.status shouldBe Status.FORKASTET
-                db.hentForespoersel(idE)?.status shouldBe Status.BESVART_SPLEIS
+                e.status shouldBe Status.BESVART_SPLEIS
 
                 val forespoerselIdEksponertTilSimba =
-                    forespoerselDao
-                        .hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
-                        .firstOrNull()
-                        ?.forespoerselId
+                    forespoerselDao.hentForespoerslerEksponertTilSimba(setOf(MockUuid.vedtaksperiodeId))
 
-                forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idC)?.forespoerselId
+                forespoerselIdEksponertTilSimba.shouldContainExactly(
+                    e.copy(forespoerselId = c.forespoerselId),
+                )
             }
 
             test("én besvart fra Spleis og én besvart fra Simba") {
@@ -881,18 +884,20 @@ class ForespoerselDaoTest :
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(MockUuid.vedtaksperiodeId, now())
 
+                val c = db.hentForespoersel(idC).shouldNotBeNull()
+                val d = db.hentForespoersel(idD).shouldNotBeNull()
+
                 db.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
                 db.hentForespoersel(idB)?.status shouldBe Status.BESVART_SPLEIS
-                db.hentForespoersel(idC)?.status shouldBe Status.FORKASTET
-                db.hentForespoersel(idD)?.status shouldBe Status.BESVART_SIMBA
+                c.status shouldBe Status.FORKASTET
+                d.status shouldBe Status.BESVART_SIMBA
 
                 val forespoerselIdEksponertTilSimba =
-                    forespoerselDao
-                        .hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
-                        .firstOrNull()
-                        ?.forespoerselId
+                    forespoerselDao.hentForespoerslerEksponertTilSimba(setOf(MockUuid.vedtaksperiodeId))
 
-                forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idC)?.forespoerselId
+                forespoerselIdEksponertTilSimba.shouldContainExactly(
+                    d.copy(forespoerselId = c.forespoerselId),
+                )
             }
 
             test("én besvart forespørsel og flere forkastede") {
@@ -906,16 +911,19 @@ class ForespoerselDaoTest :
                     randomUuid(),
                 )
 
-                db.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
+                val a = db.hentForespoersel(idA).shouldNotBeNull()
+                val c = db.hentForespoersel(idC).shouldNotBeNull()
+
+                a.status shouldBe Status.FORKASTET
                 db.hentForespoersel(idB)?.status shouldBe Status.FORKASTET
-                db.hentForespoersel(idC)?.status shouldBe Status.BESVART_SPLEIS
+                c.status shouldBe Status.BESVART_SPLEIS
 
                 val forespoerselIdEksponertTilSimba =
-                    forespoerselDao
-                        .hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
-                        .firstOrNull()
-                        ?.forespoerselId
-                forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
+                    forespoerselDao.hentForespoerslerEksponertTilSimba(setOf(MockUuid.vedtaksperiodeId))
+
+                forespoerselIdEksponertTilSimba.shouldContainExactly(
+                    c.copy(forespoerselId = a.forespoerselId),
+                )
             }
 
             test("én besvart fra Simba og én aktiv") {
@@ -925,16 +933,15 @@ class ForespoerselDaoTest :
 
                 val idB = mockForespoerselDto().lagreNotNull()
 
+                val b = db.hentForespoersel(idB).shouldNotBeNull()
+
                 db.hentForespoersel(idA)?.status shouldBe Status.BESVART_SIMBA
-                db.hentForespoersel(idB)?.status shouldBe Status.AKTIV
+                b.status shouldBe Status.AKTIV
 
                 val forespoerselIdEksponertTilSimba =
-                    forespoerselDao
-                        .hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
-                        .firstOrNull()
-                        ?.forespoerselId
+                    forespoerselDao.hentForespoerslerEksponertTilSimba(setOf(MockUuid.vedtaksperiodeId))
 
-                forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idB)?.forespoerselId
+                forespoerselIdEksponertTilSimba.shouldContainExactly(b)
             }
 
             test("én besvart fra Spleis og én aktiv") {
@@ -944,44 +951,46 @@ class ForespoerselDaoTest :
 
                 val idB = mockForespoerselDto().lagreNotNull()
 
+                val b = db.hentForespoersel(idB).shouldNotBeNull()
+
                 db.hentForespoersel(idA)?.status shouldBe Status.BESVART_SPLEIS
-                db.hentForespoersel(idB)?.status shouldBe Status.AKTIV
+                b.status shouldBe Status.AKTIV
 
                 val forespoerselIdEksponertTilSimba =
-                    forespoerselDao
-                        .hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
-                        .firstOrNull()
-                        ?.forespoerselId
+                    forespoerselDao.hentForespoerslerEksponertTilSimba(setOf(MockUuid.vedtaksperiodeId))
 
-                forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idB)?.forespoerselId
+                forespoerselIdEksponertTilSimba.shouldContainExactly(b)
             }
 
             test("ingen besvarte forespørsler") {
                 val idA = mockForespoerselDto().lagreNotNull()
                 val idB = mockForespoerselDto().lagreNotNull()
 
-                db.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
-                db.hentForespoersel(idB)?.status shouldBe Status.AKTIV
+                val a = db.hentForespoersel(idA).shouldNotBeNull()
+                val b = db.hentForespoersel(idB).shouldNotBeNull()
+
+                a.status shouldBe Status.FORKASTET
+                b.status shouldBe Status.AKTIV
 
                 val forespoerselIdEksponertTilSimba =
-                    forespoerselDao
-                        .hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
-                        .firstOrNull()
-                        ?.forespoerselId
-                forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
+                    forespoerselDao.hentForespoerslerEksponertTilSimba(setOf(MockUuid.vedtaksperiodeId))
+
+                forespoerselIdEksponertTilSimba.shouldContainExactly(
+                    b.copy(forespoerselId = a.forespoerselId),
+                )
             }
 
             test("én aktiv forespoersel") {
                 val idA = mockForespoerselDto().lagreNotNull()
 
-                db.hentForespoersel(idA)?.status shouldBe Status.AKTIV
+                val a = db.hentForespoersel(idA).shouldNotBeNull()
+
+                a.status shouldBe Status.AKTIV
 
                 val forespoerselIdEksponertTilSimba =
-                    forespoerselDao
-                        .hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
-                        .firstOrNull()
-                        ?.forespoerselId
-                forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
+                    forespoerselDao.hentForespoerslerEksponertTilSimba(setOf(MockUuid.vedtaksperiodeId))
+
+                forespoerselIdEksponertTilSimba.shouldContainExactly(a)
             }
 
             test("kun én besvart (fra Simba) forespoersel") {
@@ -989,42 +998,40 @@ class ForespoerselDaoTest :
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(MockUuid.vedtaksperiodeId, now())
 
-                db.hentForespoersel(idA)?.status shouldBe Status.BESVART_SIMBA
+                val a = db.hentForespoersel(idA).shouldNotBeNull()
+
+                a.status shouldBe Status.BESVART_SIMBA
 
                 val forespoerselIdEksponertTilSimba =
-                    forespoerselDao
-                        .hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
-                        .firstOrNull()
-                        ?.forespoerselId
+                    forespoerselDao.hentForespoerslerEksponertTilSimba(setOf(MockUuid.vedtaksperiodeId))
 
-                forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
+                forespoerselIdEksponertTilSimba.shouldContainExactly(a)
             }
 
             test("kun én besvart (fra Spleis) forespoersel") {
                 val idA = mockForespoerselDto().lagreNotNull()
+
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
                     MockUuid.vedtaksperiodeId,
                     now(),
                     randomUuid(),
                 )
 
-                db.hentForespoersel(idA)?.status shouldBe Status.BESVART_SPLEIS
+                val a = db.hentForespoersel(idA).shouldNotBeNull()
+
+                a.status shouldBe Status.BESVART_SPLEIS
 
                 val forespoerselIdEksponertTilSimba =
-                    forespoerselDao
-                        .hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
-                        .firstOrNull()
-                        ?.forespoerselId
-                forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idA)?.forespoerselId
+                    forespoerselDao.hentForespoerslerEksponertTilSimba(setOf(MockUuid.vedtaksperiodeId))
+
+                forespoerselIdEksponertTilSimba.shouldContainExactly(a)
             }
 
-            test("Finner ingen forespørselId som vi har sendt portalen") {
+            test("tåler ingen forespørsler") {
                 val forespoerselIdEksponertTilSimba =
-                    forespoerselDao
-                        .hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
-                        .firstOrNull()
-                        ?.forespoerselId
-                forespoerselIdEksponertTilSimba shouldBe null
+                    forespoerselDao.hentForespoerslerEksponertTilSimba(setOf(MockUuid.vedtaksperiodeId))
+
+                forespoerselIdEksponertTilSimba.shouldBeEmpty()
             }
 
             test("tåler mer enn to eksponerte forespørsler (med ujevnt antall forespørsler mellom)") {
@@ -1039,18 +1046,81 @@ class ForespoerselDaoTest :
 
                 val idD = mockForespoerselDto().lagreNotNull()
 
+                val d = db.hentForespoersel(idD).shouldNotBeNull()
+
                 db.hentForespoersel(idA)?.status shouldBe Status.BESVART_SPLEIS
                 db.hentForespoersel(idB)?.status shouldBe Status.FORKASTET
                 db.hentForespoersel(idC)?.status shouldBe Status.BESVART_SPLEIS
+                d.status shouldBe Status.AKTIV
+
+                val forespoerselIdEksponertTilSimba =
+                    forespoerselDao.hentForespoerslerEksponertTilSimba(setOf(MockUuid.vedtaksperiodeId))
+
+                forespoerselIdEksponertTilSimba.shouldContainExactly(d)
+            }
+
+            test("henter ikke forespørsler som kun er forkastede") {
+                val vid1 = UUID.randomUUID()
+                val vid2 = UUID.randomUUID()
+                val vid3 = UUID.randomUUID()
+
+                val idA = mockForespoerselDto().copy(vedtaksperiodeId = vid1).lagreNotNull()
+                db.oppdaterStatus(idA, Status.FORKASTET)
+
+                val idB = mockForespoerselDto().copy(vedtaksperiodeId = vid2).lagreNotNull()
+                val idC = mockForespoerselDto().copy(vedtaksperiodeId = vid2).lagreNotNull()
+                db.oppdaterStatus(idC, Status.FORKASTET)
+
+                val idD = mockForespoerselDto().copy(vedtaksperiodeId = vid3).lagreNotNull()
+                val idE = mockForespoerselDto().copy(vedtaksperiodeId = vid3).lagreNotNull()
+
+                val d = db.hentForespoersel(idD).shouldNotBeNull()
+                val e = db.hentForespoersel(idE).shouldNotBeNull()
+
+                db.hentForespoersel(idA)?.status shouldBe Status.FORKASTET
+                db.hentForespoersel(idB)?.status shouldBe Status.FORKASTET
+                db.hentForespoersel(idC)?.status shouldBe Status.FORKASTET
+                d.status shouldBe Status.FORKASTET
+                e.status shouldBe Status.AKTIV
+
+                val forespoerselIdEksponertTilSimba =
+                    forespoerselDao.hentForespoerslerEksponertTilSimba(setOf(vid1, vid2, vid3))
+
+                forespoerselIdEksponertTilSimba.shouldContainExactly(
+                    e.copy(forespoerselId = d.forespoerselId),
+                )
+            }
+
+            test("henter forespørsler for flere vedtaksperioder") {
+                val vid1 = UUID.randomUUID()
+                val vid2 = UUID.randomUUID()
+                val vid3 = UUID.randomUUID()
+
+                val idA = mockForespoerselDto().copy(vedtaksperiodeId = vid1).lagreNotNull()
+
+                val idB = mockForespoerselDto().copy(vedtaksperiodeId = vid2).lagreNotNull()
+                val idC = mockForespoerselDto().copy(vedtaksperiodeId = vid2).lagreNotNull()
+
+                val idD = mockForespoerselDto().copy(vedtaksperiodeId = vid3).lagreNotNull()
+
+                forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(vid1, now())
+
+                val a = db.hentForespoersel(idA).shouldNotBeNull()
+                val b = db.hentForespoersel(idB).shouldNotBeNull()
+                val c = db.hentForespoersel(idC).shouldNotBeNull()
+
+                a.status shouldBe Status.BESVART_SIMBA
+                b.status shouldBe Status.FORKASTET
+                c.status shouldBe Status.AKTIV
                 db.hentForespoersel(idD)?.status shouldBe Status.AKTIV
 
                 val forespoerselIdEksponertTilSimba =
-                    forespoerselDao
-                        .hentForespoerslerEksponertTilSimba(listOf(MockUuid.vedtaksperiodeId))
-                        .firstOrNull()
-                        ?.forespoerselId
+                    forespoerselDao.hentForespoerslerEksponertTilSimba(setOf(vid1, vid2))
 
-                forespoerselIdEksponertTilSimba shouldBe db.hentForespoersel(idD)?.forespoerselId
+                forespoerselIdEksponertTilSimba.shouldContainExactly(
+                    a,
+                    c.copy(forespoerselId = b.forespoerselId),
+                )
             }
         }
 

@@ -141,13 +141,11 @@ class ForespoerselDao(
         return forespoersler.finnNyesteForespoersel(setOf(Status.AKTIV))
     }
 
-    // TODO liste -> set
-    fun hentForespoerslerEksponertTilSimba(vedtaksperiodeIdListe: List<UUID>): List<ForespoerselDto> =
-        hentForespoerslerForVedtaksperiodeIdListe(vedtaksperiodeIdListe.toSet())
+    fun hentForespoerslerEksponertTilSimba(vedtaksperiodeIdListe: Set<UUID>): List<ForespoerselDto> =
+        hentForespoerslerForVedtaksperiodeIdListe(vedtaksperiodeIdListe)
             .groupBy { it.vedtaksperiodeId }
             .mapNotNull { (_, forespoersler) ->
-                // TODO bytt til 'finnNyesteForespoersel'
-                forespoersler.finnEksponertForespoersel()
+                forespoersler.finnNyesteForespoersel(setOf(Status.AKTIV, Status.BESVART_SIMBA, Status.BESVART_SPLEIS))
             }
 
     fun hentAktiveForespoerslerForOrgnrOgFnr(

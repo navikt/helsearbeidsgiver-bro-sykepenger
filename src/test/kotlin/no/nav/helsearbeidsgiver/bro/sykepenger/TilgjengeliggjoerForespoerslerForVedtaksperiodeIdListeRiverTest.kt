@@ -32,7 +32,7 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiverTest :
         }
 
         test("Ved innkommende event, svar ut korrekt HentForespoerslerForVedtaksperiodeIdListeSvar") {
-            val vedtaksperiodeIdListe = listOf(Mock.vedtaksperiodeId1, Mock.vedtaksperiodeId2)
+            val vedtaksperiodeIdListe = setOf(Mock.vedtaksperiodeId1, Mock.vedtaksperiodeId2)
 
             every {
                 mockForespoerselDao.hentForespoerslerEksponertTilSimba(vedtaksperiodeIdListe)
@@ -47,7 +47,7 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiverTest :
 
             testRapid.sendJson(
                 Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
-                Pri.Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIdListe.toJson(UuidSerializer),
+                Pri.Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIdListe.toList().toJson(UuidSerializer),
                 Pri.Key.BOOMERANG to expectedPublished.boomerang,
             )
 
@@ -60,7 +60,7 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiverTest :
             }
         }
         test("Hvis ingen forespørsler finnes, svar med tom liste") {
-            val vedtaksperiodeIdListe = listOf(Mock.vedtaksperiodeId1, Mock.vedtaksperiodeId2)
+            val vedtaksperiodeIdListe = setOf(Mock.vedtaksperiodeId1, Mock.vedtaksperiodeId2)
 
             every {
                 mockForespoerselDao.hentForespoerslerEksponertTilSimba(vedtaksperiodeIdListe)
@@ -74,7 +74,7 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiverTest :
 
             testRapid.sendJson(
                 Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
-                Pri.Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIdListe.toJson(UuidSerializer),
+                Pri.Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIdListe.toList().toJson(UuidSerializer),
                 Pri.Key.BOOMERANG to expectedPublished.boomerang,
             )
 

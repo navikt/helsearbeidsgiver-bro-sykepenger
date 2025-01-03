@@ -15,8 +15,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid.vedtaksperiode
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 class ForkastForespoerselRiverTest :
@@ -24,7 +22,6 @@ class ForkastForespoerselRiverTest :
         val testRapid = TestRapid()
         val mockForespoerselDao = mockk<ForespoerselDao>(relaxed = true)
         val mockPriProducer = mockk<PriProducer>(relaxed = true)
-        val orgnummer = Orgnr.genererGyldig()
 
         ForkastForespoerselRiver(
             rapid = testRapid,
@@ -32,13 +29,9 @@ class ForkastForespoerselRiverTest :
             priProducer = mockPriProducer,
         )
 
-        fun mockForkastForespoerselMelding(
-            orgnummer: Orgnr,
-            vedtaksperiodeId: UUID,
-        ) {
+        fun mockForkastForespoerselMelding(vedtaksperiodeId: UUID) {
             testRapid.sendJson(
                 Spleis.Key.TYPE to Spleis.Event.TRENGER_IKKE_OPPLYSNINGER_FRA_ARBEIDSGIVER.toJson(Spleis.Event.serializer()),
-                Spleis.Key.ORGANISASJONSNUMMER to orgnummer.toJson(Orgnr.serializer()),
                 Spleis.Key.VEDTAKSPERIODE_ID to vedtaksperiodeId.toJson(),
             )
         }
@@ -49,7 +42,7 @@ class ForkastForespoerselRiverTest :
         }
 
         test("Innkommende event oppdaterer aktive forespørsler som forkastet") {
-            mockForkastForespoerselMelding(orgnummer, vedtaksperiodeId)
+            mockForkastForespoerselMelding(vedtaksperiodeId)
 
             verifySequence {
                 mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
@@ -64,7 +57,7 @@ class ForkastForespoerselRiverTest :
                 mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
             } returns forespoersel
 
-            mockForkastForespoerselMelding(orgnummer, vedtaksperiodeId)
+            mockForkastForespoerselMelding(vedtaksperiodeId)
 
             verifySequence {
                 mockPriProducer.send(
@@ -80,7 +73,7 @@ class ForkastForespoerselRiverTest :
                 mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
             } returns null
 
-            mockForkastForespoerselMelding(orgnummer, vedtaksperiodeId)
+            mockForkastForespoerselMelding(vedtaksperiodeId)
 
             verify(exactly = 0) {
                 mockPriProducer.send(*anyVararg())

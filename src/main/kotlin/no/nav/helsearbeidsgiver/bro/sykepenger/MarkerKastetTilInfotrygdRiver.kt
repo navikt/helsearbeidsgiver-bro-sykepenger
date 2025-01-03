@@ -64,15 +64,19 @@ class MarkerKastetTilInfotrygdRiver(
 
         val vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding)
 
-        val forespoersel = forespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId)).firstOrNull()
+        val forespoerselIdEksponertTilSimba =
+            forespoerselDao
+                .hentForespoerslerEksponertTilSimba(setOf(vedtaksperiodeId))
+                .firstOrNull()
+                ?.forespoerselId
 
-        if (forespoersel != null) {
+        if (forespoerselIdEksponertTilSimba != null) {
             forespoerselDao.markerKastetTilInfotrygd(vedtaksperiodeId)
 
             priProducer
                 .send(
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(Pri.NotisType.serializer()),
-                    Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
+                    Pri.Key.FORESPOERSEL_ID to forespoerselIdEksponertTilSimba.toJson(),
                 ).ifTrue { loggernaut.info("Sa ifra til Simba om forespørsel kastet til Infotrygd.") }
                 .ifFalse { loggernaut.error("Klarte ikke si ifra til Simba om forespørsel kastet til Infotrygd.") }
         }

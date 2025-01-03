@@ -35,7 +35,6 @@ internal class ForkastForespoerselRiver(
                 validate { msg ->
                     msg.demandValues(Spleis.Key.TYPE to Spleis.Event.TRENGER_IKKE_OPPLYSNINGER_FRA_ARBEIDSGIVER.name)
                     msg.requireKeys(
-                        Spleis.Key.ORGANISASJONSNUMMER,
                         Spleis.Key.VEDTAKSPERIODE_ID,
                     )
                 }
