@@ -20,17 +20,12 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-java@v4
         with:
           java-version: 21
           distribution: temurin
-          cache: gradle
 
-      - name: Run snapshot action
-        uses: mikepenz/gradle-dependency-submission@v1
-        with:
-          gradle-build-configuration: |-
-            compileClasspath
+      - name: Generate and submit dependency graph
+        uses: gradle/actions/dependency-submission@v4
         env:
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
