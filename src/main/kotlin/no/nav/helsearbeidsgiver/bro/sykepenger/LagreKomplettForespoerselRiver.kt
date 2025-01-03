@@ -7,7 +7,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.bestemmendeFravaersdagerSerializer
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
@@ -25,6 +24,8 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 import no.nav.helsearbeidsgiver.domene.inntektsmelding.v1.Periode as PeriodeV1
 
@@ -77,7 +78,7 @@ class LagreKomplettForespoerselRiver(
                 type = Type.KOMPLETT,
                 status = Status.AKTIV,
                 orgnr = orgnr,
-                fnr = Spleis.Key.FØDSELSNUMMER.les(String.serializer(), melding),
+                fnr = Spleis.Key.FØDSELSNUMMER.les(Fnr.serializer(), melding),
                 vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
                 egenmeldingsperioder = Spleis.Key.EGENMELDINGSPERIODER.les(Periode.serializer().list(), melding),
                 sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),

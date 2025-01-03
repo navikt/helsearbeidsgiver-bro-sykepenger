@@ -8,11 +8,13 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 
 @Serializable
 data class HentForespoerslerForFnrOgOrgnrSvar(
     val orgnr: Orgnr,
-    val fnr: String,
+    val fnr: Fnr,
     val resultat: List<ForespoerselSimba>,
     val boomerang: JsonElement,
 ) {

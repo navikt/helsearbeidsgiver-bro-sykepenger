@@ -8,7 +8,6 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.InntektsmeldingHaandtertDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Orgnr
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
@@ -26,6 +25,8 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 
 class MarkerBesvartFraSpleisRiver(
     rapid: RapidsConnection,
@@ -74,7 +75,7 @@ class MarkerBesvartFraSpleisRiver(
         val inntektsmeldingHaandtert =
             InntektsmeldingHaandtertDto(
                 orgnr = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding),
-                fnr = Spleis.Key.FØDSELSNUMMER.les(String.serializer(), melding),
+                fnr = Spleis.Key.FØDSELSNUMMER.les(Fnr.serializer(), melding),
                 vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
                 inntektsmeldingId = inntektsmeldingId,
                 haandtert = Spleis.Key.OPPRETTET.les(LocalDateTimeSerializer, melding),

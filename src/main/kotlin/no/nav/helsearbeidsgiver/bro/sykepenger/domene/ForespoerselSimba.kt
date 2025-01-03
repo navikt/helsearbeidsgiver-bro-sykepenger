@@ -7,6 +7,8 @@ import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.bro.sykepenger.tilForespurtData
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
 import java.util.UUID
 
@@ -14,7 +16,7 @@ import java.util.UUID
 data class ForespoerselSimba(
     val type: Type,
     val orgnr: Orgnr,
-    val fnr: String,
+    val fnr: Fnr,
     val forespoerselId: UUID,
     val vedtaksperiodeId: UUID,
     val egenmeldingsperioder: List<Periode>,
