@@ -44,20 +44,20 @@ class MarkerKastetTilInfotrygdRiverTest :
 
         test("Innkommende event markerer vedtaksperiode kastet til infotrygd") {
             every {
-                mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId))
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(vedtaksperiodeId))
             } returns listOf(mockForespoersel)
 
             mockMarkerKastetTilInfotrygdMelding(vedtaksperiodeId)
 
             verifySequence {
-                mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId))
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(vedtaksperiodeId))
                 mockForespoerselDao.markerKastetTilInfotrygd(vedtaksperiodeId)
             }
         }
 
         test("Sier ifra til Simba om at påminnelse for forespørsel skal avbestilles") {
             every {
-                mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId))
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(vedtaksperiodeId))
             } returns listOf(mockForespoersel)
 
             mockMarkerKastetTilInfotrygdMelding(vedtaksperiodeId)
@@ -76,7 +76,7 @@ class MarkerKastetTilInfotrygdRiverTest :
             mockMarkerKastetTilInfotrygdMelding(vedtaksperiodeId)
 
             every {
-                mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId))
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(vedtaksperiodeId))
             } returns emptyList()
 
             verify(exactly = 0) {
@@ -90,7 +90,7 @@ class MarkerKastetTilInfotrygdRiverTest :
             mockMarkerKastetTilInfotrygdMelding(vedtaksperiodeId)
 
             every {
-                mockForespoerselDao.hentForespoerslerEksponertTilSimba(listOf(vedtaksperiodeId))
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(vedtaksperiodeId))
             } returns emptyList()
 
             verify(exactly = 0) {
