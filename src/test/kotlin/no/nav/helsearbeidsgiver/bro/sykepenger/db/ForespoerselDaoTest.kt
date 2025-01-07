@@ -525,14 +525,11 @@ class ForespoerselDaoTest :
         context(ForespoerselDao::hentVedtaksperiodeId.name) {
             test("henter korrekt vedtaksperiode-ID") {
                 val expectedVedtaksperiodeId = UUID.randomUUID()
+                val forespoersel = mockForespoerselDto().copy(vedtaksperiodeId = expectedVedtaksperiodeId)
 
-                mockForespoerselDto().copy(vedtaksperiodeId = UUID.randomUUID()).also(ForespoerselDto::lagreNotNull)
-                val forespoersel =
-                    mockForespoerselDto()
-                        .copy(
-                            vedtaksperiodeId = expectedVedtaksperiodeId,
-                        ).also(ForespoerselDto::lagreNotNull)
-                mockForespoerselDto().copy(vedtaksperiodeId = UUID.randomUUID()).also(ForespoerselDto::lagreNotNull)
+                mockForespoerselDto().copy(vedtaksperiodeId = UUID.randomUUID()).lagreNotNull()
+                forespoersel.lagreNotNull()
+                mockForespoerselDto().copy(vedtaksperiodeId = UUID.randomUUID()).lagreNotNull()
 
                 val vedtaksperiodeId = forespoerselDao.hentVedtaksperiodeId(forespoersel.forespoerselId)
 
