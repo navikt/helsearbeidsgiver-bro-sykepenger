@@ -46,5 +46,6 @@ jobs:
       - uses: nais/deploy/actions/deploy@v2
         env:
           CLUSTER: prod-gcp
-          IMAGE: ${{ needs.build.outputs.docker_image }}
-          RESOURCE: deploy/prod.yml
+          RESOURCE: deploy/nais.yml
+          VAR: image=${{ needs.build.outputs.docker_image }}
+          VARS: deploy/prod.yml
