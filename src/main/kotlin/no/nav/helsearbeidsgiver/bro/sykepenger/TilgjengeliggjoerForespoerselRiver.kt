@@ -10,7 +10,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
@@ -85,10 +84,11 @@ class TilgjengeliggjoerForespoerselRiver(
                 boomerang = Pri.Key.BOOMERANG.les(JsonElement.serializer(), melding),
             ).let {
                 val forespoersel =
-                    forespoerselDao.hentNyesteForespoerselForForespoerselId(
-                        forespoerselId = it.forespoerselId,
-                        statuser = setOf(Status.AKTIV, Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
-                    )
+                    forespoerselDao
+                        .hentVedtaksperiodeId(forespoerselId)
+                        ?.let { vedtaksperiodeId ->
+                            forespoerselDao.hentForespoerslerEksponertTilSimba(setOf(vedtaksperiodeId))
+                        }?.firstOrNull()
 
                 if (forespoersel != null) {
                     loggernaut.aapen.info("Forespørsel funnet.")

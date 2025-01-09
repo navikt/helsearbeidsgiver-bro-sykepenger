@@ -104,6 +104,36 @@ class ForespoerselDao(
         )
     }
 
+    fun markerKastetTilInfotrygd(vedtaksperiodeId: UUID): List<Long> =
+        transaction(db) {
+            ForespoerselTable
+                .updateReturning(
+                    returning = listOf(ForespoerselTable.id),
+                    where = {
+                        ForespoerselTable.vedtaksperiodeId eq vedtaksperiodeId
+                    },
+                ) {
+                    it[kastetTilInfotrygd] = LocalDateTime.now().truncMillis()
+                }.map {
+                    it[ForespoerselTable.id]
+                }.also {
+                    val msg = "Oppdaterte ${it.size} rader med kastet til Infotrygd tidspunkt. ids=$it"
+                    logger.info(msg)
+                    sikkerLogger.info(msg)
+                }
+        }
+
+    fun hentVedtaksperiodeId(forespoerselId: UUID): UUID? =
+        transaction(db) {
+            ForespoerselTable
+                .selectAll()
+                .where {
+                    ForespoerselTable.forespoerselId eq forespoerselId
+                }.map {
+                    it[ForespoerselTable.vedtaksperiodeId]
+                }.firstOrNull()
+        }
+
     fun hentForespoerselForForespoerselId(forespoerselId: UUID): ForespoerselDto? =
         transaction(db) {
             ForespoerselTable
@@ -114,39 +144,17 @@ class ForespoerselDao(
                 .firstOrNull()
         }
 
-    fun hentNyesteForespoerselForForespoerselId(
-        forespoerselId: UUID,
-        statuser: Set<Status>,
-    ): ForespoerselDto? {
-        val vedtaksperiodeId = hentVedtaksperiodeId(forespoerselId)
+    fun hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId: UUID): ForespoerselDto? =
+        hentForespoerslerEksponertTilSimba(
+            setOf(vedtaksperiodeId),
+            setOf(Status.AKTIV),
+        ).firstOrNull()
 
-        return if (vedtaksperiodeId == null) {
-            null
-        } else {
-            hentForespoerslerForVedtaksperiodeIdListe(setOf(vedtaksperiodeId))
-                .finnNyesteForespoersel(statuser)
-        }
-    }
-
-    fun hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId: UUID): ForespoerselDto? {
-        val forespoersler = hentForespoerslerForVedtaksperiodeIdListe(setOf(vedtaksperiodeId))
-
-        if (forespoersler.filter { it.status == Status.AKTIV }.size > 1) {
-            "Fant flere aktive forespørsler for vedtaksperiode: $vedtaksperiodeId".also {
-                logger.error(it)
-                sikkerLogger.error(it)
-            }
-        }
-
-        return forespoersler.finnNyesteForespoersel(setOf(Status.AKTIV))
-    }
-
-    fun hentForespoerslerEksponertTilSimba(vedtaksperiodeIdListe: Set<UUID>): List<ForespoerselDto> =
-        hentForespoerslerForVedtaksperiodeIdListe(vedtaksperiodeIdListe)
-            .groupBy { it.vedtaksperiodeId }
-            .mapNotNull { (_, forespoersler) ->
-                forespoersler.finnNyesteForespoersel(setOf(Status.AKTIV, Status.BESVART_SIMBA, Status.BESVART_SPLEIS))
-            }
+    fun hentForespoerslerEksponertTilSimba(vedtaksperiodeIder: Set<UUID>): List<ForespoerselDto> =
+        hentForespoerslerEksponertTilSimba(
+            vedtaksperiodeIder,
+            setOf(Status.AKTIV, Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
+        )
 
     fun hentAktiveForespoerslerForOrgnrOgFnr(
         orgnr: Orgnr,
@@ -175,17 +183,6 @@ class ForespoerselDao(
                 .sortedBy { it.opprettet }
         }
 
-    private fun hentVedtaksperiodeId(forespoerselId: UUID): UUID? =
-        transaction(db) {
-            ForespoerselTable
-                .selectAll()
-                .where {
-                    ForespoerselTable.forespoerselId eq forespoerselId
-                }.map {
-                    it[ForespoerselTable.vedtaksperiodeId]
-                }.firstOrNull()
-        }
-
     private fun oppdaterStatuser(
         vedtaksperiodeId: UUID,
         erstattStatuser: Set<Status>,
@@ -212,24 +209,15 @@ class ForespoerselDao(
                 sikkerLogger.info(msg)
             }
 
-    fun markerKastetTilInfotrygd(vedtaksperiodeId: UUID): List<Long> =
-        transaction(db) {
-            ForespoerselTable
-                .updateReturning(
-                    returning = listOf(ForespoerselTable.id),
-                    where = {
-                        ForespoerselTable.vedtaksperiodeId eq vedtaksperiodeId
-                    },
-                ) {
-                    it[kastetTilInfotrygd] = LocalDateTime.now().truncMillis()
-                }.map {
-                    it[ForespoerselTable.id]
-                }.also {
-                    val msg = "Oppdaterte ${it.size} rader med kastet til Infotrygd tidspunkt. ids=$it"
-                    logger.info(msg)
-                    sikkerLogger.info(msg)
-                }
-        }
+    private fun hentForespoerslerEksponertTilSimba(
+        vedtaksperiodeIder: Set<UUID>,
+        statuser: Set<Status>,
+    ): List<ForespoerselDto> =
+        hentForespoerslerForVedtaksperiodeIdListe(vedtaksperiodeIder)
+            .groupBy { it.vedtaksperiodeId }
+            .mapNotNull { (_, forespoersler) ->
+                forespoersler.finnNyesteForespoersel(statuser)
+            }
 
     private fun insertOrUpdateBesvarelse(
         forespoerselId: Long,

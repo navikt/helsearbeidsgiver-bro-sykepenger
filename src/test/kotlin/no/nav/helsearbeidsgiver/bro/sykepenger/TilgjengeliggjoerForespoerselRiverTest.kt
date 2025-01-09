@@ -5,11 +5,11 @@ import io.kotest.core.spec.style.FunSpec
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import io.mockk.verifySequence
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
@@ -34,7 +34,8 @@ class TilgjengeliggjoerForespoerselRiverTest :
         test("Ved innkommende event, svar ut korrekt ForespoerselSvar") {
             val forespoersel = mockForespoerselDto()
 
-            every { mockForespoerselDao.hentNyesteForespoerselForForespoerselId(any(), any()) } returns forespoersel
+            every { mockForespoerselDao.hentVedtaksperiodeId(any()) } returns forespoersel.vedtaksperiodeId
+            every { mockForespoerselDao.hentForespoerslerEksponertTilSimba(any()) } returns listOf(forespoersel)
 
             val expectedPublished =
                 ForespoerselSvar(
@@ -50,10 +51,8 @@ class TilgjengeliggjoerForespoerselRiverTest :
             )
 
             verifySequence {
-                mockForespoerselDao.hentNyesteForespoerselForForespoerselId(
-                    any(),
-                    setOf(Status.AKTIV, Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
-                )
+                mockForespoerselDao.hentVedtaksperiodeId(forespoersel.forespoerselId)
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(forespoersel.vedtaksperiodeId))
                 mockPriProducer.send(
                     Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
                     Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer()),
@@ -69,7 +68,8 @@ class TilgjengeliggjoerForespoerselRiverTest :
                     forespurtData = mockBegrensetForespurtDataListe(),
                 )
 
-            every { mockForespoerselDao.hentNyesteForespoerselForForespoerselId(any(), any()) } returns forespoersel
+            every { mockForespoerselDao.hentVedtaksperiodeId(any()) } returns forespoersel.vedtaksperiodeId
+            every { mockForespoerselDao.hentForespoerslerEksponertTilSimba(any()) } returns listOf(forespoersel)
 
             val expectedPublished =
                 ForespoerselSvar(
@@ -85,10 +85,8 @@ class TilgjengeliggjoerForespoerselRiverTest :
             )
 
             verifySequence {
-                mockForespoerselDao.hentNyesteForespoerselForForespoerselId(
-                    any(),
-                    setOf(Status.AKTIV, Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
-                )
+                mockForespoerselDao.hentVedtaksperiodeId(forespoersel.forespoerselId)
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(forespoersel.vedtaksperiodeId))
                 mockPriProducer.send(
                     Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
                     Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer()),
@@ -96,8 +94,8 @@ class TilgjengeliggjoerForespoerselRiverTest :
             }
         }
 
-        test("Når forespørsel ikke finnes skal det sendes ForespoerselSvar med error") {
-            every { mockForespoerselDao.hentNyesteForespoerselForForespoerselId(any(), any()) } returns null
+        test("Når vedtaksperiode ikke finnes skal det sendes ForespoerselSvar med error") {
+            every { mockForespoerselDao.hentVedtaksperiodeId(any()) } returns null
 
             val forespoersel = mockForespoerselDto()
             val expectedPublished =
@@ -114,10 +112,39 @@ class TilgjengeliggjoerForespoerselRiverTest :
             )
 
             verifySequence {
-                mockForespoerselDao.hentNyesteForespoerselForForespoerselId(
-                    any(),
-                    setOf(Status.AKTIV, Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
+                mockForespoerselDao.hentVedtaksperiodeId(forespoersel.forespoerselId)
+                mockPriProducer.send(
+                    Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
+                    Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer()),
                 )
+            }
+            verify(exactly = 0) {
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(any())
+            }
+        }
+
+        test("Når forespørsel ikke finnes skal det sendes ForespoerselSvar med error") {
+            val forespoersel = mockForespoerselDto()
+
+            every { mockForespoerselDao.hentVedtaksperiodeId(any()) } returns forespoersel.vedtaksperiodeId
+            every { mockForespoerselDao.hentForespoerslerEksponertTilSimba(any()) } returns emptyList()
+
+            val expectedPublished =
+                ForespoerselSvar(
+                    forespoerselId = forespoersel.forespoerselId,
+                    feil = ForespoerselSvar.Feil.FORESPOERSEL_IKKE_FUNNET,
+                    boomerang = mockJsonElement(),
+                )
+
+            testRapid.sendJson(
+                Pri.Key.BEHOV to Pri.BehovType.TRENGER_FORESPØRSEL.toJson(Pri.BehovType.serializer()),
+                Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
+                Pri.Key.BOOMERANG to expectedPublished.boomerang,
+            )
+
+            verifySequence {
+                mockForespoerselDao.hentVedtaksperiodeId(forespoersel.forespoerselId)
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(forespoersel.vedtaksperiodeId))
                 mockPriProducer.send(
                     Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
                     Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer()),
