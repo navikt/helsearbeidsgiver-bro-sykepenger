@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Inntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisArbeidsgiverperiode
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisFastsattInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForslagRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisInntekt
@@ -32,44 +31,26 @@ private fun List<SpleisForespurtDataDto>.lesArbeidsgiverperiode(): Arbeidsgiverp
         paakrevd = contains(SpleisArbeidsgiverperiode),
     )
 
-private fun List<SpleisForespurtDataDto>.lesInntekt(): Inntekt {
-    val inntekt =
-        filterIsInstance<SpleisInntekt>()
-            .firstOrNull()
-            ?.let { spleisInntekt ->
-                Inntekt(
-                    paakrevd = true,
-                    forslag =
-                        ForslagInntekt.Grunnlag(
+private fun List<SpleisForespurtDataDto>.lesInntekt(): Inntekt =
+    filterIsInstance<SpleisInntekt>()
+        .firstOrNull()
+        ?.let { spleisInntekt ->
+            Inntekt(
+                paakrevd = true,
+                forslag =
+                    spleisInntekt.forslag?.forrigeInntekt?.let {
+                        ForslagInntekt(
                             forrigeInntekt =
-                                spleisInntekt.forslag.forrigeInntekt?.let {
-                                    ForrigeInntekt(
-                                        skjæringstidspunkt = it.skjæringstidspunkt,
-                                        kilde = it.kilde,
-                                        beløp = it.beløp,
-                                    )
-                                },
-                        ),
-                )
-            }
-
-    val fastsattInntekt =
-        filterIsInstance<SpleisFastsattInntekt>()
-            .firstOrNull()
-            ?.let {
-                Inntekt(
-                    paakrevd = false,
-                    forslag =
-                        ForslagInntekt.Fastsatt(
-                            fastsattInntekt = it.fastsattInntekt,
-                        ),
-                )
-            }
-
-    return inntekt
-        ?: fastsattInntekt
-        ?: throw IllegalArgumentException("Liste med forespurt data fra Spleis må innholde minst én form for inntekt.")
-}
+                                ForrigeInntekt(
+                                    skjæringstidspunkt = it.skjæringstidspunkt,
+                                    kilde = it.kilde,
+                                    beløp = it.beløp,
+                                ),
+                        )
+                    },
+            )
+        }
+        ?: Inntekt.ikkePaakrevd()
 
 private fun List<SpleisForespurtDataDto>.lesRefusjon(): Refusjon =
     filterIsInstance<SpleisRefusjon>()

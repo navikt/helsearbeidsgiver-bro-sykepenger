@@ -1,13 +1,10 @@
-@file:UseSerializers(LocalDateSerializer::class, UuidSerializer::class, YearMonthSerializer::class)
+@file:UseSerializers(LocalDateSerializer::class)
 
 package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
-import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
-import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer
 import java.time.LocalDate
 
 @Serializable
@@ -25,8 +22,16 @@ data class Arbeidsgiverperiode(
 @Serializable
 data class Inntekt(
     val paakrevd: Boolean,
-    val forslag: ForslagInntekt,
-)
+    val forslag: ForslagInntekt?,
+) {
+    companion object {
+        fun ikkePaakrevd(): Inntekt =
+            Inntekt(
+                paakrevd = false,
+                forslag = null,
+            )
+    }
+}
 
 @Serializable
 data class Refusjon(
@@ -47,19 +52,9 @@ data class Refusjon(
 }
 
 @Serializable
-sealed class ForslagInntekt {
-    @Serializable
-    @SerialName("ForslagInntektGrunnlag")
-    data class Grunnlag(
-        val forrigeInntekt: ForrigeInntekt?,
-    ) : ForslagInntekt()
-
-    @Serializable
-    @SerialName("ForslagInntektFastsatt")
-    data class Fastsatt(
-        val fastsattInntekt: Double,
-    ) : ForslagInntekt()
-}
+data class ForslagInntekt(
+    val forrigeInntekt: ForrigeInntekt?,
+)
 
 @Serializable
 data class ForslagRefusjon(
