@@ -1,28 +1,27 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger
 
-import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtData
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForrigeInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Inntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisArbeidsgiverperiode
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisFastsattInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForrigeInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForslagInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForslagRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisRefusjon
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockInntektMedForslagFastsatt
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockSpleisFastsattInntekt
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.mars
+import no.nav.helsearbeidsgiver.utils.test.date.oktober
 
 class MapForespurtDataKtTest :
     FunSpec({
@@ -39,16 +38,11 @@ class MapForespurtDataKtTest :
                             Arbeidsgiverperiode(
                                 paakrevd = true,
                             ),
-                        inntekt = mockInntektMedForslagFastsatt(),
+                        inntekt = Inntekt.ikkePaakrevd(),
                         refusjon = Refusjon.ikkePaakrevd(),
                     )
 
-                val spleisForespurtData =
-                    listOf(
-                        SpleisArbeidsgiverperiode,
-                        // En form for inntekt _må_ sendes med
-                        mockSpleisFastsattInntekt(),
-                    )
+                val spleisForespurtData = listOf(SpleisArbeidsgiverperiode)
 
                 val mappedForespurtData = spleisForespurtData.tilForespurtData()
 
@@ -62,24 +56,18 @@ class MapForespurtDataKtTest :
                             Arbeidsgiverperiode(
                                 paakrevd = false,
                             ),
-                        inntekt = mockInntektMedForslagFastsatt(),
+                        inntekt = Inntekt.ikkePaakrevd(),
                         refusjon = Refusjon.ikkePaakrevd(),
                     )
 
-                val spleisForespurtData =
-                    listOf(
-                        // En form for inntekt _må_ sendes med
-                        mockSpleisFastsattInntekt(),
-                    )
-
-                val mappedForespurtData = spleisForespurtData.tilForespurtData()
+                val mappedForespurtData = emptyList<SpleisForespurtDataDto>().tilForespurtData()
 
                 mappedForespurtData shouldBe expectedForespurtData
             }
         }
 
         context("Inntekt mappes korrekt") {
-            test("Inntekt påkrevd (med grunnlag som forslag)") {
+            test("Inntekt påkrevd (uten forslag)") {
                 val expectedForespurtData =
                     ForespurtData(
                         arbeidsgiverperiode =
@@ -89,10 +77,34 @@ class MapForespurtDataKtTest :
                         inntekt =
                             Inntekt(
                                 paakrevd = true,
-                                forslag =
-                                    ForslagInntekt.Grunnlag(
-                                        forrigeInntekt = null,
-                                    ),
+                                forslag = null,
+                            ),
+                        refusjon = Refusjon.ikkePaakrevd(),
+                    )
+
+                val spleisForespurtData =
+                    listOf(
+                        SpleisInntekt(
+                            forslag = null,
+                        ),
+                    )
+
+                val mappedForespurtData = spleisForespurtData.tilForespurtData()
+
+                mappedForespurtData shouldBe expectedForespurtData
+            }
+
+            test("Inntekt påkrevd (med tomt forslag)") {
+                val expectedForespurtData =
+                    ForespurtData(
+                        arbeidsgiverperiode =
+                            Arbeidsgiverperiode(
+                                paakrevd = false,
+                            ),
+                        inntekt =
+                            Inntekt(
+                                paakrevd = true,
+                                forslag = null,
                             ),
                         refusjon = Refusjon.ikkePaakrevd(),
                     )
@@ -109,7 +121,50 @@ class MapForespurtDataKtTest :
                 mappedForespurtData shouldBe expectedForespurtData
             }
 
-            test("Inntekt _ikke_ påkrevd (med fastsatt som forslag)") {
+            test("Inntekt påkrevd (med forslag)") {
+                val expectedForespurtData =
+                    ForespurtData(
+                        arbeidsgiverperiode =
+                            Arbeidsgiverperiode(
+                                paakrevd = false,
+                            ),
+                        inntekt =
+                            Inntekt(
+                                paakrevd = true,
+                                forslag =
+                                    ForslagInntekt(
+                                        forrigeInntekt =
+                                            ForrigeInntekt(
+                                                skjæringstidspunkt = 4.oktober,
+                                                kilde = "Imsdal",
+                                                beløp = 334.54,
+                                            ),
+                                    ),
+                            ),
+                        refusjon = Refusjon.ikkePaakrevd(),
+                    )
+
+                val spleisForespurtData =
+                    listOf(
+                        SpleisInntekt(
+                            forslag =
+                                SpleisForslagInntekt(
+                                    forrigeInntekt =
+                                        SpleisForrigeInntekt(
+                                            skjæringstidspunkt = 4.oktober,
+                                            kilde = "Imsdal",
+                                            beløp = 334.54,
+                                        ),
+                                ),
+                        ),
+                    )
+
+                val mappedForespurtData = spleisForespurtData.tilForespurtData()
+
+                mappedForespurtData shouldBe expectedForespurtData
+            }
+
+            test("Inntekt _ikke_ påkrevd") {
                 val expectedForespurtData =
                     ForespurtData(
                         arbeidsgiverperiode =
@@ -119,33 +174,14 @@ class MapForespurtDataKtTest :
                         inntekt =
                             Inntekt(
                                 paakrevd = false,
-                                forslag =
-                                    ForslagInntekt.Fastsatt(
-                                        fastsattInntekt = 462348006.87,
-                                    ),
+                                forslag = null,
                             ),
                         refusjon = Refusjon.ikkePaakrevd(),
                     )
 
-                val spleisForespurtData =
-                    listOf(
-                        SpleisFastsattInntekt(
-                            fastsattInntekt = 462348006.87,
-                        ),
-                    )
-
-                val mappedForespurtData = spleisForespurtData.tilForespurtData()
+                val mappedForespurtData = emptyList<SpleisForespurtDataDto>().tilForespurtData()
 
                 mappedForespurtData shouldBe expectedForespurtData
-            }
-
-            test("Manglende inntektforespørsel fra Spleis gir exception") {
-                val e =
-                    shouldThrowExactly<IllegalArgumentException> {
-                        emptyList<SpleisForespurtDataDto>().tilForespurtData()
-                    }
-
-                e.message shouldBe "Liste med forespurt data fra Spleis må innholde minst én form for inntekt."
             }
         }
 
@@ -165,7 +201,7 @@ class MapForespurtDataKtTest :
                             Arbeidsgiverperiode(
                                 paakrevd = false,
                             ),
-                        inntekt = mockInntektMedForslagFastsatt(),
+                        inntekt = Inntekt.ikkePaakrevd(),
                         refusjon =
                             Refusjon(
                                 paakrevd = true,
@@ -175,8 +211,6 @@ class MapForespurtDataKtTest :
 
                 val spleisForespurtData =
                     listOf(
-                        // En form for inntekt _må_ sendes med
-                        mockSpleisFastsattInntekt(),
                         SpleisRefusjon(
                             forslag = it.spleisForslagRefusjon,
                         ),
@@ -194,7 +228,7 @@ class MapForespurtDataKtTest :
                             Arbeidsgiverperiode(
                                 paakrevd = false,
                             ),
-                        inntekt = mockInntektMedForslagFastsatt(),
+                        inntekt = Inntekt.ikkePaakrevd(),
                         refusjon =
                             Refusjon(
                                 paakrevd = false,
@@ -206,13 +240,7 @@ class MapForespurtDataKtTest :
                             ),
                     )
 
-                val spleisForespurtData =
-                    listOf(
-                        // En form for inntekt _må_ sendes med
-                        mockSpleisFastsattInntekt(),
-                    )
-
-                val mappedForespurtData = spleisForespurtData.tilForespurtData()
+                val mappedForespurtData = emptyList<SpleisForespurtDataDto>().tilForespurtData()
 
                 mappedForespurtData shouldBe expectedForespurtData
             }
