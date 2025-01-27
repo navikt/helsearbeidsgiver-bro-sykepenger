@@ -1,4 +1,4 @@
-@file:UseSerializers(LocalDateSerializer::class, YearMonthSerializer::class)
+@file:UseSerializers(LocalDateSerializer::class)
 
 package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 
@@ -8,7 +8,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.JsonClassDiscriminator
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
-import no.nav.helsearbeidsgiver.utils.json.serializer.YearMonthSerializer
 import java.time.LocalDate
 
 @Serializable
@@ -23,14 +22,13 @@ data object SpleisArbeidsgiverperiode : SpleisForespurtDataDto()
 @Serializable
 @SerialName("Inntekt")
 data class SpleisInntekt(
-    val forslag: SpleisForslagInntekt,
+    val forslag: SpleisForslagInntekt?,
 ) : SpleisForespurtDataDto()
 
+@Deprecated("Ikke lenger i bruk, men trengs for å deserialisere gamle rader i databasen")
 @Serializable
 @SerialName("FastsattInntekt")
-data class SpleisFastsattInntekt(
-    val fastsattInntekt: Double,
-) : SpleisForespurtDataDto()
+data object SpleisFastsattInntekt : SpleisForespurtDataDto()
 
 @Serializable
 @SerialName("Refusjon")

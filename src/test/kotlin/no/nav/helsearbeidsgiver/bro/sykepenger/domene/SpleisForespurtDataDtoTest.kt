@@ -5,13 +5,13 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.data.row
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespurtDataMedFastsattInntektListe
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespurtDataSpleisRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockSpleisForespurtDataListe
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockSpleisForespurtDataMedForrigeInntektListe
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.test.resource.readResource
 
@@ -19,8 +19,8 @@ class SpleisForespurtDataDtoTest :
     FunSpec({
         listOf(
             row("forespurtDataListe", ::mockSpleisForespurtDataListe),
-            row("forespurtDataMedFastsattInntektListe", ::mockForespurtDataMedFastsattInntektListe),
-            row("forespurtDataMedForrigeInntektListe", ::mockSpleisForespurtDataMedForrigeInntektListe),
+            row("forespurtDataListeMedTomtInntektForslag", ::mockSpleisForespurtDataListeMedTomtInntektForslag),
+            row("forespurtDataListeMedForrigeInntekt", ::mockSpleisForespurtDataListeMedForrigeInntekt),
         ).forEach { (fileName, mockDataFn) ->
             val expectedJson = "json/$fileName.json".readResource().removeJsonWhitespace()
 
@@ -45,3 +45,32 @@ class SpleisForespurtDataDtoTest :
             }
         }
     })
+
+private fun mockSpleisForespurtDataListeMedTomtInntektForslag(): List<SpleisForespurtDataDto> =
+    listOf(
+        SpleisArbeidsgiverperiode,
+        SpleisInntekt(
+            forslag =
+                SpleisForslagInntekt(
+                    forrigeInntekt = null,
+                ),
+        ),
+        mockForespurtDataSpleisRefusjon(),
+    )
+
+private fun mockSpleisForespurtDataListeMedForrigeInntekt(): List<SpleisForespurtDataDto> =
+    listOf(
+        SpleisArbeidsgiverperiode,
+        SpleisInntekt(
+            forslag =
+                SpleisForslagInntekt(
+                    forrigeInntekt =
+                        SpleisForrigeInntekt(
+                            skjæringstidspunkt = 1.januar,
+                            kilde = "INNTEKTSMELDING",
+                            beløp = 10000.0,
+                        ),
+                ),
+        ),
+        mockForespurtDataSpleisRefusjon(),
+    )

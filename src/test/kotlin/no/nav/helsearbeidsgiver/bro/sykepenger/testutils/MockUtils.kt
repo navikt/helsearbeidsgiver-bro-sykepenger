@@ -7,6 +7,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtData
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForrigeInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForslagRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Inntekt
@@ -14,9 +15,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.InntektsmeldingHaandtertDt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Refusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisArbeidsgiverperiode
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisFastsattInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForrigeInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForslagInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForslagRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisInntekt
@@ -31,6 +30,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.juni
 import no.nav.helsearbeidsgiver.utils.test.date.november
+import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -73,54 +73,9 @@ fun mockSpleisForespurtDataListe(): List<SpleisForespurtDataDto> =
     listOf(
         SpleisArbeidsgiverperiode,
         SpleisInntekt(
-            forslag = SpleisForslagInntekt(),
+            forslag = null,
         ),
-        SpleisRefusjon(
-            forslag =
-                listOf(
-                    SpleisForslagRefusjon(
-                        fom = 12.juni,
-                        tom = null,
-                        beløp = 21.31,
-                    ),
-                    SpleisForslagRefusjon(
-                        fom = 2.august,
-                        tom = 15.august,
-                        beløp = 44.77,
-                    ),
-                ),
-        ),
-    )
-
-fun mockSpleisForespurtDataMedForrigeInntektListe(): List<SpleisForespurtDataDto> =
-    listOf(
-        SpleisArbeidsgiverperiode,
-        SpleisInntekt(
-            forslag =
-                SpleisForslagInntekt(
-                    forrigeInntekt =
-                        SpleisForrigeInntekt(
-                            skjæringstidspunkt = 1.januar,
-                            kilde = "INNTEKTSMELDING",
-                            beløp = 10000.0,
-                        ),
-                ),
-        ),
-        SpleisRefusjon(
-            forslag =
-                listOf(
-                    SpleisForslagRefusjon(
-                        fom = 12.juni,
-                        tom = null,
-                        beløp = 21.31,
-                    ),
-                    SpleisForslagRefusjon(
-                        fom = 2.august,
-                        tom = 15.august,
-                        beløp = 44.77,
-                    ),
-                ),
-        ),
+        mockForespurtDataSpleisRefusjon(),
     )
 
 fun mockBegrensetForespurtDataListe(): List<SpleisForespurtDataDto> =
@@ -130,25 +85,21 @@ fun mockBegrensetForespurtDataListe(): List<SpleisForespurtDataDto> =
         SpleisRefusjon(forslag = emptyList()),
     )
 
-fun mockForespurtDataMedFastsattInntektListe(): List<SpleisForespurtDataDto> =
-    listOf(
-        SpleisArbeidsgiverperiode,
-        mockSpleisFastsattInntekt(),
-        SpleisRefusjon(
-            forslag =
-                listOf(
-                    SpleisForslagRefusjon(
-                        fom = 1.januar,
-                        tom = null,
-                        beløp = 31415.92,
-                    ),
+fun mockForespurtDataSpleisRefusjon(): SpleisRefusjon =
+    SpleisRefusjon(
+        forslag =
+            listOf(
+                SpleisForslagRefusjon(
+                    fom = 12.juni,
+                    tom = null,
+                    beløp = 21.31,
                 ),
-        ),
-    )
-
-fun mockSpleisFastsattInntekt(): SpleisFastsattInntekt =
-    SpleisFastsattInntekt(
-        fastsattInntekt = 31415.92,
+                SpleisForslagRefusjon(
+                    fom = 2.august,
+                    tom = 15.august,
+                    beløp = 44.77,
+                ),
+            ),
     )
 
 fun mockForespoerselMottatt(): ForespoerselMottatt {
@@ -183,31 +134,25 @@ fun mockForespoerselSvarSuksess(): ForespoerselSimba {
 fun mockForespurtData(): ForespurtData =
     ForespurtData(
         arbeidsgiverperiode = mockArbeidsgiverperiode(),
-        inntekt = mockInntektMedForslagGrunnlag(),
+        inntekt =
+            Inntekt(
+                paakrevd = true,
+                forslag =
+                    ForslagInntekt(
+                        forrigeInntekt =
+                            ForrigeInntekt(
+                                skjæringstidspunkt = 17.oktober,
+                                kilde = "Naboen",
+                                beløp = 5578.58,
+                            ),
+                    ),
+            ),
         refusjon = mockRefusjon(),
     )
 
 fun mockArbeidsgiverperiode(): Arbeidsgiverperiode =
     Arbeidsgiverperiode(
         paakrevd = true,
-    )
-
-fun mockInntektMedForslagGrunnlag(): Inntekt =
-    Inntekt(
-        paakrevd = true,
-        forslag =
-            ForslagInntekt.Grunnlag(
-                forrigeInntekt = null,
-            ),
-    )
-
-fun mockInntektMedForslagFastsatt(): Inntekt =
-    Inntekt(
-        paakrevd = false,
-        forslag =
-            ForslagInntekt.Fastsatt(
-                fastsattInntekt = 31415.92,
-            ),
     )
 
 fun mockRefusjon(): Refusjon =
