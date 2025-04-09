@@ -109,8 +109,7 @@ private fun ForespoerselSimba.hardcodedJson(): String =
         "sykmeldingsperioder": [${sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
         "bestemmendeFravaersdager": {${bestemmendeFravaersdager.toList().joinToString(transform = Pair<Orgnr, LocalDate>::hardcodedJson)}},
         "forespurtData": ${forespurtData.hardcodedJson()},
-        "erBesvart": $erBesvart,
-        "opprettetUpresisIkkeBruk": "$opprettetUpresisIkkeBruk"
+        "erBesvart": $erBesvart
     }
     """.removeJsonWhitespace()
 

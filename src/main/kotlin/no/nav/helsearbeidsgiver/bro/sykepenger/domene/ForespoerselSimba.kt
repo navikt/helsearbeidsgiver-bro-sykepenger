@@ -24,7 +24,6 @@ data class ForespoerselSimba(
     val bestemmendeFravaersdager: Map<Orgnr, LocalDate>,
     val forespurtData: ForespurtData,
     val erBesvart: Boolean,
-    val opprettetUpresisIkkeBruk: LocalDate,
 ) {
     constructor(forespoersel: ForespoerselDto) : this(
         type = forespoersel.type,
@@ -37,6 +36,5 @@ data class ForespoerselSimba(
         bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager,
         forespurtData = forespoersel.forespurtData.tilForespurtData(),
         erBesvart = forespoersel.status.erBesvart(),
-        opprettetUpresisIkkeBruk = forespoersel.opprettet.toLocalDate(),
     )
 }
