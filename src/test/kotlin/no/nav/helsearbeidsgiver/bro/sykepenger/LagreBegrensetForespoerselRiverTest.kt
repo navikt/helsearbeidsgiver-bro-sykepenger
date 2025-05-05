@@ -28,6 +28,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import java.util.UUID
 
 class LagreBegrensetForespoerselRiverTest :
     FunSpec({
@@ -86,6 +87,7 @@ class LagreBegrensetForespoerselRiverTest :
                     withArg {
                         it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)
                     },
+                    forespoersel.forespoerselId,
                 )
 
                 mockPriProducer.send(
@@ -98,11 +100,13 @@ class LagreBegrensetForespoerselRiverTest :
 
         test("Oppdatert forespørsel (ubesvart) blir lagret uten å sende notifikasjon") {
             val forespoersel = mockBegrensetForespoerselDto()
+            val eksponertForespoerselId = UUID.randomUUID()
 
             every {
                 mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
             } returns
                 forespoersel.copy(
+                    forespoerselId = eksponertForespoerselId,
                     egenmeldingsperioder =
                         listOf(
                             Periode(13.mars(1812), 14.mars(1812)),
@@ -122,6 +126,7 @@ class LagreBegrensetForespoerselRiverTest :
                     withArg {
                         it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)
                     },
+                    eksponertForespoerselId,
                 )
             }
 
@@ -148,7 +153,7 @@ class LagreBegrensetForespoerselRiverTest :
             }
 
             verify(exactly = 0) {
-                mockForespoerselDao.lagre(any())
+                mockForespoerselDao.lagre(any(), any())
 
                 mockPriProducer.send(any())
             }

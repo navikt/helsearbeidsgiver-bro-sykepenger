@@ -17,12 +17,11 @@ object ForespoerselTable : Table("forespoersel") {
             idSeqName = "forespoersel_id_seq",
         )
     val forespoerselId = uuid("forespoersel_id")
-
-    // Denne er varchar av udefinert lengde i databasen
+    val eksponertForespoerselId = uuid("eksponert_forespoersel_id").nullable()
     val type = text("type")
-    val status = varchar("status", 50)
-    val orgnr = varchar("orgnr", 50)
-    val fnr = varchar("fnr", 50)
+    val status = text("status")
+    val orgnr = varchar("orgnr", 9)
+    val fnr = varchar("fnr", 11)
     val vedtaksperiodeId = uuid("vedtaksperiode_id")
     val egenmeldingsperioder = jsonb("egenmeldingsperioder", jsonConfig, Periode.serializer().list())
     val sykmeldingsperioder = jsonb("sykmeldingsperioder", jsonConfig, Periode.serializer().list())
@@ -31,20 +30,12 @@ object ForespoerselTable : Table("forespoersel") {
     val opprettet = datetime("opprettet")
     val oppdatert = datetime("oppdatert")
     val kastetTilInfotrygd = datetime("kastet_til_infotrygd").nullable()
-
-    override val primaryKey = PrimaryKey(id)
 }
 
 object BesvarelseTable : Table("besvarelse_metadata") {
-    private val id =
-        integer("id").autoIncrement(
-            idSeqName = "besvarelse_metadata_id_seq",
-        )
     val fkForespoerselId = long("fk_forespoersel_id") references ForespoerselTable.id
     val besvart = datetime("forespoersel_besvart")
     val inntektsmeldingId = uuid("inntektsmelding_id").nullable()
-
-    override val primaryKey = PrimaryKey(id)
 }
 
 val bestemmendeFravaersdagerSerializer = MapSerializer(Orgnr.serializer(), LocalDateSerializer)

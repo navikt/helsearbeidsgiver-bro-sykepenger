@@ -86,9 +86,16 @@ sealed class LagreForespoerselRiver(
 
         val skalHaPaaminnelse = nyForespoersel.type == Type.KOMPLETT
 
-        if (aktivForespoersel == null || !nyForespoersel.erDuplikatAv(aktivForespoersel)) {
+        val eksponertForespoerselId =
+            when {
+                aktivForespoersel == null -> nyForespoersel.forespoerselId
+                !nyForespoersel.erDuplikatAv(aktivForespoersel) -> aktivForespoersel.forespoerselId
+                else -> null
+            }
+
+        if (eksponertForespoerselId != null) {
             forespoerselDao
-                .lagre(nyForespoersel)
+                .lagre(nyForespoersel, eksponertForespoerselId)
                 .let { id ->
                     "Forespørsel lagret med id=$id.".also {
                         loggernaut.aapen.info(it)

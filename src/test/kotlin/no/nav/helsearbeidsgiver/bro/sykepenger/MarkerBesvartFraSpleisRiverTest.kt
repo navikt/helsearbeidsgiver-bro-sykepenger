@@ -7,7 +7,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
-import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.InntektsmeldingHaandtertDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
@@ -16,10 +15,10 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockInntektsmeldingHaandtertDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import java.util.UUID
 
 class MarkerBesvartFraSpleisRiverTest :
     FunSpec({
@@ -86,7 +85,7 @@ class MarkerBesvartFraSpleisRiverTest :
 
         test("Sier ifra til Simba om besvart forespørsel dersom minst én forespørsel oppdateres") {
             val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = null)
-            val expectedForespoerselId = randomUuid()
+            val expectedForespoerselId = UUID.randomUUID()
 
             every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(any(), any(), any()) } returns 1
 
@@ -121,7 +120,7 @@ class MarkerBesvartFraSpleisRiverTest :
 
         test("Sender forespørselId-en Simba forventer når forespørsel markeres som besvart") {
             val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = null)
-            val expectedForespoerselId = randomUuid()
+            val expectedForespoerselId = UUID.randomUUID()
 
             every {
                 mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
@@ -150,7 +149,7 @@ class MarkerBesvartFraSpleisRiverTest :
 
         test("Videresender inntektsmeldingId når forespørsel markeres som besvart") {
             val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = MockUuid.inntektsmeldingId)
-            val expectedForespoerselId = randomUuid()
+            val expectedForespoerselId = UUID.randomUUID()
 
             every {
                 mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
