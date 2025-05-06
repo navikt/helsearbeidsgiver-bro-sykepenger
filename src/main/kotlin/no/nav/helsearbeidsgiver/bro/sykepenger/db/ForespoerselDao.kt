@@ -27,7 +27,10 @@ class ForespoerselDao(
     private val logger = logger()
     private val sikkerLogger = sikkerLogger()
 
-    fun lagre(forespoersel: ForespoerselDto): Long =
+    fun lagre(
+        forespoersel: ForespoerselDto,
+        eksponertForespoerselId: UUID,
+    ): Long =
         transaction(db) {
             oppdaterStatuser(
                 vedtaksperiodeId = forespoersel.vedtaksperiodeId,
@@ -39,6 +42,7 @@ class ForespoerselDao(
             ForespoerselTable
                 .insert {
                     it[forespoerselId] = forespoersel.forespoerselId
+                    it[this.eksponertForespoerselId] = eksponertForespoerselId
                     it[type] = forespoersel.type.name
                     it[status] = forespoersel.status.name
                     it[orgnr] = forespoersel.orgnr.verdi

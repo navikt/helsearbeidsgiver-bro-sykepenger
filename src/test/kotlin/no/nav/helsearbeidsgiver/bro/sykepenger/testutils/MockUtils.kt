@@ -23,7 +23,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
@@ -39,7 +38,6 @@ import java.util.UUID
 
 object MockUuid {
     val vedtaksperiodeId: UUID = "01234567-abcd-0123-abcd-012345678901".let(UUID::fromString)
-    val forespoerselId: UUID = "98765654-abcd-0123-abcd-012345678901".let(UUID::fromString)
     val inntektsmeldingId: UUID = "22efb342-3e72-4880-a449-eb1efcf0f18b".let(UUID::fromString)
 }
 
@@ -47,7 +45,7 @@ fun mockForespoerselDto(): ForespoerselDto {
     val orgnr = Orgnr.genererGyldig()
 
     return ForespoerselDto(
-        forespoerselId = randomUuid(),
+        forespoerselId = UUID.randomUUID(),
         type = Type.KOMPLETT,
         status = Status.AKTIV,
         orgnr = orgnr,

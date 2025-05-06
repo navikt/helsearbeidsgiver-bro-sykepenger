@@ -5,7 +5,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselSvarSuksess
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -13,6 +12,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
+import java.util.UUID
 
 class ForespoerselSvarTest :
     FunSpec({
@@ -56,7 +56,7 @@ class ForespoerselSvarTest :
 
 private fun mockForespoerselSvarUtenSuksessEllerFeil(): ForespoerselSvar =
     ForespoerselSvar(
-        forespoerselId = randomUuid(),
+        forespoerselId = UUID.randomUUID(),
         boomerang =
             mapOf(
                 "boom" to "shakalaka".toJson(),
