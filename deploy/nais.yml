@@ -35,6 +35,9 @@ spec:
     autoInstrumentation:
       enabled: true
       runtime: java
+    logging:
+      destinations:
+        - id: secure_logs
   gcp:
     sqlInstances:
       - type: POSTGRES_14
