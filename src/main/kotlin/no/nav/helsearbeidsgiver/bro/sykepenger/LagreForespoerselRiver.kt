@@ -134,7 +134,7 @@ sealed class LagreForespoerselRiver(
                 )
             }
         } else {
-            loggernaut.aapen.info("Sa ikke ifra om mottatt forespørsel til Simba fordi det er en oppdatering av eksisterende forespørsel.")
+            sendMeldingOmOppdatering(nyForespoersel, skalHaPaaminnelse, eksponertForespoerselId)
         }
     }
 
@@ -143,5 +143,27 @@ sealed class LagreForespoerselRiver(
         context: MessageContext,
     ) {
         loggernaut.innkommendeMeldingFeil(problems)
+    }
+
+    private fun sendMeldingOmOppdatering(
+        nyForespoersel: ForespoerselDto,
+        skalHaPaaminnelse: Boolean,
+        eksponertForespoerselId: UUID?,
+    ) {
+        if (nyForespoersel.forespoerselId == eksponertForespoerselId) {
+            loggernaut.aapen.info("Eksponert forespørsel er samme som ny forespørsel, sender ikke notis.")
+            return
+        }
+        priProducer
+            .send(
+                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_OPPDATERT.toJson(Pri.NotisType.serializer()),
+                Pri.Key.FORESPOERSEL_ID to nyForespoersel.forespoerselId.toJson(),
+                Pri.Key.ORGNR to nyForespoersel.orgnr.toJson(Orgnr.serializer()),
+                Pri.Key.FNR to nyForespoersel.fnr.toJson(Fnr.serializer()),
+                Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
+                Pri.Key.FORESPOERSEL to ForespoerselSimba(nyForespoersel).toJson(ForespoerselSimba.serializer()),
+                Pri.Key.EKSPONERT_FORESPOERSEL_ID to eksponertForespoerselId!!.toJson(),
+            ).ifTrue { loggernaut.aapen.info("Sa ifra om oppdatert forespørsel til LPS-API.") }
+            .ifFalse { loggernaut.aapen.error("Klarte ikke å si ifra om oppdatert forespørsel til LPS-API.") }
     }
 }
