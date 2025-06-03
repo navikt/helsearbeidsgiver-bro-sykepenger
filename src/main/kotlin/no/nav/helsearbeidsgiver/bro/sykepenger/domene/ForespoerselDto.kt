@@ -35,25 +35,24 @@ data class ForespoerselDto(
                 oppdatert = oppdatert,
             )
 
-    override fun toString(): String {
-        return """
-            ForespoerselDto(
-                forespoerselId=$forespoerselId,
-                type=$type,
-                status=$status,
-                orgnr=$orgnr,
-                fnr=$fnr,
-                vedtaksperiodeId=$vedtaksperiodeId,
-                egenmeldingsperioder=$egenmeldingsperioder,
-                sykmeldingsperioder=$sykmeldingsperioder,
-                bestemmendeFravaersdager=$bestemmendeFravaersdager,
-                forespurtData=$forespurtData,
-                opprettet=$opprettet,
-                oppdatert=$oppdatert,
-                kastetTilInfotrygd=$kastetTilInfotrygd
-            )
+    override fun toString(): String =
+        """
+        ForespoerselDto(
+            forespoerselId=$forespoerselId,
+            type=$type,
+            status=$status,
+            orgnr=$orgnr,
+            fnr=$fnr,
+            vedtaksperiodeId=$vedtaksperiodeId,
+            egenmeldingsperioder=$egenmeldingsperioder,
+            sykmeldingsperioder=$sykmeldingsperioder,
+            bestemmendeFravaersdager=$bestemmendeFravaersdager,
+            forespurtData=$forespurtData,
+            opprettet=$opprettet,
+            oppdatert=$oppdatert,
+            kastetTilInfotrygd=$kastetTilInfotrygd
+        )
         """.trimIndent()
-    }
 }
 
 enum class Status {
