@@ -23,6 +23,7 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
+import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -83,7 +84,9 @@ sealed class LagreForespoerselRiver(
     private fun lagreForespoersel(nyForespoersel: ForespoerselDto) {
         val aktivForespoersel =
             forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(nyForespoersel.vedtaksperiodeId)
-
+        loggernaut.aapen.info(
+            "Test: Hentet aktiv forespørsel for vedtaksperiode-ID ${nyForespoersel.vedtaksperiodeId}: $aktivForespoersel",
+        )
         val skalHaPaaminnelse = nyForespoersel.type == Type.KOMPLETT
 
         val eksponertForespoerselId =
@@ -92,7 +95,7 @@ sealed class LagreForespoerselRiver(
                 !nyForespoersel.erDuplikatAv(aktivForespoersel) -> aktivForespoersel.forespoerselId
                 else -> null
             }
-
+        loggernaut.aapen.info("Test: Eksponert forespørsel ID: $eksponertForespoerselId")
         if (eksponertForespoerselId != null) {
             forespoerselDao
                 .lagre(nyForespoersel, eksponertForespoerselId)
@@ -134,6 +137,7 @@ sealed class LagreForespoerselRiver(
                 )
             }
         } else {
+            logger().info("Test: Eksisterende forespørsel er oppdatert, sender notis om oppdatering. $aktivForespoersel")
             sendMeldingOmOppdatering(nyForespoersel, skalHaPaaminnelse, eksponertForespoerselId)
         }
     }
