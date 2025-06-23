@@ -81,61 +81,83 @@ sealed class LagreForespoerselRiver(
     }
 
     private fun lagreForespoersel(nyForespoersel: ForespoerselDto) {
-        val aktivForespoersel =
-            forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(nyForespoersel.vedtaksperiodeId)
-
+        val aktivForespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(nyForespoersel.vedtaksperiodeId)
         val skalHaPaaminnelse = nyForespoersel.type == Type.KOMPLETT
+        val eksponertForespoerselId = finnEksponertForespoerselId(aktivForespoersel, nyForespoersel)
 
-        val eksponertForespoerselId =
-            when {
-                aktivForespoersel == null -> nyForespoersel.forespoerselId
-                !nyForespoersel.erDuplikatAv(aktivForespoersel) -> aktivForespoersel.forespoerselId
-                else -> null
-            }
-
-        if (eksponertForespoerselId != null) {
-            forespoerselDao
-                .lagre(nyForespoersel, eksponertForespoerselId)
-                .let { id ->
-                    "Forespørsel lagret med id=$id.".also {
-                        loggernaut.aapen.info(it)
-                        loggernaut.sikker.info(it)
-                    }
+        when {
+            eksponertForespoerselId == null -> {
+                "Lagret ikke duplikatforespørsel.".also {
+                    loggernaut.aapen.info(it)
+                    loggernaut.sikker.info(it)
                 }
-        } else {
-            "Lagret ikke duplikatforespørsel.".also {
-                loggernaut.aapen.info(it)
-                loggernaut.sikker.info(it)
+            }
+
+            aktivForespoersel == null -> {
+                lagreforespoersel(nyForespoersel, eksponertForespoerselId)
+                sendMeldingOmNyForespoersel(nyForespoersel, skalHaPaaminnelse)
+                behandleBesvarteForespoerseler(nyForespoersel)
+            }
+
+            else -> {
+                lagreforespoersel(nyForespoersel, eksponertForespoerselId)
+                sendMeldingOmOppdatering(nyForespoersel, skalHaPaaminnelse, eksponertForespoerselId)
             }
         }
+    }
 
-        // Ikke send notis ved oppdatering av forespørsel som er ubesvart
-        if (aktivForespoersel == null) {
-            priProducer
-                .send(
-                    Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
-                    Pri.Key.FORESPOERSEL_ID to nyForespoersel.forespoerselId.toJson(),
-                    Pri.Key.ORGNR to nyForespoersel.orgnr.toJson(Orgnr.serializer()),
-                    Pri.Key.FNR to nyForespoersel.fnr.toJson(Fnr.serializer()),
-                    Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
-                    Pri.Key.FORESPOERSEL to ForespoerselSimba(nyForespoersel).toJson(ForespoerselSimba.serializer()),
-                ).ifTrue { loggernaut.aapen.info("Sa ifra om mottatt forespørsel til Simba.") }
-                .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
-
-            val besvarteForespoersler =
-                forespoerselDao
-                    .hentForespoerslerForVedtaksperiodeIdListe(setOf(nyForespoersel.vedtaksperiodeId))
-                    .filter { it.status in setOf(Status.BESVART_SIMBA, Status.BESVART_SPLEIS) }
-
-            if (besvarteForespoersler.size > 3) {
-                loggernaut.warn(
-                    "Ny IM har nettopp blitt etterspurt for vedtaksperiode-ID ${nyForespoersel.vedtaksperiodeId}, " +
-                        "som allerede har blitt besvart mer enn 3 ganger.",
-                )
-            }
-        } else {
-            sendMeldingOmOppdatering(nyForespoersel, skalHaPaaminnelse, eksponertForespoerselId)
+    private fun finnEksponertForespoerselId(
+        aktivForespoersel: ForespoerselDto?,
+        nyForespoersel: ForespoerselDto,
+    ): UUID? =
+        when {
+            aktivForespoersel == null -> nyForespoersel.forespoerselId
+            !nyForespoersel.erDuplikatAv(aktivForespoersel) -> aktivForespoersel.forespoerselId
+            else -> null
         }
+
+    private fun behandleBesvarteForespoerseler(nyForespoersel: ForespoerselDto) {
+        val besvarteForespoersler =
+            forespoerselDao
+                .hentForespoerslerForVedtaksperiodeIdListe(setOf(nyForespoersel.vedtaksperiodeId))
+                .filter { it.status in setOf(Status.BESVART_SIMBA, Status.BESVART_SPLEIS) }
+
+        if (besvarteForespoersler.size > 3) {
+            loggernaut.warn(
+                "Ny IM har nettopp blitt etterspurt for vedtaksperiode-ID ${nyForespoersel.vedtaksperiodeId}, " +
+                    "som allerede har blitt besvart mer enn 3 ganger.",
+            )
+        }
+    }
+
+    private fun sendMeldingOmNyForespoersel(
+        nyForespoersel: ForespoerselDto,
+        skalHaPaaminnelse: Boolean,
+    ) {
+        priProducer
+            .send(
+                Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
+                Pri.Key.FORESPOERSEL_ID to nyForespoersel.forespoerselId.toJson(),
+                Pri.Key.ORGNR to nyForespoersel.orgnr.toJson(Orgnr.serializer()),
+                Pri.Key.FNR to nyForespoersel.fnr.toJson(Fnr.serializer()),
+                Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
+                Pri.Key.FORESPOERSEL to ForespoerselSimba(nyForespoersel).toJson(ForespoerselSimba.serializer()),
+            ).ifTrue { loggernaut.aapen.info("Sa ifra om mottatt forespørsel til Simba.") }
+            .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
+    }
+
+    private fun lagreforespoersel(
+        nyForespoersel: ForespoerselDto,
+        eksponertForespoerselId: UUID,
+    ) {
+        forespoerselDao
+            .lagre(nyForespoersel, eksponertForespoerselId)
+            .let { id ->
+                "Forespørsel lagret med id=$id.".also {
+                    loggernaut.aapen.info(it)
+                    loggernaut.sikker.info(it)
+                }
+            }
     }
 
     override fun onError(

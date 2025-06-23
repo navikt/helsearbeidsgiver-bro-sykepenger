@@ -12,6 +12,7 @@ import io.mockk.verifySequence
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselOppdatertSendt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
@@ -29,6 +30,8 @@ import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
+import kotlin.collections.component1
+import kotlin.collections.component2
 
 class LagreBegrensetForespoerselRiverTest :
     FunSpec({
@@ -98,7 +101,7 @@ class LagreBegrensetForespoerselRiverTest :
             }
         }
 
-        test("Oppdatert forespørsel (ubesvart) blir lagret uten å sende notifikasjon") {
+        test("Oppdatert forespørsel (ubesvart) blir lagret uten  sender notifikasjon om oppdatering") {
             val forespoersel = mockBegrensetForespoerselDto()
             val eksponertForespoerselId = UUID.randomUUID()
 
@@ -129,9 +132,22 @@ class LagreBegrensetForespoerselRiverTest :
                     eksponertForespoerselId,
                 )
             }
-
-            verify(exactly = 0) {
-                mockPriProducer.send(any())
+            val expectedPublished =
+                ForespoerselOppdatertSendt(
+                    forespoerselId = forespoersel.forespoerselId,
+                    orgnr = forespoersel.orgnr,
+                    fnr = forespoersel.fnr,
+                    skalHaPaaminnelse = false,
+                    forespoersel = ForespoerselSimba(forespoersel),
+                    eksponertForespoerselId = eksponertForespoerselId,
+                )
+            verifySequence {
+                mockPriProducer.send(
+                    *expectedPublished
+                        .toKeyMap()
+                        .mapNotNull { (key, value) -> value?.let { key to it } }
+                        .toTypedArray(),
+                )
             }
         }
 

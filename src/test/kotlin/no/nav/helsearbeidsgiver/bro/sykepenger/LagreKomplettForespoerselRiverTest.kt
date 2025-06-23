@@ -13,6 +13,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.bestemmendeFravaersdagerSerializer
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselOppdatertSendt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
@@ -96,7 +97,7 @@ class LagreKomplettForespoerselRiverTest :
             }
         }
 
-        test("Oppdatert forespørsel (ubesvart) blir lagret uten notifikasjon") {
+        test("Oppdatert forespørsel (ubesvart) blir lagret og sender notifikasjon om oppdatering") {
             val forespoersel = mockForespoerselDto()
             val eksponertForespoerselId = UUID.randomUUID()
 
@@ -127,9 +128,22 @@ class LagreKomplettForespoerselRiverTest :
                     eksponertForespoerselId,
                 )
             }
-
-            verify(exactly = 0) {
-                mockPriProducer.send(any())
+            val expectedPublished =
+                ForespoerselOppdatertSendt(
+                    forespoerselId = forespoersel.forespoerselId,
+                    orgnr = forespoersel.orgnr,
+                    fnr = forespoersel.fnr,
+                    skalHaPaaminnelse = true,
+                    forespoersel = ForespoerselSimba(forespoersel),
+                    eksponertForespoerselId = eksponertForespoerselId,
+                )
+            verifySequence {
+                mockPriProducer.send(
+                    *expectedPublished
+                        .toKeyMap()
+                        .mapNotNull { (key, value) -> value?.let { key to it } }
+                        .toTypedArray(),
+                )
             }
         }
 

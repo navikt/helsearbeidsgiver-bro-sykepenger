@@ -19,3 +19,14 @@ data class ForespoerselMottatt(
     val skalHaPaaminnelse: Boolean,
     val forespoersel: ForespoerselSimba,
 )
+
+@Serializable
+data class ForespoerselOppdatertSendt(
+    val forespoerselId: UUID,
+    val orgnr: Orgnr,
+    val fnr: Fnr,
+    @SerialName("skal_ha_paaminnelse")
+    val skalHaPaaminnelse: Boolean,
+    val forespoersel: ForespoerselSimba,
+    val eksponertForespoerselId: UUID? = null,
+)
