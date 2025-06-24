@@ -25,6 +25,7 @@ object Pri {
         VEDTAKSPERIODE_ID_LISTE("vedtaksperiode_id_liste"),
         SKAL_HA_PAAMINNELSE("skal_ha_paaminnelse"),
         FORESPOERSEL("forespoersel"),
+        EKSPONERT_FORESPOERSEL_ID("eksponertForespoerselId"),
         ;
 
         override fun toString(): String = verdi
@@ -52,6 +53,7 @@ object Pri {
         FORESPOERSEL_BESVART_SIMBA,
         FORESPOERSEL_FORKASTET,
         FORESPOERSEL_KASTET_TIL_INFOTRYGD,
+        FORESPOERSEL_OPPDATERT,
     }
 
     private object KeySerializer : AsStringSerializer<Key>(
