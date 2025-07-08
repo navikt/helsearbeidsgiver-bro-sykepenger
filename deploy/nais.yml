@@ -8,6 +8,9 @@ metadata:
     app: helsearbeidsgiver-bro-sykepenger
 spec:
   image: {{ image }}
+  # Midlertidig, for å hindre at gamle poder spør databasen mens nye poder utfører migrering
+  strategy:
+    type: Recreate
   resources:
     requests:
       cpu: 50m
