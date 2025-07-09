@@ -106,8 +106,12 @@ class LagreKomplettForespoerselRiver(
             forespoersel.egenmeldingsperioder.isNotEmpty() &&
             // Kun ett forslag til bestemmende fraværsdag betyr kun én arbeidsgiver
             forespoersel.bestemmendeFravaersdager.size == 1 &&
-            forespoersel.bestemmendeFravaersdager.values.first() != bfUtenEgenmld &&
-            forespoersel.bestemmendeFravaersdager.values.first() != bfMedEgenmld
+            !forespoersel.bestemmendeFravaersdager.values
+                .first()
+                .isEqual(bfUtenEgenmld) &&
+            !forespoersel.bestemmendeFravaersdager.values
+                .first()
+                .isEqual(bfMedEgenmld)
         ) {
             MdcUtils.withLogFields(
                 "forespoerselId" to forespoersel.forespoerselId.toString(),
