@@ -73,27 +73,23 @@ dependencies {
     val postgresqlVersion: String by project
     val rapidsAndRiversTestVersion: String by project
     val rapidsAndRiversVersion: String by project
-    val slf4jVersion: String by project
     val testcontainersPostgresqlVersion: String by project
     val utilsVersion: String by project
-    val ktorVersion: String by project
 
     implementation("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
-    implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion")
     implementation("no.nav.helsearbeidsgiver:utils:$utilsVersion")
     implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
-    implementation("org.flywaydb:flyway-database-postgresql:$flywayCoreVersion")
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
-    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-json:$exposedVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
-    implementation("org.postgresql:postgresql:$postgresqlVersion")
-    implementation("org.slf4j:slf4j-api:$slf4jVersion")
 
     runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql:$flywayCoreVersion")
+    runtimeOnly("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")
 
     testImplementation(testFixtures("no.nav.helsearbeidsgiver:utils:$utilsVersion"))
     testImplementation("com.github.navikt.tbd-libs:rapids-and-rivers-test:$rapidsAndRiversTestVersion")

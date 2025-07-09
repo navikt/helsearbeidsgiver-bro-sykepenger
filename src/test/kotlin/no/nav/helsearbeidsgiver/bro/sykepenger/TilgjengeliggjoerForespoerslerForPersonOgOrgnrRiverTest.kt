@@ -15,8 +15,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockJsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 
 class TilgjengeliggjoerForespoerslerForPersonOgOrgnrRiverTest :
     FunSpec({
@@ -54,8 +52,8 @@ class TilgjengeliggjoerForespoerslerForPersonOgOrgnrRiverTest :
 
             testRapid.sendJson(
                 Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_FNR_OG_ORGNR.toJson(Pri.BehovType.serializer()),
-                Pri.Key.ORGNR to expectedPublished.orgnr.toJson(Orgnr.serializer()),
-                Pri.Key.FNR to expectedPublished.fnr.toJson(Fnr.serializer()),
+                Pri.Key.ORGNR to expectedPublished.orgnr.toJson(),
+                Pri.Key.FNR to expectedPublished.fnr.toJson(),
                 Pri.Key.BOOMERANG to expectedPublished.boomerang,
             )
 
@@ -87,8 +85,8 @@ class TilgjengeliggjoerForespoerslerForPersonOgOrgnrRiverTest :
 
             testRapid.sendJson(
                 Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_FNR_OG_ORGNR.toJson(Pri.BehovType.serializer()),
-                Pri.Key.ORGNR to expectedPublished.orgnr.toJson(Orgnr.serializer()),
-                Pri.Key.FNR to expectedPublished.fnr.toJson(Fnr.serializer()),
+                Pri.Key.ORGNR to expectedPublished.orgnr.toJson(),
+                Pri.Key.FNR to expectedPublished.fnr.toJson(),
                 Pri.Key.BOOMERANG to expectedPublished.boomerang,
             )
 
