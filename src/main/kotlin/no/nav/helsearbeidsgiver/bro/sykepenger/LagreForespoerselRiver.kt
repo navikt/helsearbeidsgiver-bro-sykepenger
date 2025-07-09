@@ -3,7 +3,9 @@ package no.nav.helsearbeidsgiver.bro.sykepenger
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
+import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
@@ -41,6 +43,8 @@ sealed class LagreForespoerselRiver(
     override fun onPacket(
         packet: JsonMessage,
         context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
     ) {
         val forespoerselId = randomUuid()
 
@@ -161,6 +165,7 @@ sealed class LagreForespoerselRiver(
     override fun onError(
         problems: MessageProblems,
         context: MessageContext,
+        metadata: MessageMetadata,
     ) {
         loggernaut.innkommendeMeldingFeil(problems)
     }
