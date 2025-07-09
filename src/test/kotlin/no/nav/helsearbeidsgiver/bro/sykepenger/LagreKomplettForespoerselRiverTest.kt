@@ -26,8 +26,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.mars
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 class LagreKomplettForespoerselRiverTest :
@@ -45,8 +43,8 @@ class LagreKomplettForespoerselRiverTest :
         fun mockInnkommendeMelding(forespoersel: ForespoerselDto) {
             testRapid.sendJson(
                 Spleis.Key.TYPE to Spleis.Event.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER_KOMPLETT.toJson(Spleis.Event.serializer()),
-                Spleis.Key.ORGANISASJONSNUMMER to forespoersel.orgnr.toJson(Orgnr.serializer()),
-                Spleis.Key.FØDSELSNUMMER to forespoersel.fnr.toJson(Fnr.serializer()),
+                Spleis.Key.ORGANISASJONSNUMMER to forespoersel.orgnr.toJson(),
+                Spleis.Key.FØDSELSNUMMER to forespoersel.fnr.toJson(),
                 Spleis.Key.VEDTAKSPERIODE_ID to forespoersel.vedtaksperiodeId.toJson(),
                 Spleis.Key.EGENMELDINGSPERIODER to forespoersel.egenmeldingsperioder.toJson(Periode.serializer().list()),
                 Spleis.Key.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJson(Periode.serializer().list()),
