@@ -71,3 +71,17 @@ infix fun LocalDate.til(tom: LocalDate): Periode =
         fom = this,
         tom = tom,
     )
+
+data class ForespoerselTilLpsApi(
+    val forespoerselId: UUID,
+    val orgnr: Orgnr,
+    val fnr: Fnr,
+    val vedtaksperiodeId: UUID,
+    val egenmeldingsperioder: List<Periode>,
+    val sykmeldingsperioder: List<Periode>,
+    val status: Status,
+    val bestemmendeFravaersdager: Map<Orgnr, LocalDate>,
+    val forespurtData: List<SpleisForespurtDataDto>,
+    val eksponertForespoerselId: UUID,
+    val opprettet: LocalDateTime,
+)

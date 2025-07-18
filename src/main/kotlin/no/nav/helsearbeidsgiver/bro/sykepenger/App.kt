@@ -25,6 +25,7 @@ fun main() {
     ForkastForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
     LagreBegrensetForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
     MarkerKastetTilInfotrygdRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
+    HentForespoerselRiver(rapid = rapid, forespoerselDao = forespoerselDao, priProducer = priProducer)
 
     rapid.registerDbLifecycle()
 

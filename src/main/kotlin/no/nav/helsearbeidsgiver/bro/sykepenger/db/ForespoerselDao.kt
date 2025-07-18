@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselTilLpsApi
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
@@ -29,7 +30,7 @@ class ForespoerselDao(
 
     fun lagre(
         forespoersel: ForespoerselDto,
-        eksponertForespoerselId: UUID,
+        eksponertForespoerselId: UUID?,
     ): Long =
         transaction(db) {
             oppdaterStatuser(
@@ -153,6 +154,15 @@ class ForespoerselDao(
             setOf(vedtaksperiodeId),
             setOf(Status.AKTIV),
         ).firstOrNull()
+
+    fun hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId: UUID): List<ForespoerselTilLpsApi> =
+        transaction(db) {
+            ForespoerselTable
+                .selectAll()
+                .where { ForespoerselTable.vedtaksperiodeId eq vedtaksperiodeId }
+                .map(::tilForespoerselTilLpsapi)
+                .sortedBy { it.opprettet }
+        }
 
     fun hentForespoerslerEksponertTilSimba(vedtaksperiodeIder: Set<UUID>): List<ForespoerselDto> =
         hentForespoerslerEksponertTilSimba(
@@ -295,3 +305,18 @@ private fun List<Pair<UUID, ForespoerselDto>>.toAggregateMap(): Map<UUID, List<F
             vedtaksperiodeId to forespoerslerForKey,
         )
     }
+
+fun tilForespoerselTilLpsapi(row: ResultRow): ForespoerselTilLpsApi =
+    ForespoerselTilLpsApi(
+        forespoerselId = row[ForespoerselTable.forespoerselId],
+        orgnr = row[ForespoerselTable.orgnr].let(::Orgnr),
+        fnr = row[ForespoerselTable.fnr].let(::Fnr),
+        vedtaksperiodeId = row[ForespoerselTable.vedtaksperiodeId],
+        egenmeldingsperioder = row[ForespoerselTable.egenmeldingsperioder],
+        sykmeldingsperioder = row[ForespoerselTable.sykmeldingsperioder],
+        status = row[ForespoerselTable.status].let(Status::valueOf),
+        bestemmendeFravaersdager = row[ForespoerselTable.bestemmendeFravaersdager],
+        forespurtData = row[ForespoerselTable.forespurtData],
+        eksponertForespoerselId = row[ForespoerselTable.eksponertForespoerselId] ?: UUID.randomUUID(),
+        opprettet = row[ForespoerselTable.opprettet],
+    )
