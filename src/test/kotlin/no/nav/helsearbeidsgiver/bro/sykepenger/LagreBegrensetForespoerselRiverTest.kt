@@ -27,8 +27,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.mars
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -48,8 +46,8 @@ class LagreBegrensetForespoerselRiverTest :
         fun mockInnkommendeMelding(forespoersel: ForespoerselDto) {
             testRapid.sendJson(
                 Spleis.Key.TYPE to Spleis.Event.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER_BEGRENSET.toJson(Spleis.Event.serializer()),
-                Spleis.Key.ORGANISASJONSNUMMER to forespoersel.orgnr.toJson(Orgnr.serializer()),
-                Spleis.Key.FØDSELSNUMMER to forespoersel.fnr.toJson(Fnr.serializer()),
+                Spleis.Key.ORGANISASJONSNUMMER to forespoersel.orgnr.toJson(),
+                Spleis.Key.FØDSELSNUMMER to forespoersel.fnr.toJson(),
                 Spleis.Key.VEDTAKSPERIODE_ID to forespoersel.vedtaksperiodeId.toJson(),
                 Spleis.Key.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJson(Periode.serializer().list()),
                 Spleis.Key.FORESPURT_DATA to forespoersel.forespurtData.toJson(SpleisForespurtDataDto.serializer().list()),

@@ -26,7 +26,6 @@ object Pri {
         SKAL_HA_PAAMINNELSE("skal_ha_paaminnelse"),
         FORESPOERSEL("forespoersel"),
         EKSPONERT_FORESPOERSEL_ID("eksponertForespoerselId"),
-        VEDTAKSPERIODE_ID("vedtaksperiodeId"),
         ;
 
         override fun toString(): String = verdi
@@ -45,7 +44,6 @@ object Pri {
         TRENGER_FORESPØRSEL,
         HENT_FORESPOERSLER_FOR_FNR_OG_ORGNR,
         HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE,
-        HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID,
     }
 
     @Serializable

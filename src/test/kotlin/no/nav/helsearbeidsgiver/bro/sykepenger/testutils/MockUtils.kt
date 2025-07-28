@@ -188,8 +188,8 @@ fun ForespoerselMottatt.toKeyMap() =
     mapOf(
         Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
         Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-        Pri.Key.ORGNR to orgnr.toJson(Orgnr.serializer()),
-        Pri.Key.FNR to fnr.toJson(Fnr.serializer()),
+        Pri.Key.ORGNR to orgnr.toJson(),
+        Pri.Key.FNR to fnr.toJson(),
         Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
         Pri.Key.FORESPOERSEL to forespoersel.toJson(ForespoerselSimba.serializer()),
     )
@@ -198,8 +198,8 @@ fun ForespoerselOppdatertSendt.toKeyMap() =
     mapOf(
         Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_OPPDATERT.toJson(Pri.NotisType.serializer()),
         Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-        Pri.Key.ORGNR to orgnr.toJson(Orgnr.serializer()),
-        Pri.Key.FNR to fnr.toJson(Fnr.serializer()),
+        Pri.Key.ORGNR to orgnr.toJson(),
+        Pri.Key.FNR to fnr.toJson(),
         Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
         Pri.Key.FORESPOERSEL to forespoersel.toJson(ForespoerselSimba.serializer()),
         Pri.Key.EKSPONERT_FORESPOERSEL_ID to eksponertForespoerselId?.toJson(),

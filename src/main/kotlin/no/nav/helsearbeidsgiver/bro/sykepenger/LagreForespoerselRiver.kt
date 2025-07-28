@@ -3,7 +3,9 @@ package no.nav.helsearbeidsgiver.bro.sykepenger
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
+import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
@@ -25,8 +27,6 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 sealed class LagreForespoerselRiver(
@@ -43,6 +43,8 @@ sealed class LagreForespoerselRiver(
     override fun onPacket(
         packet: JsonMessage,
         context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
     ) {
         val forespoerselId = randomUuid()
 
@@ -138,8 +140,8 @@ sealed class LagreForespoerselRiver(
             .send(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
                 Pri.Key.FORESPOERSEL_ID to nyForespoersel.forespoerselId.toJson(),
-                Pri.Key.ORGNR to nyForespoersel.orgnr.toJson(Orgnr.serializer()),
-                Pri.Key.FNR to nyForespoersel.fnr.toJson(Fnr.serializer()),
+                Pri.Key.ORGNR to nyForespoersel.orgnr.toJson(),
+                Pri.Key.FNR to nyForespoersel.fnr.toJson(),
                 Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
                 Pri.Key.FORESPOERSEL to ForespoerselSimba(nyForespoersel).toJson(ForespoerselSimba.serializer()),
             ).ifTrue { loggernaut.aapen.info("Sa ifra om mottatt forespørsel til Simba.") }
@@ -163,6 +165,7 @@ sealed class LagreForespoerselRiver(
     override fun onError(
         problems: MessageProblems,
         context: MessageContext,
+        metadata: MessageMetadata,
     ) {
         loggernaut.innkommendeMeldingFeil(problems)
     }
@@ -180,8 +183,8 @@ sealed class LagreForespoerselRiver(
             .send(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_OPPDATERT.toJson(Pri.NotisType.serializer()),
                 Pri.Key.FORESPOERSEL_ID to nyForespoersel.forespoerselId.toJson(),
-                Pri.Key.ORGNR to nyForespoersel.orgnr.toJson(Orgnr.serializer()),
-                Pri.Key.FNR to nyForespoersel.fnr.toJson(Fnr.serializer()),
+                Pri.Key.ORGNR to nyForespoersel.orgnr.toJson(),
+                Pri.Key.FNR to nyForespoersel.fnr.toJson(),
                 Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
                 Pri.Key.FORESPOERSEL to ForespoerselSimba(nyForespoersel).toJson(ForespoerselSimba.serializer()),
                 Pri.Key.EKSPONERT_FORESPOERSEL_ID to eksponertForespoerselId!!.toJson(),

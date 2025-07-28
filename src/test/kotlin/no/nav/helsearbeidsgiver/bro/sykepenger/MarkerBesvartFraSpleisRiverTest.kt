@@ -16,8 +16,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockInntektsmeldingHaandtertDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.util.UUID
 
 class MarkerBesvartFraSpleisRiverTest :
@@ -35,8 +33,8 @@ class MarkerBesvartFraSpleisRiverTest :
         fun mockInnkommendeMelding(inntektsmeldingHaandtert: InntektsmeldingHaandtertDto) {
             testRapid.sendJson(
                 Spleis.Key.TYPE to Spleis.Event.INNTEKTSMELDING_HÅNDTERT.toJson(Spleis.Event.serializer()),
-                Spleis.Key.ORGANISASJONSNUMMER to inntektsmeldingHaandtert.orgnr.toJson(Orgnr.serializer()),
-                Spleis.Key.FØDSELSNUMMER to inntektsmeldingHaandtert.fnr.toJson(Fnr.serializer()),
+                Spleis.Key.ORGANISASJONSNUMMER to inntektsmeldingHaandtert.orgnr.toJson(),
+                Spleis.Key.FØDSELSNUMMER to inntektsmeldingHaandtert.fnr.toJson(),
                 Spleis.Key.VEDTAKSPERIODE_ID to inntektsmeldingHaandtert.vedtaksperiodeId.toJson(),
                 Spleis.Key.DOKUMENT_ID to inntektsmeldingHaandtert.inntektsmeldingId?.toJson(),
                 Spleis.Key.OPPRETTET to inntektsmeldingHaandtert.haandtert.toJson(),
