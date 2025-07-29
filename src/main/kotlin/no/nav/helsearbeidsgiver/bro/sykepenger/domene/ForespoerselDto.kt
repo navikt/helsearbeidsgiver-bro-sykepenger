@@ -1,4 +1,4 @@
-@file:UseSerializers(LocalDateSerializer::class)
+@file:UseSerializers(LocalDateSerializer::class, UuidSerializer::class, LocalDateTimeSerializer::class)
 
 package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 
@@ -6,6 +6,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
@@ -72,6 +74,7 @@ infix fun LocalDate.til(tom: LocalDate): Periode =
         tom = tom,
     )
 
+@Serializable
 data class ForespoerselTilLpsApi(
     val forespoerselId: UUID,
     val orgnr: Orgnr,

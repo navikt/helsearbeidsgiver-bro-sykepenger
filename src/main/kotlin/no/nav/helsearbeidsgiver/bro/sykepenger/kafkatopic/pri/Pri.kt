@@ -56,6 +56,7 @@ object Pri {
         FORESPOERSEL_FORKASTET,
         FORESPOERSEL_KASTET_TIL_INFOTRYGD,
         FORESPOERSEL_OPPDATERT,
+        FORESPOERSEL_FOR_VEDTAKSPERIODE_ID,
     }
 
     private object KeySerializer : AsStringSerializer<Key>(
