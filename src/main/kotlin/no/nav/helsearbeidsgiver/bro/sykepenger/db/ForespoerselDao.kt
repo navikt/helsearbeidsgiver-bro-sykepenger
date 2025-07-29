@@ -309,14 +309,17 @@ private fun List<Pair<UUID, ForespoerselDto>>.toAggregateMap(): Map<UUID, List<F
 fun tilForespoerselTilLpsapi(row: ResultRow): ForespoerselTilLpsApi =
     ForespoerselTilLpsApi(
         forespoerselId = row[ForespoerselTable.forespoerselId],
+        type = row[ForespoerselTable.type].let(Type::valueOf),
+        status = row[ForespoerselTable.status].let(Status::valueOf),
         orgnr = row[ForespoerselTable.orgnr].let(::Orgnr),
         fnr = row[ForespoerselTable.fnr].let(::Fnr),
         vedtaksperiodeId = row[ForespoerselTable.vedtaksperiodeId],
         egenmeldingsperioder = row[ForespoerselTable.egenmeldingsperioder],
         sykmeldingsperioder = row[ForespoerselTable.sykmeldingsperioder],
-        status = row[ForespoerselTable.status].let(Status::valueOf),
         bestemmendeFravaersdager = row[ForespoerselTable.bestemmendeFravaersdager],
         forespurtData = row[ForespoerselTable.forespurtData],
-        eksponertForespoerselId = row[ForespoerselTable.eksponertForespoerselId] ?: UUID.randomUUID(),
         opprettet = row[ForespoerselTable.opprettet],
+        oppdatert = row[ForespoerselTable.oppdatert],
+        kastetTilInfotrygd = row[ForespoerselTable.kastetTilInfotrygd],
+        eksponertForespoerselId = row[ForespoerselTable.eksponertForespoerselId],
     )
