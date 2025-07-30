@@ -75,7 +75,7 @@ infix fun LocalDate.til(tom: LocalDate): Periode =
     )
 
 @Serializable
-data class ForespoerselTilLpsApi(
+data class ForespoerselDtoMedEksponertFsp(
     val forespoerselId: UUID,
     val type: Type,
     val status: Status,

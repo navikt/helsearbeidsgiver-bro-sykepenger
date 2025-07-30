@@ -1,7 +1,7 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselTilLpsApi
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDtoMedEksponertFsp
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
@@ -155,7 +155,7 @@ class ForespoerselDao(
             setOf(Status.AKTIV),
         ).firstOrNull()
 
-    fun hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId: UUID): List<ForespoerselTilLpsApi> =
+    fun hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId: UUID): List<ForespoerselDtoMedEksponertFsp> =
         transaction(db) {
             ForespoerselTable
                 .selectAll()
@@ -306,8 +306,8 @@ private fun List<Pair<UUID, ForespoerselDto>>.toAggregateMap(): Map<UUID, List<F
         )
     }
 
-fun tilForespoerselTilLpsapi(row: ResultRow): ForespoerselTilLpsApi =
-    ForespoerselTilLpsApi(
+fun tilForespoerselTilLpsapi(row: ResultRow): ForespoerselDtoMedEksponertFsp =
+    ForespoerselDtoMedEksponertFsp(
         forespoerselId = row[ForespoerselTable.forespoerselId],
         type = row[ForespoerselTable.type].let(Type::valueOf),
         status = row[ForespoerselTable.status].let(Status::valueOf),

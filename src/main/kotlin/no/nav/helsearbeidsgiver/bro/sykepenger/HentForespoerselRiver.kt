@@ -7,7 +7,8 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselTilLpsApi
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDtoMedEksponertFsp
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
@@ -67,14 +68,14 @@ class HentForespoerselRiver(
         }
     }
 
-    private fun sendForespoersel(forespoersel: ForespoerselTilLpsApi) {
+    private fun sendForespoersel(forespoersel: ForespoerselDtoMedEksponertFsp) {
         priProducer
             .send(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FOR_VEDTAKSPERIODE_ID.toJson(Pri.NotisType.serializer()),
                 Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
                 Pri.Key.ORGNR to forespoersel.orgnr.toJson(Orgnr.serializer()),
                 Pri.Key.FNR to forespoersel.fnr.toJson(Fnr.serializer()),
-                Pri.Key.FORESPOERSEL to forespoersel.toJson(ForespoerselTilLpsApi.serializer()),
+                Pri.Key.FORESPOERSEL to ForespoerselSimba(forespoersel).toJson(ForespoerselSimba.serializer()),
                 Pri.Key.EKSPONERT_FORESPOERSEL_ID to forespoersel.eksponertForespoerselId!!.toJson(),
             ).ifTrue { logger().info("Sa ifra om oppdatert forespørsel til LPS-API.") }
             .ifFalse { logger().error("Klarte ikke å si ifra om oppdatert forespørsel til LPS-API.") }
