@@ -22,8 +22,6 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 
 class HentForespoerselRiver(
     rapid: RapidsConnection,
@@ -73,10 +71,9 @@ class HentForespoerselRiver(
             .send(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FOR_VEDTAKSPERIODE_ID.toJson(Pri.NotisType.serializer()),
                 Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
-                Pri.Key.ORGNR to forespoersel.orgnr.toJson(Orgnr.serializer()),
-                Pri.Key.FNR to forespoersel.fnr.toJson(Fnr.serializer()),
                 Pri.Key.FORESPOERSEL to ForespoerselSimba(forespoersel).toJson(ForespoerselSimba.serializer()),
                 Pri.Key.EKSPONERT_FORESPOERSEL_ID to forespoersel.eksponertForespoerselId!!.toJson(),
+                Pri.Key.STATUS to forespoersel.getStatus().toJson(),
             ).ifTrue { logger().info("Sa ifra om oppdatert forespørsel til LPS-API.") }
             .ifFalse { logger().error("Klarte ikke å si ifra om oppdatert forespørsel til LPS-API.") }
     }

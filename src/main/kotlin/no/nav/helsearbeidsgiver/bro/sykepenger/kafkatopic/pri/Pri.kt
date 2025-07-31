@@ -27,6 +27,7 @@ object Pri {
         FORESPOERSEL("forespoersel"),
         EKSPONERT_FORESPOERSEL_ID("eksponertForespoerselId"),
         VEDTAKSPERIODE_ID("vedtaksperiodeId"),
+        STATUS("status"),
         ;
 
         override fun toString(): String = verdi
