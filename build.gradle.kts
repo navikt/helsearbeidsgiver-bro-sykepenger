@@ -66,6 +66,7 @@ dependencies {
     val flywayCoreVersion: String by project
     val hagDomeneInntektsmeldingVersion: String by project
     val hikariVersion: String by project
+    val kafkaClientVersion: String by project
     val kotestVersion: String by project
     val kotlinxSerializationVersion: String by project
     val logbackVersion: String by project
@@ -80,6 +81,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("no.nav.helsearbeidsgiver:domene-inntektsmelding:$hagDomeneInntektsmeldingVersion")
     implementation("no.nav.helsearbeidsgiver:utils:$utilsVersion")
+    implementation("org.apache.kafka:kafka-clients:$kafkaClientVersion")
     implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
@@ -97,5 +99,11 @@ dependencies {
     testImplementation("io.kotest:kotest-framework-datatest:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
-    testImplementation("org.testcontainers:postgresql:$testcontainersPostgresqlVersion")
+    testImplementation("org.testcontainers:postgresql:$testcontainersPostgresqlVersion") {
+        constraints {
+            testImplementation("org.apache.commons:commons-compress:1.26.2") {
+                because("For å fikse sårbarheter rapportert i depedabot alerts. Sjekk om nødvendig etter oppgradering av testcontainers fra 1.21.3.")
+            }
+        }
+    }
 }
