@@ -15,8 +15,13 @@ spec:
     limits:
       memory: 2048Mi
   replicas:
-    max: 2
     min: 2
+    max: 3 # Ønsker vi å øke denne, må vi først øke antall Kafka-partisjoner
+    scalingStrategy:
+      kafka:
+        consumerGroup: helsearbeidsgiver-bro-sykepenger-v1
+        topic: helsearbeidsgiver.pri
+        threshold: 10
   liveness:
     path: isalive
     initialDelay: 10
