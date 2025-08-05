@@ -30,7 +30,7 @@ class ForespoerselDao(
 
     fun lagre(
         forespoersel: ForespoerselDto,
-        eksponertForespoerselId: UUID?,
+        eksponertForespoerselId: UUID,
     ): Long =
         transaction(db) {
             oppdaterStatuser(

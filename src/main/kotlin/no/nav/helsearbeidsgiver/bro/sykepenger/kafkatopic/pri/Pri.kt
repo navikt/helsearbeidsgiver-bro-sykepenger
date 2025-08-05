@@ -26,7 +26,7 @@ object Pri {
         SKAL_HA_PAAMINNELSE("skal_ha_paaminnelse"),
         FORESPOERSEL("forespoersel"),
         EKSPONERT_FORESPOERSEL_ID("eksponertForespoerselId"),
-        VEDTAKSPERIODE_ID("vedtaksperiodeId"),
+        VEDTAKSPERIODE_ID("vedtaksperiode_id"),
         STATUS("status"),
         ;
 
