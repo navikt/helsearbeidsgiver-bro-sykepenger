@@ -1,4 +1,4 @@
-@file:UseSerializers(LocalDateSerializer::class)
+@file:UseSerializers(LocalDateSerializer::class, UuidSerializer::class, LocalDateTimeSerializer::class)
 
 package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 
@@ -6,6 +6,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
@@ -71,3 +73,31 @@ infix fun LocalDate.til(tom: LocalDate): Periode =
         fom = this,
         tom = tom,
     )
+
+@Serializable
+data class ForespoerselDtoMedEksponertFsp(
+    val forespoerselId: UUID,
+    val type: Type,
+    val status: Status,
+    val orgnr: Orgnr,
+    val fnr: Fnr,
+    val vedtaksperiodeId: UUID,
+    val egenmeldingsperioder: List<Periode>,
+    val sykmeldingsperioder: List<Periode>,
+    val bestemmendeFravaersdager: Map<Orgnr, LocalDate>,
+    val forespurtData: List<SpleisForespurtDataDto>,
+    val opprettet: LocalDateTime = LocalDateTime.now().truncMillis(),
+    val oppdatert: LocalDateTime = LocalDateTime.now().truncMillis(),
+    val kastetTilInfotrygd: LocalDateTime? = null,
+    val eksponertForespoerselId: UUID?,
+) {
+    fun getStatus(): String =
+        when (status) {
+            Status.AKTIV -> "AKTIV"
+            Status.BESVART_SIMBA -> "BESVART"
+            Status.BESVART_SPLEIS -> "BESVART"
+            Status.FORKASTET -> "FORKASTET"
+        }
+
+    fun finnEksponertForespoerselId(): UUID = eksponertForespoerselId ?: forespoerselId
+}
