@@ -67,14 +67,18 @@ class HentForespoerselRiver(
     }
 
     private fun sendForespoersel(forespoersel: ForespoerselDtoMedEksponertFsp) {
-        priProducer
-            .send(
-                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FOR_VEDTAKSPERIODE_ID.toJson(Pri.NotisType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
-                Pri.Key.FORESPOERSEL to ForespoerselSimba(forespoersel).toJson(ForespoerselSimba.serializer()),
-                Pri.Key.EKSPONERT_FORESPOERSEL_ID to forespoersel.eksponertForespoerselId!!.toJson(),
-                Pri.Key.STATUS to forespoersel.getStatus().toJson(),
-            ).ifTrue { logger().info("Sa ifra om oppdatert forespørsel til LPS-API.") }
-            .ifFalse { logger().error("Klarte ikke å si ifra om oppdatert forespørsel til LPS-API.") }
+        try {
+            priProducer
+                .send(
+                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FOR_VEDTAKSPERIODE_ID.toJson(Pri.NotisType.serializer()),
+                    Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
+                    Pri.Key.FORESPOERSEL to ForespoerselSimba(forespoersel).toJson(ForespoerselSimba.serializer()),
+                    Pri.Key.EKSPONERT_FORESPOERSEL_ID to forespoersel.finnEksponertForespoerselId().toJson(),
+                    Pri.Key.STATUS to forespoersel.getStatus().toJson(),
+                ).ifTrue { logger().info("Sa ifra om oppdatert forespørsel til LPS-API.") }
+                .ifFalse { logger().error("Klarte ikke å si ifra om oppdatert forespørsel til LPS-API.") }
+        } catch (e: Exception) {
+            logger().error("Feil ved sending av forespørsel: ${e.message}", e)
+        }
     }
 }

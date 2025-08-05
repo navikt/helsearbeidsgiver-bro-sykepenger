@@ -89,7 +89,7 @@ data class ForespoerselDtoMedEksponertFsp(
     val opprettet: LocalDateTime = LocalDateTime.now().truncMillis(),
     val oppdatert: LocalDateTime = LocalDateTime.now().truncMillis(),
     val kastetTilInfotrygd: LocalDateTime? = null,
-    val eksponertForespoerselId: UUID? = null,
+    val eksponertForespoerselId: UUID?,
 ) {
     fun getStatus(): String =
         when (status) {
@@ -98,4 +98,6 @@ data class ForespoerselDtoMedEksponertFsp(
             Status.BESVART_SPLEIS -> "BESVART"
             Status.FORKASTET -> "FORKASTET"
         }
+
+    fun finnEksponertForespoerselId(): UUID = eksponertForespoerselId ?: forespoerselId
 }
