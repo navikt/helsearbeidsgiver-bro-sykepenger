@@ -65,6 +65,14 @@ sealed class LagreForespoerselRiver(
         }
     }
 
+    override fun onError(
+        problems: MessageProblems,
+        context: MessageContext,
+        metadata: MessageMetadata,
+    ) {
+        loggernaut.innkommendeMeldingFeil(problems)
+    }
+
     private fun JsonElement.lagreForespoersel(forespoerselId: UUID) {
         val melding = fromJsonMapFiltered(Spleis.Key.serializer())
 
@@ -96,14 +104,14 @@ sealed class LagreForespoerselRiver(
             }
 
             aktivForespoersel == null -> {
-                lagreforespoersel(nyForespoersel, eksponertForespoerselId)
+                lagreForespoersel(nyForespoersel, eksponertForespoerselId)
                 sendMeldingOmNyForespoersel(nyForespoersel, skalHaPaaminnelse)
-                behandleBesvarteForespoerseler(nyForespoersel)
+                loggVedGjentatteForespoersler(nyForespoersel)
             }
 
             else -> {
-                lagreforespoersel(nyForespoersel, eksponertForespoerselId)
-                sendMeldingOmOppdatering(nyForespoersel, skalHaPaaminnelse, eksponertForespoerselId)
+                lagreForespoersel(nyForespoersel, eksponertForespoerselId)
+                sendMeldingOmOppdatering(nyForespoersel, eksponertForespoerselId)
             }
         }
     }
@@ -118,37 +126,7 @@ sealed class LagreForespoerselRiver(
             else -> null
         }
 
-    private fun behandleBesvarteForespoerseler(nyForespoersel: ForespoerselDto) {
-        val besvarteForespoersler =
-            forespoerselDao
-                .hentForespoerslerForVedtaksperiodeIdListe(setOf(nyForespoersel.vedtaksperiodeId))
-                .filter { it.status in setOf(Status.BESVART_SIMBA, Status.BESVART_SPLEIS) }
-
-        if (besvarteForespoersler.size > 3) {
-            loggernaut.warn(
-                "Ny IM har nettopp blitt etterspurt for vedtaksperiode-ID ${nyForespoersel.vedtaksperiodeId}, " +
-                    "som allerede har blitt besvart mer enn 3 ganger.",
-            )
-        }
-    }
-
-    private fun sendMeldingOmNyForespoersel(
-        nyForespoersel: ForespoerselDto,
-        skalHaPaaminnelse: Boolean,
-    ) {
-        priProducer
-            .send(
-                Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
-                Pri.Key.FORESPOERSEL_ID to nyForespoersel.forespoerselId.toJson(),
-                Pri.Key.ORGNR to nyForespoersel.orgnr.toJson(),
-                Pri.Key.FNR to nyForespoersel.fnr.toJson(),
-                Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
-                Pri.Key.FORESPOERSEL to ForespoerselSimba(nyForespoersel).toJson(ForespoerselSimba.serializer()),
-            ).ifTrue { loggernaut.aapen.info("Sa ifra om mottatt forespørsel til Simba.") }
-            .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
-    }
-
-    private fun lagreforespoersel(
+    private fun lagreForespoersel(
         nyForespoersel: ForespoerselDto,
         eksponertForespoerselId: UUID,
     ) {
@@ -162,33 +140,45 @@ sealed class LagreForespoerselRiver(
             }
     }
 
-    override fun onError(
-        problems: MessageProblems,
-        context: MessageContext,
-        metadata: MessageMetadata,
+    private fun sendMeldingOmNyForespoersel(
+        nyForespoersel: ForespoerselDto,
+        skalHaPaaminnelse: Boolean,
     ) {
-        loggernaut.innkommendeMeldingFeil(problems)
+        priProducer
+            .send(
+                Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
+                Pri.Key.FORESPOERSEL_ID to nyForespoersel.forespoerselId.toJson(),
+                Pri.Key.FORESPOERSEL to ForespoerselSimba(nyForespoersel).toJson(ForespoerselSimba.serializer()),
+                Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
+            ).ifTrue { loggernaut.aapen.info("Sa ifra om mottatt forespørsel til Simba.") }
+            .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
     }
 
     private fun sendMeldingOmOppdatering(
         nyForespoersel: ForespoerselDto,
-        skalHaPaaminnelse: Boolean,
-        eksponertForespoerselId: UUID?,
+        eksponertForespoerselId: UUID,
     ) {
-        if (nyForespoersel.forespoerselId == eksponertForespoerselId) {
-            loggernaut.aapen.info("Eksponert forespørsel er samme som ny forespørsel, sender ikke notis.")
-            return
-        }
         priProducer
             .send(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_OPPDATERT.toJson(Pri.NotisType.serializer()),
+                Pri.Key.EKSPONERT_FORESPOERSEL_ID to eksponertForespoerselId.toJson(),
                 Pri.Key.FORESPOERSEL_ID to nyForespoersel.forespoerselId.toJson(),
-                Pri.Key.ORGNR to nyForespoersel.orgnr.toJson(),
-                Pri.Key.FNR to nyForespoersel.fnr.toJson(),
-                Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
                 Pri.Key.FORESPOERSEL to ForespoerselSimba(nyForespoersel).toJson(ForespoerselSimba.serializer()),
-                Pri.Key.EKSPONERT_FORESPOERSEL_ID to eksponertForespoerselId!!.toJson(),
             ).ifTrue { loggernaut.aapen.info("Sa ifra om oppdatert forespørsel til LPS-API.") }
             .ifFalse { loggernaut.aapen.error("Klarte ikke å si ifra om oppdatert forespørsel til LPS-API.") }
+    }
+
+    private fun loggVedGjentatteForespoersler(nyForespoersel: ForespoerselDto) {
+        val besvarteForespoersler =
+            forespoerselDao
+                .hentForespoerslerForVedtaksperiodeIdListe(setOf(nyForespoersel.vedtaksperiodeId))
+                .filter { it.second.status in setOf(Status.BESVART_SIMBA, Status.BESVART_SPLEIS) }
+
+        if (besvarteForespoersler.size > 3) {
+            loggernaut.warn(
+                "Ny IM har nettopp blitt etterspurt for vedtaksperiode-ID ${nyForespoersel.vedtaksperiodeId}, " +
+                    "som allerede har blitt besvart mer enn 3 ganger.",
+            )
+        }
     }
 }

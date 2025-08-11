@@ -5,7 +5,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDtoMedEksponer
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.zipWithNextOrNull
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
@@ -181,20 +180,18 @@ class ForespoerselDao(
                     (ForespoerselTable.orgnr eq orgnr.verdi) and
                         (ForespoerselTable.fnr eq fnr.verdi)
                 }.map {
-                    it[ForespoerselTable.vedtaksperiodeId] to tilForespoerselDto(it)
+                    it[ForespoerselTable.eksponertForespoerselId] to tilForespoerselDto(it)
                 }
-        }.toAggregateMap()
-            .mapNotNull { (_, forespoersler) ->
-                forespoersler.finnNyesteForespoersel(setOf(Status.AKTIV))
-            }
+        }.finnNyesteForespoerselPerVedtaksperiodeId(setOf(Status.AKTIV))
 
-    fun hentForespoerslerForVedtaksperiodeIdListe(vedtaksperiodeIdListe: Set<UUID>): List<ForespoerselDto> =
+    fun hentForespoerslerForVedtaksperiodeIdListe(vedtaksperiodeIder: Set<UUID>): List<Pair<UUID, ForespoerselDto>> =
         transaction(db) {
             ForespoerselTable
                 .selectAll()
-                .where { ForespoerselTable.vedtaksperiodeId inList vedtaksperiodeIdListe }
-                .map(::tilForespoerselDto)
-                .sortedBy { it.opprettet }
+                .where { ForespoerselTable.vedtaksperiodeId inList vedtaksperiodeIder }
+                .map {
+                    it[ForespoerselTable.eksponertForespoerselId] to tilForespoerselDto(it)
+                }.sortedBy { it.second.opprettet }
         }
 
     private fun oppdaterStatuser(
@@ -228,10 +225,7 @@ class ForespoerselDao(
         statuser: Set<Status>,
     ): List<ForespoerselDto> =
         hentForespoerslerForVedtaksperiodeIdListe(vedtaksperiodeIder)
-            .groupBy { it.vedtaksperiodeId }
-            .mapNotNull { (_, forespoersler) ->
-                forespoersler.finnNyesteForespoersel(statuser)
-            }
+            .finnNyesteForespoerselPerVedtaksperiodeId(statuser)
 
     private fun insertOrUpdateBesvarelse(
         forespoerselId: Long,
@@ -273,38 +267,19 @@ fun tilForespoerselDto(row: ResultRow): ForespoerselDto =
         kastetTilInfotrygd = row[ForespoerselTable.kastetTilInfotrygd],
     )
 
-private fun List<ForespoerselDto>.finnNyesteForespoersel(statuser: Set<Status>): ForespoerselDto? {
-    val nyesteForespoersel =
-        sortedByDescending { it.opprettet }
-            .firstOrNull { it.status in statuser }
-
-    val eksponertForespoerselId = finnEksponertForespoersel()?.forespoerselId
-
-    return if (nyesteForespoersel != null && eksponertForespoerselId != null) {
-        // Simba kjenner kun til eksponerte forespørsel-ID-er, så vi må bytte for at ID-en skal matche Simbas systemer.
-        nyesteForespoersel.copy(
-            forespoerselId = eksponertForespoerselId,
-        )
-    } else {
-        null
-    }
-}
-
-private fun List<ForespoerselDto>.finnEksponertForespoersel(): ForespoerselDto? =
-    sortedByDescending { it.opprettet }
-        .zipWithNextOrNull()
-        .firstOrNull { (_, next) ->
-            next == null || next.status.erBesvart()
-        }?.let { (current, _) -> current }
-
-private fun List<Pair<UUID, ForespoerselDto>>.toAggregateMap(): Map<UUID, List<ForespoerselDto>> =
-    fold(emptyMap()) { map, (vedtaksperiodeId, forespoersel) ->
-        val forespoerslerForKey = map[vedtaksperiodeId].orEmpty().plus(forespoersel)
-
-        map.plus(
-            vedtaksperiodeId to forespoerslerForKey,
-        )
-    }
+private fun List<Pair<UUID, ForespoerselDto>>.finnNyesteForespoerselPerVedtaksperiodeId(statuser: Set<Status>): List<ForespoerselDto> =
+    groupBy { it.second.vedtaksperiodeId }
+        .mapNotNull { (_, eksponertIdOgForespoerselListe) ->
+            eksponertIdOgForespoerselListe
+                .sortedByDescending { it.second.opprettet }
+                .firstOrNull { it.second.status in statuser }
+                ?.let { (eksponertForespoerselId, nyesteForespoersel) ->
+                    // Simba kjenner kun til eksponerte forespørsel-ID-er, så vi må bytte for at ID-en skal matche Simbas systemer.
+                    nyesteForespoersel.copy(
+                        forespoerselId = eksponertForespoerselId,
+                    )
+                }
+        }
 
 fun tilForespoerselTilLpsapi(row: ResultRow): ForespoerselDtoMedEksponertFsp =
     ForespoerselDtoMedEksponertFsp(

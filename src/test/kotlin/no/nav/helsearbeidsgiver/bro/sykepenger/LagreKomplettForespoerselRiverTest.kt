@@ -12,16 +12,14 @@ import io.mockk.verifySequence
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.bestemmendeFravaersdagerSerializer
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselOppdatertSendt
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.toKeyMap
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.tilMeldingForespoerselMottatt
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.tilMeldingForespoerselOppdatert
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -69,15 +67,6 @@ class LagreKomplettForespoerselRiverTest :
                 mockInnkommendeMelding(forespoersel)
             }
 
-            val expectedPublished =
-                ForespoerselMottatt(
-                    forespoerselId = forespoersel.forespoerselId,
-                    orgnr = forespoersel.orgnr,
-                    fnr = forespoersel.fnr,
-                    skalHaPaaminnelse = true,
-                    forespoersel = ForespoerselSimba(forespoersel),
-                )
-
             verifySequence {
                 mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
                 mockForespoerselDao.lagre(
@@ -88,7 +77,7 @@ class LagreKomplettForespoerselRiverTest :
                 )
 
                 mockPriProducer.send(
-                    *expectedPublished.toKeyMap().toList().toTypedArray(),
+                    *forespoersel.tilMeldingForespoerselMottatt(),
                 )
 
                 mockForespoerselDao.hentForespoerslerForVedtaksperiodeIdListe(setOf(forespoersel.vedtaksperiodeId))
@@ -126,21 +115,10 @@ class LagreKomplettForespoerselRiverTest :
                     eksponertForespoerselId,
                 )
             }
-            val expectedPublished =
-                ForespoerselOppdatertSendt(
-                    forespoerselId = forespoersel.forespoerselId,
-                    orgnr = forespoersel.orgnr,
-                    fnr = forespoersel.fnr,
-                    skalHaPaaminnelse = true,
-                    forespoersel = ForespoerselSimba(forespoersel),
-                    eksponertForespoerselId = eksponertForespoerselId,
-                )
+
             verifySequence {
                 mockPriProducer.send(
-                    *expectedPublished
-                        .toKeyMap()
-                        .mapNotNull { (key, value) -> value?.let { key to it } }
-                        .toTypedArray(),
+                    *forespoersel.tilMeldingForespoerselOppdatert(eksponertForespoerselId),
                 )
             }
         }

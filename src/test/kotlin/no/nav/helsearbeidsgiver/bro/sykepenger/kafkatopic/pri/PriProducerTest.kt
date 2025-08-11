@@ -7,8 +7,8 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifySequence
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselMottatt
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.toKeyMap
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.tilMeldingForespoerselMottatt
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
@@ -30,11 +30,11 @@ class PriProducerTest :
         test("gir true ved sendt melding til kafka stream") {
             every { mockProducer.send(any()).get() } returns mockRecordMetadata()
 
-            val forespoerselMottatt = mockForespoerselMottatt()
+            val forespoersel = mockForespoerselDto()
 
             val bleMeldingSendt =
                 priProducer.send(
-                    *forespoerselMottatt.toKeyMap().toList().toTypedArray(),
+                    *forespoersel.tilMeldingForespoerselMottatt(),
                 )
 
             bleMeldingSendt.shouldBeTrue()
@@ -42,7 +42,7 @@ class PriProducerTest :
             val expected =
                 ProducerRecord<String, String>(
                     Pri.TOPIC,
-                    forespoerselMottatt.toKeyMap().toJsonStr(),
+                    forespoersel.tilMeldingForespoerselMottatt().toMap().toJsonStr(),
                 )
 
             verifySequence { mockProducer.send(expected) }
@@ -51,11 +51,11 @@ class PriProducerTest :
         test("gir false ved feilet sending til kafka stream") {
             every { mockProducer.send(any()) } throws TimeoutException("too slow bro")
 
-            val forespoerselMottatt = mockForespoerselMottatt()
+            val forespoersel = mockForespoerselDto()
 
             val bleMeldingSendt =
                 priProducer.send(
-                    *forespoerselMottatt.toKeyMap().toList().toTypedArray(),
+                    *forespoersel.tilMeldingForespoerselMottatt(),
                 )
 
             bleMeldingSendt.shouldBeFalse()

@@ -1,12 +1,9 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.testutils
 
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDtoMedEksponertFsp
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselOppdatertSendt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtData
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForrigeInntekt
@@ -24,9 +21,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
-import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.juni
@@ -129,17 +124,6 @@ fun mockForespurtDataSpleisRefusjon(): SpleisRefusjon =
             ),
     )
 
-fun mockForespoerselMottatt(): ForespoerselMottatt {
-    val forespoersel = mockForespoerselSvarSuksess()
-    return ForespoerselMottatt(
-        forespoerselId = forespoersel.forespoerselId,
-        orgnr = forespoersel.orgnr,
-        fnr = forespoersel.fnr,
-        skalHaPaaminnelse = forespoersel.type == Type.KOMPLETT,
-        forespoersel = forespoersel,
-    )
-}
-
 fun mockForespoerselSvarSuksess(): ForespoerselSimba {
     val orgnr = Orgnr.genererGyldig()
 
@@ -211,24 +195,3 @@ fun mockInntektsmeldingHaandtertDto(dokumentId: UUID? = MockUuid.inntektsmelding
     )
 
 fun mockJsonElement(): JsonElement = """{"aTestKey":"aTestValue"}""".parseJson()
-
-fun ForespoerselMottatt.toKeyMap() =
-    mapOf(
-        Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
-        Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-        Pri.Key.ORGNR to orgnr.toJson(),
-        Pri.Key.FNR to fnr.toJson(),
-        Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
-        Pri.Key.FORESPOERSEL to forespoersel.toJson(ForespoerselSimba.serializer()),
-    )
-
-fun ForespoerselOppdatertSendt.toKeyMap() =
-    mapOf(
-        Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_OPPDATERT.toJson(Pri.NotisType.serializer()),
-        Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
-        Pri.Key.ORGNR to orgnr.toJson(),
-        Pri.Key.FNR to fnr.toJson(),
-        Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
-        Pri.Key.FORESPOERSEL to forespoersel.toJson(ForespoerselSimba.serializer()),
-        Pri.Key.EKSPONERT_FORESPOERSEL_ID to eksponertForespoerselId?.toJson(),
-    )
