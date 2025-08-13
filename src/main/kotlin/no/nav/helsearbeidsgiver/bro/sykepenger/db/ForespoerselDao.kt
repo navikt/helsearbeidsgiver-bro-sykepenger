@@ -279,7 +279,7 @@ private fun List<Pair<UUID, ForespoerselDto>>.finnNyesteForespoerselPerVedtakspe
                         forespoerselId = eksponertForespoerselId,
                     )
                 }
-        }
+        }.sortedBy { it.opprettet }
 
 fun tilForespoerselTilLpsapi(row: ResultRow): ForespoerselDtoMedEksponertFsp =
     ForespoerselDtoMedEksponertFsp(
