@@ -17,7 +17,7 @@ object ForespoerselTable : Table("forespoersel") {
             idSeqName = "forespoersel_id_seq",
         )
     val forespoerselId = uuid("forespoersel_id")
-    val eksponertForespoerselId = uuid("eksponert_forespoersel_id").nullable()
+    val eksponertForespoerselId = uuid("eksponert_forespoersel_id")
     val type = text("type")
     val status = text("status")
     val orgnr = varchar("orgnr", 9)

@@ -11,9 +11,6 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselMottatt
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselOppdatertSendt
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
@@ -22,14 +19,13 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockBegrensetForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.toKeyMap
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.tilMeldingForespoerselMottatt
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.tilMeldingForespoerselOppdatert
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import java.util.UUID
-import kotlin.collections.component1
-import kotlin.collections.component2
 
 class LagreBegrensetForespoerselRiverTest :
     FunSpec({
@@ -72,15 +68,6 @@ class LagreBegrensetForespoerselRiverTest :
                 mockInnkommendeMelding(forespoersel)
             }
 
-            val expectedPublished =
-                ForespoerselMottatt(
-                    forespoerselId = forespoersel.forespoerselId,
-                    orgnr = forespoersel.orgnr,
-                    fnr = forespoersel.fnr,
-                    skalHaPaaminnelse = false,
-                    forespoersel = ForespoerselSimba(forespoersel),
-                )
-
             verifySequence {
                 mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
 
@@ -92,7 +79,7 @@ class LagreBegrensetForespoerselRiverTest :
                 )
 
                 mockPriProducer.send(
-                    *expectedPublished.toKeyMap().toList().toTypedArray(),
+                    *forespoersel.tilMeldingForespoerselMottatt(skalHaPaaminnelse = false),
                 )
 
                 mockForespoerselDao.hentForespoerslerForVedtaksperiodeIdListe(setOf(forespoersel.vedtaksperiodeId))
@@ -130,21 +117,10 @@ class LagreBegrensetForespoerselRiverTest :
                     eksponertForespoerselId,
                 )
             }
-            val expectedPublished =
-                ForespoerselOppdatertSendt(
-                    forespoerselId = forespoersel.forespoerselId,
-                    orgnr = forespoersel.orgnr,
-                    fnr = forespoersel.fnr,
-                    skalHaPaaminnelse = false,
-                    forespoersel = ForespoerselSimba(forespoersel),
-                    eksponertForespoerselId = eksponertForespoerselId,
-                )
+
             verifySequence {
                 mockPriProducer.send(
-                    *expectedPublished
-                        .toKeyMap()
-                        .mapNotNull { (key, value) -> value?.let { key to it } }
-                        .toTypedArray(),
+                    *forespoersel.tilMeldingForespoerselOppdatert(eksponertForespoerselId),
                 )
             }
         }
