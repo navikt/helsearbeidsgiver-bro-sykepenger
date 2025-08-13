@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
+import java.util.UUID
 
 class HentForespoerselRiver(
     rapid: RapidsConnection,
@@ -49,12 +50,17 @@ class HentForespoerselRiver(
 
         logger().info("Mottok melding på pri-topic av type '${Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID}'.")
         logger().info("Mottok melding på pri-topic med innhold:\n${json.toPretty()}")
-
-        val vedtaksperiodeId =
-            Pri.Key.VEDTAKSPERIODE_ID.les(
-                UuidSerializer,
-                json.fromJsonMapFiltered(Pri.Key.serializer()),
-            )
+        val vedtaksperiodeId: UUID
+        try {
+            vedtaksperiodeId =
+                Pri.Key.VEDTAKSPERIODE_ID.les(
+                    UuidSerializer,
+                    json.fromJsonMapFiltered(Pri.Key.serializer()),
+                )
+        } catch (ex: Exception) {
+            logger().error("Klarte ikke å lese vedtaksperiodeId fra melding: ${ex.message}", ex)
+            return
+        }
         val forespoerselListe = forespoerselDao.hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId)
         if (forespoerselListe.isEmpty()) {
             logger().error("Det er ingen forespørsel for vedtaksperiodeId=$vedtaksperiodeId.")
