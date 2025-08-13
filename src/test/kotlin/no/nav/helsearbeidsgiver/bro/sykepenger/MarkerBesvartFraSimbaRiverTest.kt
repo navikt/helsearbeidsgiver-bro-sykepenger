@@ -9,7 +9,6 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -36,36 +35,37 @@ class MarkerBesvartFraSimbaRiverTest :
             clearAllMocks()
         }
 
-        test("Innkommende event oppdaterer aktive forespørsler som er besvart") {
-            val forespoersel = mockForespoerselDto()
+        test("Innkommende event oppdaterer aktive forespørsler som besvart") {
+            val forespoerselId = UUID.randomUUID()
+            val vedtaksperiodeId = UUID.randomUUID()
 
             every {
-                mockForespoerselDao.hentForespoerselForForespoerselId(forespoersel.forespoerselId)
-            } returns forespoersel
+                mockForespoerselDao.hentVedtaksperiodeId(forespoerselId)
+            } returns vedtaksperiodeId
 
-            mockInnkommendeMelding(forespoersel.forespoerselId)
+            mockInnkommendeMelding(forespoerselId)
 
             verifySequence {
-                mockForespoerselDao.hentForespoerselForForespoerselId(forespoersel.forespoerselId)
-                mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(forespoersel.vedtaksperiodeId, any())
+                mockForespoerselDao.hentVedtaksperiodeId(forespoerselId)
+                mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(vedtaksperiodeId, any())
             }
         }
 
         test("Innkommende event gjør ingenting dersom forespørsel ikke finnes") {
-            val forespoersel = mockForespoerselDto()
+            val forespoerselId = UUID.randomUUID()
 
             every {
-                mockForespoerselDao.hentForespoerselForForespoerselId(forespoersel.forespoerselId)
+                mockForespoerselDao.hentVedtaksperiodeId(forespoerselId)
             } returns null
 
-            mockInnkommendeMelding(forespoersel.forespoerselId)
+            mockInnkommendeMelding(forespoerselId)
 
             verifySequence {
-                mockForespoerselDao.hentForespoerselForForespoerselId(forespoersel.forespoerselId)
+                mockForespoerselDao.hentVedtaksperiodeId(forespoerselId)
             }
 
             verify(exactly = 0) {
-                mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(forespoersel.vedtaksperiodeId, any())
+                mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(any(), any())
             }
         }
     })
