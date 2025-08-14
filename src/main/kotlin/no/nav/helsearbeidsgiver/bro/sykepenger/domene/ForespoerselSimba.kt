@@ -14,7 +14,6 @@ import java.util.UUID
 
 @Serializable
 data class ForespoerselSimba(
-    val type: Type,
     val orgnr: Orgnr,
     val fnr: Fnr,
     val forespoerselId: UUID,
@@ -24,9 +23,9 @@ data class ForespoerselSimba(
     val bestemmendeFravaersdager: Map<Orgnr, LocalDate>,
     val forespurtData: ForespurtData,
     val erBesvart: Boolean,
+    val erBegrenset: Boolean,
 ) {
     constructor(forespoersel: ForespoerselDto) : this(
-        type = forespoersel.type,
         orgnr = forespoersel.orgnr,
         fnr = forespoersel.fnr,
         forespoerselId = forespoersel.forespoerselId,
@@ -36,10 +35,10 @@ data class ForespoerselSimba(
         bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager,
         forespurtData = forespoersel.forespurtData.tilForespurtData(),
         erBesvart = forespoersel.status.erBesvart(),
+        erBegrenset = forespoersel.type == Type.BEGRENSET,
     )
 
     constructor(forespoersel: ForespoerselDtoMedEksponertFsp) : this(
-        type = forespoersel.type,
         orgnr = forespoersel.orgnr,
         fnr = forespoersel.fnr,
         forespoerselId = forespoersel.forespoerselId,
@@ -49,5 +48,6 @@ data class ForespoerselSimba(
         bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager,
         forespurtData = forespoersel.forespurtData.tilForespurtData(),
         erBesvart = forespoersel.status.erBesvart(),
+        erBegrenset = forespoersel.type == Type.BEGRENSET,
     )
 }

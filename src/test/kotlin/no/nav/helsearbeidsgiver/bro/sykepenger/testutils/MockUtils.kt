@@ -128,7 +128,6 @@ fun mockForespoerselSvarSuksess(): ForespoerselSimba {
     val orgnr = Orgnr.genererGyldig()
 
     return ForespoerselSimba(
-        type = Type.KOMPLETT,
         orgnr = orgnr,
         fnr = Fnr.genererGyldig(),
         forespoerselId = UUID.randomUUID(),
@@ -138,6 +137,7 @@ fun mockForespoerselSvarSuksess(): ForespoerselSimba {
         bestemmendeFravaersdager = mapOf(orgnr to 10.november(1999)),
         forespurtData = mockForespurtData(),
         erBesvart = false,
+        erBegrenset = false,
     )
 }
 
