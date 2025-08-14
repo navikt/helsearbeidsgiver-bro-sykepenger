@@ -138,16 +138,6 @@ class ForespoerselDao(
                 }.firstOrNull()
         }
 
-    fun hentForespoerselForForespoerselId(forespoerselId: UUID): ForespoerselDto? =
-        transaction(db) {
-            ForespoerselTable
-                .selectAll()
-                .where {
-                    ForespoerselTable.forespoerselId eq forespoerselId
-                }.map(::tilForespoerselDto)
-                .firstOrNull()
-        }
-
     fun hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId: UUID): ForespoerselDto? =
         hentForespoerslerEksponertTilSimba(
             setOf(vedtaksperiodeId),

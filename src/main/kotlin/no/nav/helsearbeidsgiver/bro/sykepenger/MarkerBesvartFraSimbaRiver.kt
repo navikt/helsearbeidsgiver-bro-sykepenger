@@ -7,7 +7,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
@@ -64,17 +63,17 @@ class MarkerBesvartFraSimbaRiver(
     }
 
     private fun markerBesvart(forespoerselId: UUID) {
-        val forespoersel = forespoerselDao.hentForespoerselForForespoerselId(forespoerselId)
+        val vedtaksperiodeId = forespoerselDao.hentVedtaksperiodeId(forespoerselId)
 
-        if (forespoersel != null) {
+        if (vedtaksperiodeId != null) {
             val antallOppdaterte =
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(
-                    vedtaksperiodeId = forespoersel.vedtaksperiodeId,
+                    vedtaksperiodeId = vedtaksperiodeId,
                     besvart = LocalDateTime.now(),
                 )
 
-            if (antallOppdaterte > 0 && forespoersel.status == Status.AKTIV) {
-                loggernaut.info("Oppdaterte status til besvart fra Simba for forespørsel ${forespoersel.forespoerselId}.")
+            if (antallOppdaterte > 0) {
+                loggernaut.info("Oppdaterte status til besvart fra Simba for forespørsel $forespoerselId.")
             }
         } else {
             loggernaut.error("Fant ingen forespørsel å markere som besvart fra Simba.")

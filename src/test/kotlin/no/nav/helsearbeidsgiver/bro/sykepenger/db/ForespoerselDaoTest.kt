@@ -172,31 +172,6 @@ class ForespoerselDaoTest :
             }
         }
 
-        context(ForespoerselDao::hentForespoerselForForespoerselId.name) {
-            test("Hent ønsket forespørsel") {
-                val eksponertForespoerselId = UUID.randomUUID()
-                val expected = mockForespoerselDto()
-
-                mockForespoerselDto().copy(forespoerselId = eksponertForespoerselId).lagreEksponertNotNull()
-                expected.lagreNotNull(eksponertForespoerselId)
-                mockForespoerselDto().lagreNotNull(eksponertForespoerselId)
-
-                val actual = forespoerselDao.hentForespoerselForForespoerselId(expected.forespoerselId)
-
-                actual.shouldNotBeNull()
-                actual.shouldBeEqualToIgnoringFields(
-                    expected,
-                    ForespoerselDto::status,
-                    ForespoerselDto::oppdatert,
-                )
-                actual.status shouldBe Status.FORKASTET
-            }
-
-            test("Gi 'null' dersom ingen forespørsel finnes") {
-                forespoerselDao.hentForespoerselForForespoerselId(UUID.randomUUID()) shouldBe null
-            }
-        }
-
         context(ForespoerselDao::hentAktivForespoerselForVedtaksperiodeId.name) {
             test("Henter eneste aktive forespørsel i databasen knyttet til en vedtaksperiodeId") {
                 val eksponertId = UUID.randomUUID()
