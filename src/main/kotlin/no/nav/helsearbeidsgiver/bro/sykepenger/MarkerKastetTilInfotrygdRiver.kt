@@ -8,6 +8,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
@@ -68,21 +69,22 @@ class MarkerKastetTilInfotrygdRiver(
 
         val vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding)
 
-        val forespoerselIdEksponertTilSimba =
+        val forespoersel =
             forespoerselDao
                 .hentForespoerslerEksponertTilSimba(setOf(vedtaksperiodeId))
                 .firstOrNull()
-                ?.forespoerselId
 
-        if (forespoerselIdEksponertTilSimba != null) {
+        if (forespoersel != null) {
             forespoerselDao.markerKastetTilInfotrygd(vedtaksperiodeId)
 
-            priProducer
-                .send(
-                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(Pri.NotisType.serializer()),
-                    Pri.Key.FORESPOERSEL_ID to forespoerselIdEksponertTilSimba.toJson(),
-                ).ifTrue { loggernaut.info("Sa ifra til Simba om forespørsel kastet til Infotrygd.") }
-                .ifFalse { loggernaut.error("Klarte ikke si ifra til Simba om forespørsel kastet til Infotrygd.") }
+            if (forespoersel.status == Status.AKTIV) {
+                priProducer
+                    .send(
+                        Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(Pri.NotisType.serializer()),
+                        Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
+                    ).ifTrue { loggernaut.info("Sa ifra til Simba om forespørsel kastet til Infotrygd.") }
+                    .ifFalse { loggernaut.error("Klarte ikke si ifra til Simba om forespørsel kastet til Infotrygd.") }
+            }
         }
     }
 }

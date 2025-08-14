@@ -1212,8 +1212,9 @@ class ForespoerselDaoTest :
 
                 actualForespoersler.size shouldBeExactly 2
 
-                actualForespoersler[0] shouldBe forespoersel3Gruppe1
-                actualForespoersler[1] shouldBe forespoerselGruppe2
+                // Rekkefølgen kommer av opprettelsestidspunktet
+                actualForespoersler[0] shouldBe forespoerselGruppe2
+                actualForespoersler[1] shouldBe forespoersel3Gruppe1
             }
         }
 
