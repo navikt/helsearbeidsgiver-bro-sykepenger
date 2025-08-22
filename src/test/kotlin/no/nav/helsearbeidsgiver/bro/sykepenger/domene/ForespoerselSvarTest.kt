@@ -84,7 +84,7 @@ private fun ForespoerselSimba?.hardcodedJsonFieldOrEmpty(): String =
         ?.let {
             """
             "resultat": ${it.hardcodedJson()},
-        """
+            """
         }?.removeJsonWhitespace()
         .orEmpty()
 
@@ -93,23 +93,25 @@ private fun ForespoerselSvar.Feil?.hardcodedJsonFieldOrEmpty(): String =
         ?.let {
             """
             "feil": "$it",
-        """
+            """
         }?.removeJsonWhitespace()
         .orEmpty()
 
 private fun ForespoerselSimba.hardcodedJson(): String =
     """
     {
-        "type": "$type",
         "orgnr": "${orgnr.verdi}",
         "fnr": "$fnr",
         "forespoerselId": "$forespoerselId",
         "vedtaksperiodeId": "$vedtaksperiodeId",
         "egenmeldingsperioder": [${egenmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
         "sykmeldingsperioder": [${sykmeldingsperioder.joinToString(transform = Periode::hardcodedJson)}],
-        "bestemmendeFravaersdager": {${bestemmendeFravaersdager.toList().joinToString(transform = Pair<Orgnr, LocalDate>::hardcodedJson)}},
+        "bestemmendeFravaersdager": {${
+        bestemmendeFravaersdager.toList().joinToString(transform = Pair<Orgnr, LocalDate>::hardcodedJson)
+    }},
         "forespurtData": ${forespurtData.hardcodedJson()},
-        "erBesvart": $erBesvart
+        "erBesvart": $erBesvart,
+        "erBegrenset": $erBegrenset
     }
     """.removeJsonWhitespace()
 
