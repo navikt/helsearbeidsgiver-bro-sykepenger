@@ -37,6 +37,10 @@ spec:
   prometheus:
     enabled: true
   observability:
+    logging:
+      destinations:
+        - id: secure_logs
+        - id: loki
     autoInstrumentation:
       enabled: true
       runtime: java
@@ -51,6 +55,11 @@ spec:
         flags:
           - name: cloudsql.logical_decoding
             value: "on"
+  accessPolicy:
+    outbound:
+      rules:
+        - application: logging
+          namespace: nais-system
   env:
     - name: KAFKA_CONSUMER_GROUP_ID
       value: helsearbeidsgiver-bro-sykepenger-v1
