@@ -10,6 +10,7 @@ import io.mockk.mockkStatic
 import io.mockk.verify
 import io.mockk.verifySequence
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
+import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselTable.opprettet
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
@@ -25,6 +26,8 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.mars
+import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
+import java.time.LocalDateTime
 import java.util.UUID
 
 class LagreBegrensetForespoerselRiverTest :
@@ -56,16 +59,20 @@ class LagreBegrensetForespoerselRiverTest :
         }
 
         test("Forespørsel blir lagret og sender notifikasjon") {
-            val forespoersel = mockBegrensetForespoerselDto()
+            val vedtaksperiodeId = UUID.randomUUID()
+            val opprettet = LocalDateTime.now()
+            val forespoersel = mockBegrensetForespoerselDto(vedtaksperiodeId, opprettet)
 
             every {
                 mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
             } returns null
 
-            mockkStatic(::randomUuid) {
+            mockStatic(::randomUuid) {
                 every { randomUuid() } returns forespoersel.forespoerselId
-
-                mockInnkommendeMelding(forespoersel)
+                mockStatic(LocalDateTime::class) {
+                    every { LocalDateTime.now() } returns opprettet
+                    mockInnkommendeMelding(forespoersel)
+                }
             }
 
             verifySequence {
@@ -78,16 +85,21 @@ class LagreBegrensetForespoerselRiverTest :
                     forespoersel.forespoerselId,
                 )
 
-                mockPriProducer.send(
-                    *forespoersel.tilMeldingForespoerselMottatt(skalHaPaaminnelse = false),
+                mockPriProducer.sendWithKey(
+                    vedtaksperiodeId.toString(),
+                    *forespoersel.tilMeldingForespoerselMottatt(
+                        skalHaPaaminnelse = false,
+                    ),
                 )
 
                 mockForespoerselDao.hentForespoerslerForVedtaksperiodeIdListe(setOf(forespoersel.vedtaksperiodeId))
             }
         }
 
-        test("Oppdatert forespørsel (ubesvart) blir lagret uten  sender notifikasjon om oppdatering") {
-            val forespoersel = mockBegrensetForespoerselDto()
+        test("Oppdatert forespørsel (ubesvart) blir lagret sender notifikasjon om oppdatering") {
+            val vedtaksperiodeId = UUID.randomUUID()
+            val opprettet = LocalDateTime.now()
+            val forespoersel = mockBegrensetForespoerselDto(vedtaksperiodeId, opprettet)
             val eksponertForespoerselId = UUID.randomUUID()
 
             every {
@@ -103,8 +115,10 @@ class LagreBegrensetForespoerselRiverTest :
 
             mockkStatic(::randomUuid) {
                 every { randomUuid() } returns forespoersel.forespoerselId
-
-                mockInnkommendeMelding(forespoersel)
+                mockStatic(LocalDateTime::class) {
+                    every { LocalDateTime.now() } returns opprettet
+                    mockInnkommendeMelding(forespoersel)
+                }
             }
 
             verifySequence {
@@ -119,7 +133,8 @@ class LagreBegrensetForespoerselRiverTest :
             }
 
             verifySequence {
-                mockPriProducer.send(
+                mockPriProducer.sendWithKey(
+                    vedtaksperiodeId.toString(),
                     *forespoersel.tilMeldingForespoerselOppdatert(eksponertForespoerselId),
                 )
             }
@@ -150,8 +165,11 @@ class LagreBegrensetForespoerselRiverTest :
         }
     })
 
-private fun mockBegrensetForespoerselDto(): ForespoerselDto =
-    mockForespoerselDto().copy(
+private fun mockBegrensetForespoerselDto(
+    vedtaksperiodeId: UUID = UUID.randomUUID(),
+    opprettet: LocalDateTime = LocalDateTime.now(),
+): ForespoerselDto =
+    mockForespoerselDto(vedtaksperiodeId, opprettet).copy(
         type = Type.BEGRENSET,
         egenmeldingsperioder = emptyList(),
         bestemmendeFravaersdager = emptyMap(),

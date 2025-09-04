@@ -144,13 +144,17 @@ sealed class LagreForespoerselRiver(
         nyForespoersel: ForespoerselDto,
         skalHaPaaminnelse: Boolean,
     ) {
-        priProducer
-            .send(
+        val melding =
+            arrayOf(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
                 Pri.Key.FORESPOERSEL_ID to nyForespoersel.forespoerselId.toJson(),
                 Pri.Key.FORESPOERSEL to ForespoerselSimba(nyForespoersel).toJson(ForespoerselSimba.serializer()),
                 Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
-            ).ifTrue { loggernaut.aapen.info("Sa ifra om mottatt forespørsel til Simba.") }
+            )
+
+        priProducer
+            .sendWithKey(nyForespoersel.vedtaksperiodeId.toString(), *melding)
+            .ifTrue { loggernaut.aapen.info("Sa ifra om mottatt forespørsel til Simba.") }
             .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
     }
 
@@ -158,12 +162,18 @@ sealed class LagreForespoerselRiver(
         nyForespoersel: ForespoerselDto,
         eksponertForespoerselId: UUID,
     ) {
-        priProducer
-            .send(
+        val melding =
+            arrayOf(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_OPPDATERT.toJson(Pri.NotisType.serializer()),
                 Pri.Key.EKSPONERT_FORESPOERSEL_ID to eksponertForespoerselId.toJson(),
                 Pri.Key.FORESPOERSEL_ID to nyForespoersel.forespoerselId.toJson(),
                 Pri.Key.FORESPOERSEL to ForespoerselSimba(nyForespoersel).toJson(ForespoerselSimba.serializer()),
+            )
+
+        priProducer
+            .sendWithKey(
+                nyForespoersel.vedtaksperiodeId.toString(),
+                *melding,
             ).ifTrue { loggernaut.aapen.info("Sa ifra om oppdatert forespørsel til LPS-API.") }
             .ifFalse { loggernaut.aapen.error("Klarte ikke å si ifra om oppdatert forespørsel til LPS-API.") }
     }

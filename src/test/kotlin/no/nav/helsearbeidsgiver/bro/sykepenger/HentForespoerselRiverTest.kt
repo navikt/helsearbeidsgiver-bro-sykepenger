@@ -34,9 +34,9 @@ class HentForespoerselRiverTest :
 
         test("Henter forespørsel for vedtaksperiodeId") {
             val vedtaksperiodeId = UUID.randomUUID()
-
-            val forespoersel1 = mockForespoerselDtoMedEksponertFsp()
-            val forespoersel2 = mockForespoerselDtoMedEksponertFsp()
+            println("**** vedtaksperiodeId: $vedtaksperiodeId")
+            val forespoersel1 = mockForespoerselDtoMedEksponertFsp(vedtaksperiodeId)
+            val forespoersel2 = mockForespoerselDtoMedEksponertFsp(vedtaksperiodeId)
 
             every {
                 mockForespoerselDao.hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId)
@@ -53,14 +53,16 @@ class HentForespoerselRiverTest :
             )
             verifySequence {
                 mockForespoerselDao.hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId)
-                mockPriProducer.send(
+                mockPriProducer.sendWithKey(
+                    vedtaksperiodeId.toString(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FOR_VEDTAKSPERIODE_ID.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to forespoersel1.forespoerselId.toJson(),
                     Pri.Key.FORESPOERSEL to ForespoerselSimba(forespoersel1).toJson(ForespoerselSimba.serializer()),
                     Pri.Key.EKSPONERT_FORESPOERSEL_ID to forespoersel1.finnEksponertForespoerselId().toJson(),
                     Pri.Key.STATUS to forespoersel1.getStatus().toJson(),
                 )
-                mockPriProducer.send(
+                mockPriProducer.sendWithKey(
+                    vedtaksperiodeId.toString(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FOR_VEDTAKSPERIODE_ID.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to forespoersel2.forespoerselId.toJson(),
                     Pri.Key.FORESPOERSEL to ForespoerselSimba(forespoersel2).toJson(ForespoerselSimba.serializer()),

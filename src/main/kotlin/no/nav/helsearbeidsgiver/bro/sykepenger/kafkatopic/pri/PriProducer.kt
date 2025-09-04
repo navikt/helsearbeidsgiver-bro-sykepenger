@@ -12,22 +12,37 @@ import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringSerializer
 import java.util.Properties
+import kotlin.text.get
 
 class PriProducer(
     private val producer: KafkaProducer<String, String> = createProducer(),
 ) {
     private val topic = Pri.TOPIC
 
-    fun send(vararg keyValuePairs: Pair<Pri.Key, JsonElement>): Boolean =
-        keyValuePairs
-            .toMap()
-            .toJsonStr()
-            .toRecord()
-            .runCatching {
-                producer.send(this).get()
-            }.isSuccess
-
     private fun String.toRecord(): ProducerRecord<String, String> = ProducerRecord(topic, this)
+
+    private fun String.toRecord(key: String): ProducerRecord<String, String> = ProducerRecord(topic, key, this)
+
+    private fun sendRecord(record: ProducerRecord<String, String>): Boolean = runCatching { producer.send(record).get() }.isSuccess
+
+    fun send(vararg keyValuePairs: Pair<Pri.Key, JsonElement>): Boolean =
+        sendRecord(
+            keyValuePairs
+                .toMap()
+                .toJsonStr()
+                .toRecord(),
+        )
+
+    fun sendWithKey(
+        key: String,
+        vararg keyValuePairs: Pair<Pri.Key, JsonElement>,
+    ): Boolean =
+        sendRecord(
+            keyValuePairs
+                .toMap()
+                .toJsonStr()
+                .toRecord(key),
+        )
 }
 
 fun Map<Pri.Key, JsonElement>.toJsonStr() =
