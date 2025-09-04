@@ -21,6 +21,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.januar
@@ -40,7 +41,7 @@ object MockUuid {
 
 fun mockForespoerselDto(
     vedtaksperiodeId: UUID = MockUuid.vedtaksperiodeId,
-    opprettet: LocalDateTime = LocalDateTime.now(),
+    opprettet: LocalDateTime = LocalDateTime.now().truncMillis(),
 ): ForespoerselDto {
     val orgnr = Orgnr.genererGyldig()
 
