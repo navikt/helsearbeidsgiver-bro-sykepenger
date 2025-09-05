@@ -79,7 +79,7 @@ class MarkerKastetTilInfotrygdRiverTest :
                     mockForespoerselDao.markerKastetTilInfotrygd(mockForespoersel.vedtaksperiodeId)
                 }
                 verify(exactly = 0) {
-                    mockPriProducer.send(*anyVararg())
+                    mockPriProducer.sendWithKey(any(), *anyVararg())
                 }
             }
         }
@@ -98,7 +98,7 @@ class MarkerKastetTilInfotrygdRiverTest :
             }
             verify(exactly = 0) {
                 mockForespoerselDao.markerKastetTilInfotrygd(any())
-                mockPriProducer.send(any(), any())
+                mockPriProducer.send(any(), *anyVararg())
             }
         }
     })

@@ -55,7 +55,6 @@ class LagreBegrensetForespoerselRiverTest :
 
         beforeEach {
             clearAllMocks()
-            every { mockPriProducer.send(any()) } returns true
         }
 
         test("Forespørsel blir lagret og sender notifikasjon") {
@@ -160,7 +159,7 @@ class LagreBegrensetForespoerselRiverTest :
             verify(exactly = 0) {
                 mockForespoerselDao.lagre(any(), any())
 
-                mockPriProducer.send(any())
+                mockPriProducer.sendWithKey(any(), any())
             }
         }
     })

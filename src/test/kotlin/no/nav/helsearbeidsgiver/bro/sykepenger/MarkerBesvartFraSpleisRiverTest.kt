@@ -113,7 +113,7 @@ class MarkerBesvartFraSpleisRiverTest :
             mockInnkommendeMelding(inntektsmeldingHaandtert)
 
             verify(exactly = 0) {
-                mockPriProducer.send(*anyVararg())
+                mockPriProducer.sendWithKey(any(), *anyVararg())
             }
         }
 

@@ -156,7 +156,7 @@ class LagreKomplettForespoerselRiverTest :
             verify(exactly = 0) {
                 mockForespoerselDao.lagre(any(), any())
 
-                mockPriProducer.send(any())
+                mockPriProducer.sendWithKey(any(), *anyVararg())
             }
         }
     })
