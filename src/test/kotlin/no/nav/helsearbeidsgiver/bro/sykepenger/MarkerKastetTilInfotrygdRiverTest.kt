@@ -53,7 +53,7 @@ class MarkerKastetTilInfotrygdRiverTest :
             verifySequence {
                 mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(mockForespoersel.vedtaksperiodeId))
                 mockForespoerselDao.markerKastetTilInfotrygd(mockForespoersel.vedtaksperiodeId)
-                mockPriProducer.send(
+                mockPriProducer.sendWithKey(mockForespoersel.vedtaksperiodeId.toString(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to mockForespoersel.forespoerselId.toJson(),
                 )

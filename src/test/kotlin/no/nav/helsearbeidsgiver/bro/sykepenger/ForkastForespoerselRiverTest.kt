@@ -60,7 +60,8 @@ class ForkastForespoerselRiverTest :
             mockForkastForespoerselMelding(vedtaksperiodeId)
 
             verifySequence {
-                mockPriProducer.send(
+                mockPriProducer.sendWithKey(
+                    vedtaksperiodeId.toString(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FORKASTET.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
                 )

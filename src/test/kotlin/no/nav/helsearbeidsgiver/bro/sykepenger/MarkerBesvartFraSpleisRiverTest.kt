@@ -97,7 +97,8 @@ class MarkerBesvartFraSpleisRiverTest :
             mockInnkommendeMelding(inntektsmeldingHaandtert)
 
             verifySequence {
-                mockPriProducer.send(
+                mockPriProducer.sendWithKey(
+                    inntektsmeldingHaandtert.vedtaksperiodeId.toString(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
                 )
@@ -138,7 +139,8 @@ class MarkerBesvartFraSpleisRiverTest :
             mockInnkommendeMelding(inntektsmeldingHaandtert)
 
             verify {
-                mockPriProducer.send(
+                mockPriProducer.sendWithKey(
+                    inntektsmeldingHaandtert.vedtaksperiodeId.toString(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
                 )
@@ -167,7 +169,8 @@ class MarkerBesvartFraSpleisRiverTest :
             mockInnkommendeMelding(inntektsmeldingHaandtert)
 
             verify {
-                mockPriProducer.send(
+                mockPriProducer.sendWithKey(
+                    inntektsmeldingHaandtert.vedtaksperiodeId.toString(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
                     Pri.Key.SPINN_INNTEKTSMELDING_ID to MockUuid.inntektsmeldingId.toJson(),

@@ -116,7 +116,8 @@ class MarkerBesvartFraSpleisRiver(
                     ).toTypedArray()
 
                 priProducer
-                    .send(
+                    .sendWithKey(
+                        inntektsmeldingHaandtert.vedtaksperiodeId.toString(),
                         *felter,
                     ).ifTrue { loggernaut.info("Sa ifra om besvart forespørsel til Simba.") }
                     .ifFalse { loggernaut.error("Klarte ikke si ifra om besvart forespørsel til Simba.") }

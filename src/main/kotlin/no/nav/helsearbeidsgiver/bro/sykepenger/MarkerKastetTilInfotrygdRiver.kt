@@ -79,7 +79,8 @@ class MarkerKastetTilInfotrygdRiver(
 
             if (forespoersel.status == Status.AKTIV) {
                 priProducer
-                    .send(
+                    .sendWithKey(
+                        forespoersel.vedtaksperiodeId.toString(),
                         Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(Pri.NotisType.serializer()),
                         Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
                     ).ifTrue { loggernaut.info("Sa ifra til Simba om forespørsel kastet til Infotrygd.") }

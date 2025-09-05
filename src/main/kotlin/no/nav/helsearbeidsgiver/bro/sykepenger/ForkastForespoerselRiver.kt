@@ -75,7 +75,8 @@ internal class ForkastForespoerselRiver(
             loggernaut.info("Oppdaterte status til forkastet for forespørsel '${forespoersel.forespoerselId}' (eksponert ID).")
 
             priProducer
-                .send(
+                .sendWithKey(
+                    forespoersel.vedtaksperiodeId.toString(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FORKASTET.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
                 ).ifTrue { loggernaut.aapen.info("Sa ifra om forkastet forespørsel til Simba.") }
