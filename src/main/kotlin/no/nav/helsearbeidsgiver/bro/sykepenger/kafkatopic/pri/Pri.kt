@@ -28,6 +28,7 @@ object Pri {
         EKSPONERT_FORESPOERSEL_ID("eksponertForespoerselId"),
         VEDTAKSPERIODE_ID("vedtaksperiode_id"),
         STATUS("status"),
+        UTSENDINGS_TIDSPUNKT("utsendingstidspunkt"),
         ;
 
         override fun toString(): String = verdi
