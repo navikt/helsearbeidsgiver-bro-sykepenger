@@ -9,6 +9,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
@@ -74,7 +75,7 @@ class MarkerKastetTilInfotrygdRiver(
                 .hentForespoerslerEksponertTilSimba(setOf(vedtaksperiodeId))
                 .firstOrNull()
 
-        if (forespoersel != null) {
+        if (forespoersel != null && forespoersel.type == Type.KOMPLETT) {
             forespoerselDao.markerKastetTilInfotrygd(vedtaksperiodeId)
 
             if (forespoersel.status == Status.AKTIV) {
