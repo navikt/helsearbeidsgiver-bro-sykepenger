@@ -10,6 +10,7 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
@@ -94,6 +95,24 @@ class MarkerKastetTilInfotrygdRiverTest :
 
             verifySequence {
                 mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(vedtaksperiodeId))
+            }
+            verify(exactly = 0) {
+                mockForespoerselDao.markerKastetTilInfotrygd(any())
+                mockPriProducer.send(any(), any())
+            }
+        }
+
+        test("Hverken oppdaterer database eller sender melding til Simba dersom vi finner begrenset forespørsel") {
+            val mockForespoersel = mockForespoerselDto().copy(type = Type.BEGRENSET)
+
+            every {
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(mockForespoersel.vedtaksperiodeId))
+            } returns listOf(mockForespoersel)
+
+            mockMarkerKastetTilInfotrygdMelding(mockForespoersel.vedtaksperiodeId)
+
+            verifySequence {
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(mockForespoersel.vedtaksperiodeId))
             }
             verify(exactly = 0) {
                 mockForespoerselDao.markerKastetTilInfotrygd(any())
