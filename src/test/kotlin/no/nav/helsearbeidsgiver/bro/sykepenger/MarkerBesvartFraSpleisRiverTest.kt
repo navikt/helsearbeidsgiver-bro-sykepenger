@@ -16,6 +16,8 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockInntektsmeldingHaandtertDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
+import java.time.LocalDateTime
 import java.util.UUID
 
 class MarkerBesvartFraSpleisRiverTest :
@@ -23,7 +25,7 @@ class MarkerBesvartFraSpleisRiverTest :
         val testRapid = TestRapid()
         val mockForespoerselDao = mockk<ForespoerselDao>(relaxed = true)
         val mockPriProducer = mockk<PriProducer>(relaxed = true)
-
+        val utesendingstidspunkt = LocalDateTime.of(2024, 6, 1, 12, 0)
         MarkerBesvartFraSpleisRiver(
             rapid = testRapid,
             forespoerselDao = mockForespoerselDao,
@@ -86,7 +88,6 @@ class MarkerBesvartFraSpleisRiverTest :
             val expectedForespoerselId = UUID.randomUUID()
 
             every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(any(), any(), any()) } returns 1
-
             every {
                 mockForespoerselDao
                     .hentForespoerslerEksponertTilSimba(setOf(inntektsmeldingHaandtert.vedtaksperiodeId))
@@ -94,13 +95,17 @@ class MarkerBesvartFraSpleisRiverTest :
                     ?.forespoerselId
             } returns expectedForespoerselId
 
-            mockInnkommendeMelding(inntektsmeldingHaandtert)
+            mockStatic(LocalDateTime::class) {
+                every { LocalDateTime.now() } returns utesendingstidspunkt
+                mockInnkommendeMelding(inntektsmeldingHaandtert)
+            }
 
-            verifySequence {
+            verify {
                 mockPriProducer.sendWithKey(
                     inntektsmeldingHaandtert.vedtaksperiodeId.toString(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
+                    Pri.Key.UTSENDINGS_TIDSPUNKT to utesendingstidspunkt.toJson(),
                 )
             }
         }
@@ -136,13 +141,17 @@ class MarkerBesvartFraSpleisRiverTest :
                     ?.forespoerselId
             } returns expectedForespoerselId
 
-            mockInnkommendeMelding(inntektsmeldingHaandtert)
+            mockStatic(LocalDateTime::class) {
+                every { LocalDateTime.now() } returns utesendingstidspunkt
+                mockInnkommendeMelding(inntektsmeldingHaandtert)
+            }
 
             verify {
                 mockPriProducer.sendWithKey(
                     inntektsmeldingHaandtert.vedtaksperiodeId.toString(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
+                    Pri.Key.UTSENDINGS_TIDSPUNKT to utesendingstidspunkt.toJson(),
                 )
             }
         }
@@ -166,13 +175,17 @@ class MarkerBesvartFraSpleisRiverTest :
                     ?.forespoerselId
             } returns expectedForespoerselId
 
-            mockInnkommendeMelding(inntektsmeldingHaandtert)
+            mockStatic(LocalDateTime::class) {
+                every { LocalDateTime.now() } returns utesendingstidspunkt
+                mockInnkommendeMelding(inntektsmeldingHaandtert)
+            }
 
             verify {
                 mockPriProducer.sendWithKey(
                     inntektsmeldingHaandtert.vedtaksperiodeId.toString(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
+                    Pri.Key.UTSENDINGS_TIDSPUNKT to utesendingstidspunkt.toJson(),
                     Pri.Key.SPINN_INNTEKTSMELDING_ID to MockUuid.inntektsmeldingId.toJson(),
                 )
             }

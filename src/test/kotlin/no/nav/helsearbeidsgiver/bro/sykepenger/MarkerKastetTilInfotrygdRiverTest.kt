@@ -16,6 +16,8 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
+import java.time.LocalDateTime
 import java.util.UUID
 
 class MarkerKastetTilInfotrygdRiverTest :
@@ -43,20 +45,28 @@ class MarkerKastetTilInfotrygdRiverTest :
 
         test("Oppdaterer database og sender melding til Simba ved aktiv forespørsel") {
             val mockForespoersel = mockForespoerselDto().copy(status = Status.AKTIV)
+            val utesendingstidspunkt = LocalDateTime.of(2024, 6, 1, 12, 0)
 
             every {
                 mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(mockForespoersel.vedtaksperiodeId))
             } returns listOf(mockForespoersel)
 
-            mockMarkerKastetTilInfotrygdMelding(mockForespoersel.vedtaksperiodeId)
+            mockStatic(LocalDateTime::class) {
+                every { LocalDateTime.now() } returns utesendingstidspunkt
+                mockMarkerKastetTilInfotrygdMelding(mockForespoersel.vedtaksperiodeId)
+            }
 
             verifySequence {
                 mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(mockForespoersel.vedtaksperiodeId))
                 mockForespoerselDao.markerKastetTilInfotrygd(mockForespoersel.vedtaksperiodeId)
+            }
+
+            verify {
                 mockPriProducer.sendWithKey(
                     mockForespoersel.vedtaksperiodeId.toString(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to mockForespoersel.forespoerselId.toJson(),
+                    Pri.Key.UTSENDINGS_TIDSPUNKT to utesendingstidspunkt.toJson(),
                 )
             }
         }

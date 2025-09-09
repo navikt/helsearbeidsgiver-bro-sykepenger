@@ -28,6 +28,7 @@ import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
+import java.time.LocalDateTime
 
 class MarkerBesvartFraSpleisRiver(
     rapid: RapidsConnection,
@@ -112,6 +113,7 @@ class MarkerBesvartFraSpleisRiver(
                     listOfNotNull(
                         Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                         Pri.Key.FORESPOERSEL_ID to forespoerselIdEksponertTilSimba.toJson(),
+                        Pri.Key.UTSENDINGS_TIDSPUNKT to LocalDateTime.now().toJson(),
                         inntektsmeldingId?.let { Pri.Key.SPINN_INNTEKTSMELDING_ID to it.toJson() },
                     ).toTypedArray()
 
