@@ -12,7 +12,6 @@ import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringSerializer
 import java.util.Properties
-import kotlin.text.get
 
 class PriProducer(
     private val producer: KafkaProducer<String, String> = createProducer(),
@@ -34,14 +33,14 @@ class PriProducer(
         )
 
     fun sendWithKey(
-        key: String,
+        kafkaKey: String,
         vararg keyValuePairs: Pair<Pri.Key, JsonElement>,
     ): Boolean =
         sendRecord(
             keyValuePairs
                 .toMap()
                 .toJsonStr()
-                .toRecord(key),
+                .toRecord(kafkaKey),
         )
 }
 

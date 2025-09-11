@@ -34,7 +34,7 @@ class HentForespoerselRiverTest :
 
         test("Henter forespørsel for vedtaksperiodeId") {
             val vedtaksperiodeId = UUID.randomUUID()
-            println("**** vedtaksperiodeId: $vedtaksperiodeId")
+
             val forespoersel1 = mockForespoerselDtoMedEksponertFsp(vedtaksperiodeId)
             val forespoersel2 = mockForespoerselDtoMedEksponertFsp(vedtaksperiodeId)
 

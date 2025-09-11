@@ -80,7 +80,7 @@ internal class ForkastForespoerselRiver(
                 .sendWithKey(
                     forespoersel.vedtaksperiodeId.toString(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FORKASTET.toJson(Pri.NotisType.serializer()),
-                    Pri.Key.UTSENDINGS_TIDSPUNKT to LocalDateTime.now().truncMillis().toJson(),
+                    Pri.Key.SENDT_TID to LocalDateTime.now().truncMillis().toJson(),
                     Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
                 ).ifTrue { loggernaut.aapen.info("Sa ifra om forkastet forespørsel til Simba.") }
                 .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om forkastet forespørsel til Simba.") }

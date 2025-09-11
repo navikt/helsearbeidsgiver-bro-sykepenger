@@ -66,7 +66,7 @@ class MarkerKastetTilInfotrygdRiverTest :
                     mockForespoersel.vedtaksperiodeId.toString(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to mockForespoersel.forespoerselId.toJson(),
-                    Pri.Key.UTSENDINGS_TIDSPUNKT to utesendingstidspunkt.toJson(),
+                    Pri.Key.SENDT_TID to utesendingstidspunkt.toJson(),
                 )
             }
         }

@@ -105,7 +105,7 @@ class MarkerBesvartFraSpleisRiverTest :
                     inntektsmeldingHaandtert.vedtaksperiodeId.toString(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
-                    Pri.Key.UTSENDINGS_TIDSPUNKT to utesendingstidspunkt.toJson(),
+                    Pri.Key.SENDT_TID to utesendingstidspunkt.toJson(),
                 )
             }
         }
@@ -151,7 +151,7 @@ class MarkerBesvartFraSpleisRiverTest :
                     inntektsmeldingHaandtert.vedtaksperiodeId.toString(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
-                    Pri.Key.UTSENDINGS_TIDSPUNKT to utesendingstidspunkt.toJson(),
+                    Pri.Key.SENDT_TID to utesendingstidspunkt.toJson(),
                 )
             }
         }
@@ -185,7 +185,7 @@ class MarkerBesvartFraSpleisRiverTest :
                     inntektsmeldingHaandtert.vedtaksperiodeId.toString(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
-                    Pri.Key.UTSENDINGS_TIDSPUNKT to utesendingstidspunkt.toJson(),
+                    Pri.Key.SENDT_TID to utesendingstidspunkt.toJson(),
                     Pri.Key.SPINN_INNTEKTSMELDING_ID to MockUuid.inntektsmeldingId.toJson(),
                 )
             }

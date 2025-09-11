@@ -70,7 +70,7 @@ class PriProducerTest :
 
                 val bleMeldingSendt =
                     priProducer.sendWithKey(
-                        key = forespoersel.vedtaksperiodeId.toString(),
+                        kafkaKey = forespoersel.vedtaksperiodeId.toString(),
                         *forespoersel.tilMeldingForespoerselMottatt(),
                     )
 

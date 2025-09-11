@@ -68,7 +68,7 @@ class ForkastForespoerselRiverTest :
                     mockPriProducer.sendWithKey(
                         vedtaksperiodeId.toString(),
                         Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FORKASTET.toJson(Pri.NotisType.serializer()),
-                        Pri.Key.UTSENDINGS_TIDSPUNKT to utesendingstidspunkt.toJson(),
+                        Pri.Key.SENDT_TID to utesendingstidspunkt.toJson(),
                         Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
                     )
                 }
