@@ -111,7 +111,8 @@ private fun ForespoerselSimba.hardcodedJson(): String =
     }},
         "forespurtData": ${forespurtData.hardcodedJson()},
         "erBesvart": $erBesvart,
-        "erBegrenset": $erBegrenset
+        "erBegrenset": $erBegrenset,
+         "opprettet": "$opprettet"
     }
     """.removeJsonWhitespace()
 

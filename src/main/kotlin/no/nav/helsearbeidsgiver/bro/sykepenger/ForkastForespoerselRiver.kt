@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.les
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.requireKeys
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -22,6 +23,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
+import java.time.LocalDateTime
 
 // Lytter på event om at forespørsel ikke er nødvendig lenger og forkaster forespørselen
 internal class ForkastForespoerselRiver(
@@ -75,8 +77,10 @@ internal class ForkastForespoerselRiver(
             loggernaut.info("Oppdaterte status til forkastet for forespørsel '${forespoersel.forespoerselId}' (eksponert ID).")
 
             priProducer
-                .send(
+                .sendWithKey(
+                    forespoersel.vedtaksperiodeId.toString(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FORKASTET.toJson(Pri.NotisType.serializer()),
+                    Pri.Key.SENDT_TID to LocalDateTime.now().truncMillis().toJson(),
                     Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
                 ).ifTrue { loggernaut.aapen.info("Sa ifra om forkastet forespørsel til Simba.") }
                 .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om forkastet forespørsel til Simba.") }

@@ -15,53 +15,77 @@ import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.errors.TimeoutException
 
 class PriProducerTest :
-    FunSpec({
-        val mockProducer = mockk<KafkaProducer<String, String>>()
+    FunSpec(
+        {
+            val mockProducer = mockk<KafkaProducer<String, String>>()
 
-        val priProducer =
-            PriProducer(
-                producer = mockProducer,
-            )
-
-        beforeEach {
-            clearAllMocks()
-        }
-
-        test("gir true ved sendt melding til kafka stream") {
-            every { mockProducer.send(any()).get() } returns mockRecordMetadata()
-
-            val forespoersel = mockForespoerselDto()
-
-            val bleMeldingSendt =
-                priProducer.send(
-                    *forespoersel.tilMeldingForespoerselMottatt(),
+            val priProducer =
+                PriProducer(
+                    producer = mockProducer,
                 )
 
-            bleMeldingSendt.shouldBeTrue()
+            beforeEach {
+                clearAllMocks()
+            }
 
-            val expected =
-                ProducerRecord<String, String>(
-                    Pri.TOPIC,
-                    forespoersel.tilMeldingForespoerselMottatt().toMap().toJsonStr(),
-                )
+            test("gir true ved sendt melding til kafka stream") {
+                every { mockProducer.send(any()).get() } returns mockRecordMetadata()
 
-            verifySequence { mockProducer.send(expected) }
-        }
+                val forespoersel = mockForespoerselDto()
 
-        test("gir false ved feilet sending til kafka stream") {
-            every { mockProducer.send(any()) } throws TimeoutException("too slow bro")
+                val bleMeldingSendt =
+                    priProducer.send(
+                        *forespoersel.tilMeldingForespoerselMottatt(),
+                    )
 
-            val forespoersel = mockForespoerselDto()
+                bleMeldingSendt.shouldBeTrue()
 
-            val bleMeldingSendt =
-                priProducer.send(
-                    *forespoersel.tilMeldingForespoerselMottatt(),
-                )
+                val expected =
+                    ProducerRecord<String, String>(
+                        Pri.TOPIC,
+                        forespoersel.tilMeldingForespoerselMottatt().toMap().toJsonStr(),
+                    )
 
-            bleMeldingSendt.shouldBeFalse()
+                verifySequence { mockProducer.send(expected) }
+            }
 
-            verifySequence { mockProducer.send(any()) }
-        }
-    })
+            test("gir false ved feilet sending til kafka stream") {
+                every { mockProducer.send(any()) } throws TimeoutException("too slow bro")
+
+                val forespoersel = mockForespoerselDto()
+
+                val bleMeldingSendt =
+                    priProducer.send(
+                        *forespoersel.tilMeldingForespoerselMottatt(),
+                    )
+
+                bleMeldingSendt.shouldBeFalse()
+
+                verifySequence { mockProducer.send(any()) }
+            }
+            test("sender melding med vedtaksperiodeId som key") {
+                every { mockProducer.send(any()).get() } returns mockRecordMetadata()
+
+                val forespoersel = mockForespoerselDto()
+
+                val bleMeldingSendt =
+                    priProducer.sendWithKey(
+                        kafkaKey = forespoersel.vedtaksperiodeId.toString(),
+                        *forespoersel.tilMeldingForespoerselMottatt(),
+                    )
+
+                bleMeldingSendt.shouldBeTrue()
+
+                val expected =
+                    ProducerRecord<String, String>(
+                        Pri.TOPIC,
+                        forespoersel.vedtaksperiodeId.toString(),
+                        forespoersel.tilMeldingForespoerselMottatt().toMap().toJsonStr(),
+                    )
+
+                verifySequence { mockProducer.send(expected) }
+            }
+        },
+    )
 
 private fun mockRecordMetadata(): RecordMetadata = RecordMetadata(null, 0, 0, 0, 0, 0)

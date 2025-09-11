@@ -24,6 +24,8 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.mars
+import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
+import java.time.LocalDateTime
 import java.util.UUID
 
 class LagreKomplettForespoerselRiverTest :
@@ -57,14 +59,18 @@ class LagreKomplettForespoerselRiverTest :
         }
 
         test("Forespørsel blir lagret og sender notifikasjon") {
-            val forespoersel = mockForespoerselDto()
+            val vetdaksperiodeId = UUID.randomUUID()
+            val opprettet = LocalDateTime.now()
+            val forespoersel = mockForespoerselDto(vedtaksperiodeId = vetdaksperiodeId, opprettet = opprettet)
 
             every { mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId) } returns null
 
             mockkStatic(::randomUuid) {
                 every { randomUuid() } returns forespoersel.forespoerselId
-
-                mockInnkommendeMelding(forespoersel)
+                mockStatic(LocalDateTime::class) {
+                    every { LocalDateTime.now() } returns opprettet
+                    mockInnkommendeMelding(forespoersel)
+                }
             }
 
             verifySequence {
@@ -76,7 +82,8 @@ class LagreKomplettForespoerselRiverTest :
                     forespoersel.forespoerselId,
                 )
 
-                mockPriProducer.send(
+                mockPriProducer.sendWithKey(
+                    vetdaksperiodeId.toString(),
                     *forespoersel.tilMeldingForespoerselMottatt(),
                 )
 
@@ -85,9 +92,11 @@ class LagreKomplettForespoerselRiverTest :
         }
 
         test("Oppdatert forespørsel (ubesvart) blir lagret og sender notifikasjon om oppdatering") {
-            val forespoersel = mockForespoerselDto()
-            val eksponertForespoerselId = UUID.randomUUID()
 
+            val eksponertForespoerselId = UUID.randomUUID()
+            val vetdaksperiodeId = UUID.randomUUID()
+            val opprettet = LocalDateTime.now()
+            val forespoersel = mockForespoerselDto(vedtaksperiodeId = vetdaksperiodeId, opprettet = opprettet)
             every {
                 mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
             } returns
@@ -102,7 +111,10 @@ class LagreKomplettForespoerselRiverTest :
             mockkStatic(::randomUuid) {
                 every { randomUuid() } returns forespoersel.forespoerselId
 
-                mockInnkommendeMelding(forespoersel)
+                mockStatic(LocalDateTime::class) {
+                    every { LocalDateTime.now() } returns opprettet
+                    mockInnkommendeMelding(forespoersel)
+                }
             }
 
             verifySequence {
@@ -117,7 +129,8 @@ class LagreKomplettForespoerselRiverTest :
             }
 
             verifySequence {
-                mockPriProducer.send(
+                mockPriProducer.sendWithKey(
+                    vetdaksperiodeId.toString(),
                     *forespoersel.tilMeldingForespoerselOppdatert(eksponertForespoerselId),
                 )
             }
@@ -143,7 +156,7 @@ class LagreKomplettForespoerselRiverTest :
             verify(exactly = 0) {
                 mockForespoerselDao.lagre(any(), any())
 
-                mockPriProducer.send(any())
+                mockPriProducer.sendWithKey(any(), *anyVararg())
             }
         }
     })

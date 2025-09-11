@@ -21,6 +21,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.januar
@@ -38,7 +39,10 @@ object MockUuid {
     val inntektsmeldingId: UUID = "22efb342-3e72-4880-a449-eb1efcf0f18b".let(UUID::fromString)
 }
 
-fun mockForespoerselDto(): ForespoerselDto {
+fun mockForespoerselDto(
+    vedtaksperiodeId: UUID = MockUuid.vedtaksperiodeId,
+    opprettet: LocalDateTime = LocalDateTime.now().truncMillis(),
+): ForespoerselDto {
     val orgnr = Orgnr.genererGyldig()
 
     return ForespoerselDto(
@@ -47,7 +51,7 @@ fun mockForespoerselDto(): ForespoerselDto {
         status = Status.AKTIV,
         orgnr = orgnr,
         fnr = Fnr.genererGyldig(),
-        vedtaksperiodeId = MockUuid.vedtaksperiodeId,
+        vedtaksperiodeId = vedtaksperiodeId,
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         sykmeldingsperioder =
             listOf(
@@ -61,10 +65,11 @@ fun mockForespoerselDto(): ForespoerselDto {
                 Orgnr.genererGyldig() to 19.januar,
             ),
         forespurtData = mockSpleisForespurtDataListe(),
+        opprettet = opprettet,
     )
 }
 
-fun mockForespoerselDtoMedEksponertFsp(): ForespoerselDtoMedEksponertFsp {
+fun mockForespoerselDtoMedEksponertFsp(vedtaksperiodeId: UUID = MockUuid.vedtaksperiodeId): ForespoerselDtoMedEksponertFsp {
     val orgnr = Orgnr.genererGyldig()
 
     return ForespoerselDtoMedEksponertFsp(
@@ -73,7 +78,7 @@ fun mockForespoerselDtoMedEksponertFsp(): ForespoerselDtoMedEksponertFsp {
         status = Status.AKTIV,
         orgnr = orgnr,
         fnr = Fnr.genererGyldig(),
-        vedtaksperiodeId = MockUuid.vedtaksperiodeId,
+        vedtaksperiodeId = vedtaksperiodeId,
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         sykmeldingsperioder =
             listOf(
@@ -138,6 +143,7 @@ fun mockForespoerselSvarSuksess(): ForespoerselSimba {
         forespurtData = mockForespurtData(),
         erBesvart = false,
         erBegrenset = false,
+        opprettet = LocalDateTime.now(),
     )
 }
 

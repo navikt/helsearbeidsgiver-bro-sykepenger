@@ -24,6 +24,7 @@ import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
 import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
+import java.time.LocalDateTime
 
 // Lytter på event om at vedtaksperiode er kastet til Infotrygd
 class MarkerKastetTilInfotrygdRiver(
@@ -80,9 +81,11 @@ class MarkerKastetTilInfotrygdRiver(
 
             if (forespoersel.status == Status.AKTIV) {
                 priProducer
-                    .send(
+                    .sendWithKey(
+                        forespoersel.vedtaksperiodeId.toString(),
                         Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(Pri.NotisType.serializer()),
                         Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
+                        Pri.Key.SENDT_TID to LocalDateTime.now().toJson(),
                     ).ifTrue { loggernaut.info("Sa ifra til Simba om forespørsel kastet til Infotrygd.") }
                     .ifFalse { loggernaut.error("Klarte ikke si ifra til Simba om forespørsel kastet til Infotrygd.") }
             }

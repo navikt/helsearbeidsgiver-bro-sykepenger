@@ -15,6 +15,8 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid.vedtaksperiode
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
+import java.time.LocalDateTime
 import java.util.UUID
 
 class ForkastForespoerselRiverTest :
@@ -52,18 +54,24 @@ class ForkastForespoerselRiverTest :
 
         test("Sier ifra til Simba om at forespørsel er forkastet") {
             val forespoersel = mockForespoerselDto()
+            val utesendingstidspunkt = LocalDateTime.of(2024, 6, 1, 12, 0)
+            mockStatic(LocalDateTime::class) {
+                every { LocalDateTime.now() } returns utesendingstidspunkt
 
-            every {
-                mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
-            } returns forespoersel
+                every {
+                    mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiodeId)
+                } returns forespoersel
 
-            mockForkastForespoerselMelding(vedtaksperiodeId)
+                mockForkastForespoerselMelding(vedtaksperiodeId)
 
-            verifySequence {
-                mockPriProducer.send(
-                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FORKASTET.toJson(Pri.NotisType.serializer()),
-                    Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
-                )
+                verifySequence {
+                    mockPriProducer.sendWithKey(
+                        vedtaksperiodeId.toString(),
+                        Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FORKASTET.toJson(Pri.NotisType.serializer()),
+                        Pri.Key.SENDT_TID to utesendingstidspunkt.toJson(),
+                        Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
+                    )
+                }
             }
         }
 
@@ -76,7 +84,7 @@ class ForkastForespoerselRiverTest :
             mockForkastForespoerselMelding(vedtaksperiodeId)
 
             verify(exactly = 0) {
-                mockPriProducer.send(*anyVararg())
+                mockPriProducer.sendWithKey(any(), *anyVararg())
             }
         }
     })
