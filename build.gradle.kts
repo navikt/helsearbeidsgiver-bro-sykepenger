@@ -104,7 +104,7 @@ dependencies {
             testImplementation("org.apache.commons:commons-compress:1.26.2") {
                 because("For å fikse sårbarheter rapportert i depedabot alerts. Sjekk om nødvendig etter oppgradering av testcontainers fra 1.21.3.")
             }
-            testImplementation("org.apache.commons:commons-lang3:3.18.0") {
+            testImplementation("org.apache.commons:commons-lang3:3.19.0") {
                 because("For å fikse sårbarheter rapportert i depedabot alerts. Sjekk om nødvendig etter oppgradering av testcontainers fra 1.21.3.")
             }
         }
