@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.data.row
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespurtDataSpleisRefusjon
@@ -18,9 +17,9 @@ import no.nav.helsearbeidsgiver.utils.test.resource.readResource
 class SpleisForespurtDataDtoTest :
     FunSpec({
         listOf(
-            row("forespurtDataListe", ::mockSpleisForespurtDataListe),
-            row("forespurtDataListeMedTomtInntektForslag", ::mockSpleisForespurtDataListeMedTomtInntektForslag),
-            row("forespurtDataListeMedForrigeInntekt", ::mockSpleisForespurtDataListeMedForrigeInntekt),
+            "forespurtDataListe" to ::mockSpleisForespurtDataListe,
+            "forespurtDataListeMedTomtInntektForslag" to ::mockSpleisForespurtDataListeMedTomtInntektForslag,
+            "forespurtDataListeMedForrigeInntekt" to ::mockSpleisForespurtDataListeMedForrigeInntekt,
         ).forEach { (fileName, mockDataFn) ->
             val expectedJson = "json/$fileName.json".readResource().removeJsonWhitespace()
 
