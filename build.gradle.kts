@@ -6,6 +6,7 @@ plugins {
     application
     kotlin("jvm")
     kotlin("plugin.serialization")
+    id("io.kotest")
     id("org.jmailen.kotlinter")
 }
 
@@ -96,7 +97,7 @@ dependencies {
     testImplementation(testFixtures("no.nav.helsearbeidsgiver:utils:$utilsVersion"))
     testImplementation("com.github.navikt.tbd-libs:rapids-and-rivers-test:$rapidsAndRiversTestVersion")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
-    testImplementation("io.kotest:kotest-framework-datatest:$kotestVersion")
+    testImplementation("io.kotest:kotest-framework-engine:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersPostgresqlVersion") {
