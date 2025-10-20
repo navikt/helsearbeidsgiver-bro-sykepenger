@@ -39,10 +39,7 @@ object MockUuid {
     val inntektsmeldingId: UUID = "22efb342-3e72-4880-a449-eb1efcf0f18b".let(UUID::fromString)
 }
 
-fun mockForespoerselDto(
-    vedtaksperiodeId: UUID = MockUuid.vedtaksperiodeId,
-    opprettet: LocalDateTime = LocalDateTime.now().truncMillis(),
-): ForespoerselDto {
+fun mockForespoerselDto(): ForespoerselDto {
     val orgnr = Orgnr.genererGyldig()
 
     return ForespoerselDto(
@@ -51,7 +48,7 @@ fun mockForespoerselDto(
         status = Status.AKTIV,
         orgnr = orgnr,
         fnr = Fnr.genererGyldig(),
-        vedtaksperiodeId = vedtaksperiodeId,
+        vedtaksperiodeId = MockUuid.vedtaksperiodeId,
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         sykmeldingsperioder =
             listOf(
@@ -65,7 +62,7 @@ fun mockForespoerselDto(
                 Orgnr.genererGyldig() to 19.januar,
             ),
         forespurtData = mockSpleisForespurtDataListe(),
-        opprettet = opprettet,
+        opprettet = LocalDateTime.now().truncMillis(),
     )
 }
 
