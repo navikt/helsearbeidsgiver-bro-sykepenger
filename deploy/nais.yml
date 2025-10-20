@@ -7,7 +7,6 @@ metadata:
     team: helsearbeidsgiver
     app: helsearbeidsgiver-bro-sykepenger
 spec:
-  image: {{ image }}
   resources:
     requests:
       cpu: 50m
