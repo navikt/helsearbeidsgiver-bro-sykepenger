@@ -39,9 +39,7 @@ class MarkerBesvartFraSimbaRiverTest :
             val forespoerselId = UUID.randomUUID()
             val vedtaksperiodeId = UUID.randomUUID()
 
-            every {
-                mockForespoerselDao.hentVedtaksperiodeId(forespoerselId)
-            } returns vedtaksperiodeId
+            every { mockForespoerselDao.hentVedtaksperiodeId(forespoerselId) } returns vedtaksperiodeId
 
             mockInnkommendeMelding(forespoerselId)
 
@@ -54,16 +52,13 @@ class MarkerBesvartFraSimbaRiverTest :
         test("Innkommende event gjør ingenting dersom forespørsel ikke finnes") {
             val forespoerselId = UUID.randomUUID()
 
-            every {
-                mockForespoerselDao.hentVedtaksperiodeId(forespoerselId)
-            } returns null
+            every { mockForespoerselDao.hentVedtaksperiodeId(forespoerselId) } returns null
 
             mockInnkommendeMelding(forespoerselId)
 
             verifySequence {
                 mockForespoerselDao.hentVedtaksperiodeId(forespoerselId)
             }
-
             verify(exactly = 0) {
                 mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(any(), any())
             }

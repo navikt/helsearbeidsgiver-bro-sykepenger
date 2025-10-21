@@ -35,6 +35,7 @@ data class ForespoerselDto(
                 forespoerselId = forespoerselId,
                 opprettet = opprettet,
                 oppdatert = oppdatert,
+                kastetTilInfotrygd = kastetTilInfotrygd,
             )
 }
 
