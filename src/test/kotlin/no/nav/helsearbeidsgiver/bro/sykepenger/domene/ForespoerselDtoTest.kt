@@ -22,6 +22,7 @@ class ForespoerselDtoTest :
                     "Ignorerer 'forespoerselId'" to { it.copy(forespoerselId = UUID.randomUUID()) },
                     "Ignorerer 'opprettet'" to { it.copy(opprettet = LocalDateTime.now().minusDays(5)) },
                     "Ignorerer 'oppdatert'" to { it.copy(oppdatert = LocalDateTime.now().plusDays(10)) },
+                    "Ignorerer 'kastetTilInfotrygd'" to { it.copy(kastetTilInfotrygd = LocalDateTime.now().plusDays(17)) },
                 ),
             ) { endreFn ->
                 val original = mockForespoerselDto()
