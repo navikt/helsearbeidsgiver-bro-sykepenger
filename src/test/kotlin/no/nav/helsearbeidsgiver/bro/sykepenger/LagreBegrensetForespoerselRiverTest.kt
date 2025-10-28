@@ -58,9 +58,7 @@ class LagreBegrensetForespoerselRiverTest :
         }
 
         test("Forespørsel blir lagret og sender notifikasjon") {
-            val vedtaksperiodeId = UUID.randomUUID()
-            val opprettet = LocalDateTime.now()
-            val forespoersel = mockBegrensetForespoerselDto(vedtaksperiodeId, opprettet)
+            val forespoersel = mockBegrensetForespoerselDto()
 
             every {
                 mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
@@ -69,7 +67,7 @@ class LagreBegrensetForespoerselRiverTest :
             mockStatic(::randomUuid) {
                 every { randomUuid() } returns forespoersel.forespoerselId
                 mockStatic(LocalDateTime::class) {
-                    every { LocalDateTime.now() } returns opprettet
+                    every { LocalDateTime.now() } returns forespoersel.opprettet
                     mockInnkommendeMelding(forespoersel)
                 }
             }
@@ -85,7 +83,7 @@ class LagreBegrensetForespoerselRiverTest :
                 )
 
                 mockPriProducer.sendWithKey(
-                    vedtaksperiodeId.toString(),
+                    forespoersel.vedtaksperiodeId.toString(),
                     *forespoersel.tilMeldingForespoerselMottatt(
                         skalHaPaaminnelse = false,
                     ),
@@ -96,10 +94,8 @@ class LagreBegrensetForespoerselRiverTest :
         }
 
         test("Oppdatert forespørsel (ubesvart) blir lagret sender notifikasjon om oppdatering") {
-            val vedtaksperiodeId = UUID.randomUUID()
-            val opprettet = LocalDateTime.now()
-            val forespoersel = mockBegrensetForespoerselDto(vedtaksperiodeId, opprettet)
             val eksponertForespoerselId = UUID.randomUUID()
+            val forespoersel = mockBegrensetForespoerselDto()
 
             every {
                 mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
@@ -115,7 +111,7 @@ class LagreBegrensetForespoerselRiverTest :
             mockkStatic(::randomUuid) {
                 every { randomUuid() } returns forespoersel.forespoerselId
                 mockStatic(LocalDateTime::class) {
-                    every { LocalDateTime.now() } returns opprettet
+                    every { LocalDateTime.now() } returns forespoersel.opprettet
                     mockInnkommendeMelding(forespoersel)
                 }
             }
@@ -133,7 +129,7 @@ class LagreBegrensetForespoerselRiverTest :
 
             verifySequence {
                 mockPriProducer.sendWithKey(
-                    vedtaksperiodeId.toString(),
+                    forespoersel.vedtaksperiodeId.toString(),
                     *forespoersel.tilMeldingForespoerselOppdatert(eksponertForespoerselId),
                 )
             }
@@ -164,11 +160,8 @@ class LagreBegrensetForespoerselRiverTest :
         }
     })
 
-private fun mockBegrensetForespoerselDto(
-    vedtaksperiodeId: UUID = UUID.randomUUID(),
-    opprettet: LocalDateTime = LocalDateTime.now(),
-): ForespoerselDto =
-    mockForespoerselDto(vedtaksperiodeId, opprettet).copy(
+private fun mockBegrensetForespoerselDto(): ForespoerselDto =
+    mockForespoerselDto().copy(
         type = Type.BEGRENSET,
         egenmeldingsperioder = emptyList(),
         bestemmendeFravaersdager = emptyMap(),
