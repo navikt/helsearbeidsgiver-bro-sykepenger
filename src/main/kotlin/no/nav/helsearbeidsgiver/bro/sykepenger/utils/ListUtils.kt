@@ -8,8 +8,14 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.utils
  */
 fun <T : Any> List<T>.leadingAndLast(): Pair<List<T>, T>? =
     when (size) {
-        0 -> null
-        1 -> Pair(emptyList(), first())
+        0 -> {
+            null
+        }
+
+        1 -> {
+            Pair(emptyList(), first())
+        }
+
         else -> {
             val (leading, onlyLast) = chunked(size - 1)
 

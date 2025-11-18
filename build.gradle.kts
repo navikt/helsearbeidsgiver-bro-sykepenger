@@ -75,7 +75,7 @@ dependencies {
     val postgresqlVersion: String by project
     val rapidsAndRiversTestVersion: String by project
     val rapidsAndRiversVersion: String by project
-    val testcontainersPostgresqlVersion: String by project
+    val testcontainersVersion: String by project
     val utilsVersion: String by project
 
     implementation("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
@@ -100,14 +100,5 @@ dependencies {
     testImplementation("io.kotest:kotest-framework-engine:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
-    testImplementation("org.testcontainers:postgresql:$testcontainersPostgresqlVersion") {
-        constraints {
-            testImplementation("org.apache.commons:commons-compress:1.26.2") {
-                because("For å fikse sårbarheter rapportert i depedabot alerts. Sjekk om nødvendig etter oppgradering av testcontainers fra 1.21.3.")
-            }
-            testImplementation("org.apache.commons:commons-lang3:3.18.0") {
-                because("For å fikse sårbarheter rapportert i depedabot alerts. Sjekk om nødvendig etter oppgradering av testcontainers fra 1.21.3.")
-            }
-        }
-    }
+    testImplementation("org.testcontainers:testcontainers-postgresql:$testcontainersVersion")
 }
