@@ -16,11 +16,11 @@ import java.util.UUID
 
 data class ForespoerselDto(
     val forespoerselId: UUID,
+    val vedtaksperiodeId: UUID,
     val type: Type,
     val status: Status,
     val orgnr: Orgnr,
     val fnr: Fnr,
-    val vedtaksperiodeId: UUID,
     val egenmeldingsperioder: List<Periode>,
     val sykmeldingsperioder: List<Periode>,
     val bestemmendeFravaersdager: Map<Orgnr, LocalDate>,
