@@ -10,7 +10,6 @@ import io.mockk.mockkStatic
 import io.mockk.verify
 import io.mockk.verifySequence
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
-import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselTable.opprettet
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
@@ -82,8 +81,8 @@ class LagreBegrensetForespoerselRiverTest :
                     forespoersel.forespoerselId,
                 )
 
-                mockPriProducer.sendWithKey(
-                    forespoersel.vedtaksperiodeId.toString(),
+                mockPriProducer.send(
+                    forespoersel.vedtaksperiodeId,
                     *forespoersel.tilMeldingForespoerselMottatt(
                         skalHaPaaminnelse = false,
                     ),
@@ -128,8 +127,8 @@ class LagreBegrensetForespoerselRiverTest :
             }
 
             verifySequence {
-                mockPriProducer.sendWithKey(
-                    forespoersel.vedtaksperiodeId.toString(),
+                mockPriProducer.send(
+                    forespoersel.vedtaksperiodeId,
                     *forespoersel.tilMeldingForespoerselOppdatert(eksponertForespoerselId),
                 )
             }
@@ -154,8 +153,7 @@ class LagreBegrensetForespoerselRiverTest :
 
             verify(exactly = 0) {
                 mockForespoerselDao.lagre(any(), any())
-
-                mockPriProducer.sendWithKey(any(), any())
+                mockPriProducer.send(any<UUID>(), *anyVararg())
             }
         }
     })

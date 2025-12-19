@@ -24,8 +24,6 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
-import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
-import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDateTime
@@ -117,12 +115,9 @@ class MarkerBesvartFraSpleisRiver(
                         inntektsmeldingId?.let { Pri.Key.SPINN_INNTEKTSMELDING_ID to it.toJson() },
                     ).toTypedArray()
 
-                priProducer
-                    .sendWithKey(
-                        inntektsmeldingHaandtert.vedtaksperiodeId.toString(),
-                        *felter,
-                    ).ifTrue { loggernaut.info("Sa ifra om besvart forespørsel til Simba.") }
-                    .ifFalse { loggernaut.error("Klarte ikke si ifra om besvart forespørsel til Simba.") }
+                priProducer.send(inntektsmeldingHaandtert.vedtaksperiodeId, *felter)
+
+                loggernaut.info("Sa ifra om besvart forespørsel til Simba.")
             }
         }
     }

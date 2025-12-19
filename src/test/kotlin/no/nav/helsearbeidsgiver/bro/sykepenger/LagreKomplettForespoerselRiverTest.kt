@@ -80,8 +80,8 @@ class LagreKomplettForespoerselRiverTest :
                     forespoersel.forespoerselId,
                 )
 
-                mockPriProducer.sendWithKey(
-                    forespoersel.vedtaksperiodeId.toString(),
+                mockPriProducer.send(
+                    forespoersel.vedtaksperiodeId,
                     *forespoersel.tilMeldingForespoerselMottatt(),
                 )
 
@@ -125,8 +125,8 @@ class LagreKomplettForespoerselRiverTest :
             }
 
             verifySequence {
-                mockPriProducer.sendWithKey(
-                    forespoersel.vedtaksperiodeId.toString(),
+                mockPriProducer.send(
+                    forespoersel.vedtaksperiodeId,
                     *forespoersel.tilMeldingForespoerselOppdatert(eksponertForespoerselId),
                 )
             }
@@ -151,8 +151,7 @@ class LagreKomplettForespoerselRiverTest :
 
             verify(exactly = 0) {
                 mockForespoerselDao.lagre(any(), any())
-
-                mockPriProducer.sendWithKey(any(), *anyVararg())
+                mockPriProducer.send(any<UUID>(), *anyVararg())
             }
         }
     })

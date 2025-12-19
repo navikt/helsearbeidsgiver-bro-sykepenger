@@ -1,18 +1,23 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri
 
+import io.kotest.assertions.AssertionErrorBuilder.Companion.fail
+import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.booleans.shouldBeFalse
-import io.kotest.matchers.booleans.shouldBeTrue
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifySequence
+import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.tilMeldingForespoerselMottatt
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
-import org.apache.kafka.common.errors.TimeoutException
+import java.util.UUID
+import java.util.concurrent.TimeoutException
 
 class PriProducerTest :
     FunSpec(
@@ -28,64 +33,55 @@ class PriProducerTest :
                 clearAllMocks()
             }
 
-            test("gir true ved sendt melding til kafka stream") {
-                every { mockProducer.send(any()).get() } returns mockRecordMetadata()
+            listOf(
+                UUID.randomUUID(),
+                Fnr.genererGyldig(),
+            ).forEach { kafkaKey ->
+                context("${kafkaKey::class.simpleName} som Kafka-nøkkel") {
+                    test("sending av melding er vellykket") {
+                        every { mockProducer.send(any()).get() } returns mockRecordMetadata()
 
-                val forespoersel = mockForespoerselDto()
+                        val melding = mockForespoerselDto().tilMeldingForespoerselMottatt()
 
-                val bleMeldingSendt =
-                    priProducer.send(
-                        *forespoersel.tilMeldingForespoerselMottatt(),
-                    )
+                        shouldNotThrowAny {
+                            priProducer.send(kafkaKey, melding)
+                        }
 
-                bleMeldingSendt.shouldBeTrue()
+                        val expected =
+                            ProducerRecord(
+                                Pri.TOPIC,
+                                kafkaKey.toString(),
+                                melding.toMap().toJsonStr(),
+                            )
 
-                val expected =
-                    ProducerRecord<String, String>(
-                        Pri.TOPIC,
-                        forespoersel.tilMeldingForespoerselMottatt().toMap().toJsonStr(),
-                    )
+                        verifySequence { mockProducer.send(expected) }
+                    }
 
-                verifySequence { mockProducer.send(expected) }
-            }
+                    test("sending av melding feiler") {
+                        every { mockProducer.send(any()) } throws TimeoutException("too slow bro")
 
-            test("gir false ved feilet sending til kafka stream") {
-                every { mockProducer.send(any()) } throws TimeoutException("too slow bro")
+                        val melding = mockForespoerselDto().tilMeldingForespoerselMottatt()
 
-                val forespoersel = mockForespoerselDto()
+                        shouldThrow<TimeoutException> {
+                            priProducer.send(kafkaKey, melding)
+                        }
 
-                val bleMeldingSendt =
-                    priProducer.send(
-                        *forespoersel.tilMeldingForespoerselMottatt(),
-                    )
-
-                bleMeldingSendt.shouldBeFalse()
-
-                verifySequence { mockProducer.send(any()) }
-            }
-            test("sender melding med vedtaksperiodeId som key") {
-                every { mockProducer.send(any()).get() } returns mockRecordMetadata()
-
-                val forespoersel = mockForespoerselDto()
-
-                val bleMeldingSendt =
-                    priProducer.sendWithKey(
-                        kafkaKey = forespoersel.vedtaksperiodeId.toString(),
-                        *forespoersel.tilMeldingForespoerselMottatt(),
-                    )
-
-                bleMeldingSendt.shouldBeTrue()
-
-                val expected =
-                    ProducerRecord<String, String>(
-                        Pri.TOPIC,
-                        forespoersel.vedtaksperiodeId.toString(),
-                        forespoersel.tilMeldingForespoerselMottatt().toMap().toJsonStr(),
-                    )
-
-                verifySequence { mockProducer.send(expected) }
+                        verifySequence { mockProducer.send(any()) }
+                    }
+                }
             }
         },
     )
+
+private fun PriProducer.send(
+    kafkaKey: Any,
+    melding: Array<Pair<Pri.Key, JsonElement>>,
+) {
+    when (kafkaKey) {
+        is UUID -> send(kafkaKey, *melding)
+        is Fnr -> send(kafkaKey, *melding)
+        else -> fail("Kafka-nøkkel av type ${kafkaKey::class.simpleName} er ikke støttet.")
+    }
+}
 
 private fun mockRecordMetadata(): RecordMetadata = RecordMetadata(null, 0, 0, 0, 0, 0)

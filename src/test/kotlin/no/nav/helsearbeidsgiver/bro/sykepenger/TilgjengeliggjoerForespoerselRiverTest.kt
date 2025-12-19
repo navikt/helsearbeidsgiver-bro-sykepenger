@@ -54,6 +54,7 @@ class TilgjengeliggjoerForespoerselRiverTest :
                 mockForespoerselDao.hentVedtaksperiodeId(forespoersel.forespoerselId)
                 mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(forespoersel.vedtaksperiodeId))
                 mockPriProducer.send(
+                    forespoersel.forespoerselId,
                     Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
                     Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer()),
                 )
@@ -88,6 +89,7 @@ class TilgjengeliggjoerForespoerselRiverTest :
                 mockForespoerselDao.hentVedtaksperiodeId(forespoersel.forespoerselId)
                 mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(forespoersel.vedtaksperiodeId))
                 mockPriProducer.send(
+                    forespoersel.forespoerselId,
                     Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
                     Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer()),
                 )
@@ -114,6 +116,7 @@ class TilgjengeliggjoerForespoerselRiverTest :
             verifySequence {
                 mockForespoerselDao.hentVedtaksperiodeId(forespoersel.forespoerselId)
                 mockPriProducer.send(
+                    forespoersel.forespoerselId,
                     Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
                     Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer()),
                 )
@@ -146,6 +149,7 @@ class TilgjengeliggjoerForespoerselRiverTest :
                 mockForespoerselDao.hentVedtaksperiodeId(forespoersel.forespoerselId)
                 mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(forespoersel.vedtaksperiodeId))
                 mockPriProducer.send(
+                    forespoersel.forespoerselId,
                     Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
                     Pri.Key.LØSNING to expectedPublished.toJson(ForespoerselSvar.serializer()),
                 )

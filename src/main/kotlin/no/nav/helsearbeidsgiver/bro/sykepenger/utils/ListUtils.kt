@@ -7,24 +7,11 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.utils
  * @return `null` dersom listen er tom.
  */
 fun <T : Any> List<T>.leadingAndLast(): Pair<List<T>, T>? =
-    when (size) {
-        0 -> {
-            null
-        }
-
-        1 -> {
-            Pair(emptyList(), first())
-        }
-
-        else -> {
-            val (leading, onlyLast) = chunked(size - 1)
-
-            onlyLast
-                .firstOrNull()
-                ?.let { last ->
-                    Pair(leading, last)
-                }
-        }
+    lastOrNull()?.let {
+        Pair(
+            dropLast(1),
+            it,
+        )
     }
 
 fun <T : Any> List<T>.zipWithNextOrNull(): List<Pair<T, T?>> =
