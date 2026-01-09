@@ -3,7 +3,9 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.Env
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
+import no.nav.helsearbeidsgiver.utils.json.toJson
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -12,45 +14,55 @@ import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringSerializer
 import java.util.Properties
+import java.util.UUID
 
 class PriProducer(
     private val producer: KafkaProducer<String, String> = createProducer(),
 ) {
+    private val loggernaut = Loggernaut(this)
+
     private val topic = Pri.TOPIC
 
-    private fun String.toRecord(): ProducerRecord<String, String> = ProducerRecord(topic, this)
-
-    private fun String.toRecord(key: String): ProducerRecord<String, String> = ProducerRecord(topic, key, this)
-
-    private fun sendRecord(record: ProducerRecord<String, String>): Boolean = runCatching { producer.send(record).get() }.isSuccess
-
-    fun send(vararg keyValuePairs: Pair<Pri.Key, JsonElement>): Boolean =
-        sendRecord(
-            keyValuePairs
-                .toMap()
-                .toJsonStr()
-                .toRecord(),
-        )
-
-    fun sendWithKey(
-        kafkaKey: String,
+    fun send(
+        kafkaKey: UUID,
         vararg keyValuePairs: Pair<Pri.Key, JsonElement>,
-    ): Boolean =
-        sendRecord(
-            keyValuePairs
-                .toMap()
-                .toJsonStr()
-                .toRecord(kafkaKey),
-        )
+    ) {
+        send(kafkaKey.toString(), keyValuePairs)
+    }
+
+    fun send(
+        kafkaKey: Fnr,
+        vararg keyValuePairs: Pair<Pri.Key, JsonElement>,
+    ) {
+        send(kafkaKey.verdi, keyValuePairs)
+    }
+
+    private fun send(
+        kafkaKey: String,
+        keyValuePairs: Array<out Pair<Pri.Key, JsonElement>>,
+    ) {
+        val kafkaMessage = keyValuePairs.toMap().toJsonStr()
+        val record = ProducerRecord(topic, kafkaKey, kafkaMessage)
+
+        runCatching {
+            producer.send(record).get()
+        }.onFailure { error ->
+            "Klarte ikke sende melding til topic '$topic'.".also {
+                loggernaut.aapen.error(it)
+                loggernaut.sikker.error("$it\nKey: '$kafkaKey'\nMelding: '$kafkaMessage'", error)
+            }
+            throw error
+        }
+    }
 }
 
 fun Map<Pri.Key, JsonElement>.toJsonStr() =
-    toJsonStr(
+    toJson(
         MapSerializer(
             Pri.Key.serializer(),
             JsonElement.serializer(),
         ),
-    )
+    ).toString()
 
 private fun createProducer(): KafkaProducer<String, String> =
     KafkaProducer(

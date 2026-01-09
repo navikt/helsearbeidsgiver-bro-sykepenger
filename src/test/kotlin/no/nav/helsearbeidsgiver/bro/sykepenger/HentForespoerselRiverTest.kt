@@ -53,16 +53,16 @@ class HentForespoerselRiverTest :
             )
             verifySequence {
                 mockForespoerselDao.hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId)
-                mockPriProducer.sendWithKey(
-                    vedtaksperiodeId.toString(),
+                mockPriProducer.send(
+                    vedtaksperiodeId,
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FOR_VEDTAKSPERIODE_ID.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to forespoersel1.forespoerselId.toJson(),
                     Pri.Key.FORESPOERSEL to ForespoerselSimba(forespoersel1).toJson(ForespoerselSimba.serializer()),
                     Pri.Key.EKSPONERT_FORESPOERSEL_ID to forespoersel1.finnEksponertForespoerselId().toJson(),
                     Pri.Key.STATUS to forespoersel1.getStatus().toJson(),
                 )
-                mockPriProducer.sendWithKey(
-                    vedtaksperiodeId.toString(),
+                mockPriProducer.send(
+                    vedtaksperiodeId,
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FOR_VEDTAKSPERIODE_ID.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to forespoersel2.forespoerselId.toJson(),
                     Pri.Key.FORESPOERSEL to ForespoerselSimba(forespoersel2).toJson(ForespoerselSimba.serializer()),

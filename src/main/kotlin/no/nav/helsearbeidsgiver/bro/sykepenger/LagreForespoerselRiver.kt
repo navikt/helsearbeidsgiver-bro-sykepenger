@@ -25,8 +25,6 @@ import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
-import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
-import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 import java.util.UUID
 
 sealed class LagreForespoerselRiver(
@@ -152,10 +150,9 @@ sealed class LagreForespoerselRiver(
                 Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
             )
 
-        priProducer
-            .sendWithKey(nyForespoersel.vedtaksperiodeId.toString(), *melding)
-            .ifTrue { loggernaut.aapen.info("Sa ifra om mottatt forespørsel til Simba.") }
-            .ifFalse { loggernaut.aapen.error("Klarte ikke si ifra om mottatt forespørsel til Simba.") }
+        priProducer.send(nyForespoersel.vedtaksperiodeId, *melding)
+
+        loggernaut.info("Sa ifra om mottatt forespørsel til Simba.")
     }
 
     private fun sendMeldingOmOppdatering(
@@ -170,12 +167,9 @@ sealed class LagreForespoerselRiver(
                 Pri.Key.FORESPOERSEL to ForespoerselSimba(nyForespoersel).toJson(ForespoerselSimba.serializer()),
             )
 
-        priProducer
-            .sendWithKey(
-                nyForespoersel.vedtaksperiodeId.toString(),
-                *melding,
-            ).ifTrue { loggernaut.aapen.info("Sa ifra om oppdatert forespørsel til LPS-API.") }
-            .ifFalse { loggernaut.aapen.error("Klarte ikke å si ifra om oppdatert forespørsel til LPS-API.") }
+        priProducer.send(nyForespoersel.vedtaksperiodeId, *melding)
+
+        loggernaut.info("Sa ifra om oppdatert forespørsel til LPS-API.")
     }
 
     private fun loggVedGjentatteForespoersler(nyForespoersel: ForespoerselDto) {
