@@ -16,7 +16,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockBegrensetForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.tilMeldingForespoerselMottatt
@@ -163,5 +162,4 @@ private fun mockBegrensetForespoerselDto(): ForespoerselDto =
         type = Type.BEGRENSET,
         egenmeldingsperioder = emptyList(),
         bestemmendeFravaersdager = emptyMap(),
-        forespurtData = mockBegrensetForespurtDataListe(),
     )

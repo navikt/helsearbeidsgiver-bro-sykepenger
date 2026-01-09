@@ -13,7 +13,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSvar
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockBegrensetForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockJsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
@@ -61,12 +60,11 @@ class TilgjengeliggjoerForespoerselRiverTest :
             }
         }
 
-        test("Ved innkommende event, svar ut korrekt ForespoerselSvar med begrenset forespurtData og uten bestemmende fraværsdager") {
+        test("Ved innkommende event, svar ut korrekt ForespoerselSvar uten bestemmende fraværsdager") {
             val forespoersel =
                 mockForespoerselDto().copy(
                     type = Type.BEGRENSET,
                     bestemmendeFravaersdager = emptyMap(),
-                    forespurtData = mockBegrensetForespurtDataListe(),
                 )
 
             every { mockForespoerselDao.hentVedtaksperiodeId(any()) } returns forespoersel.vedtaksperiodeId
