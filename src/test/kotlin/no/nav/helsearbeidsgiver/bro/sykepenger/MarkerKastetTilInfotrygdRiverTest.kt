@@ -63,8 +63,8 @@ class MarkerKastetTilInfotrygdRiverTest :
             }
 
             verify {
-                mockPriProducer.sendWithKey(
-                    mockForespoersel.vedtaksperiodeId.toString(),
+                mockPriProducer.send(
+                    mockForespoersel.vedtaksperiodeId,
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_KASTET_TIL_INFOTRYGD.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to mockForespoersel.forespoerselId.toJson(),
                     Pri.Key.SENDT_TID to utesendingstidspunkt.toJson(),
@@ -90,7 +90,7 @@ class MarkerKastetTilInfotrygdRiverTest :
                     mockForespoerselDao.markerKastetTilInfotrygd(mockForespoersel.vedtaksperiodeId)
                 }
                 verify(exactly = 0) {
-                    mockPriProducer.sendWithKey(any(), *anyVararg())
+                    mockPriProducer.send(any<UUID>(), *anyVararg())
                 }
             }
         }
@@ -109,7 +109,7 @@ class MarkerKastetTilInfotrygdRiverTest :
             }
             verify(exactly = 0) {
                 mockForespoerselDao.markerKastetTilInfotrygd(any())
-                mockPriProducer.send(any(), *anyVararg())
+                mockPriProducer.send(any<UUID>(), *anyVararg())
             }
         }
 
@@ -127,7 +127,7 @@ class MarkerKastetTilInfotrygdRiverTest :
             }
             verify(exactly = 0) {
                 mockForespoerselDao.markerKastetTilInfotrygd(any())
-                mockPriProducer.send(any(), any())
+                mockPriProducer.send(any<UUID>(), *anyVararg())
             }
         }
     })
