@@ -24,8 +24,8 @@ import java.util.UUID
 
 class HentForespoerselRiver(
     rapid: RapidsConnection,
-    private val priProducer: PriProducer,
     private val forespoerselDao: ForespoerselDao,
+    private val priProducer: PriProducer,
 ) : River.PacketListener {
     init {
 

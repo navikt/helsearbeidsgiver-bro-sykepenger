@@ -43,11 +43,11 @@ fun mockForespoerselDto(): ForespoerselDto {
 
     return ForespoerselDto(
         forespoerselId = UUID.randomUUID(),
+        vedtaksperiodeId = MockUuid.vedtaksperiodeId,
         type = Type.KOMPLETT,
         status = Status.AKTIV,
         orgnr = orgnr,
         fnr = Fnr.genererGyldig(),
-        vedtaksperiodeId = MockUuid.vedtaksperiodeId,
         egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
         sykmeldingsperioder =
             listOf(

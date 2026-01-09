@@ -58,11 +58,11 @@ class LagreBegrensetForespoerselRiver(
     ): ForespoerselDto =
         ForespoerselDto(
             forespoerselId = forespoerselId,
+            vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
             type = Type.BEGRENSET,
             status = Status.AKTIV,
             orgnr = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding),
             fnr = Spleis.Key.FØDSELSNUMMER.les(Fnr.serializer(), melding),
-            vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
             egenmeldingsperioder = emptyList(),
             sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),
             bestemmendeFravaersdager = emptyMap(),
