@@ -52,20 +52,7 @@ class ForespoerselDtoTest :
                     },
                     "Oppdager ulik 'forespurtData'" to {
                         it.copy(
-                            forespurtData =
-                                listOf(
-                                    SpleisInntekt(
-                                        forslag =
-                                            SpleisForslagInntekt(
-                                                forrigeInntekt =
-                                                    SpleisForrigeInntekt(
-                                                        skjæringstidspunkt = LocalDate.now().minusDays(62),
-                                                        kilde = "Farris",
-                                                        beløp = 12.1,
-                                                    ),
-                                            ),
-                                    ),
-                                ),
+                            forespurtData = listOf(SpleisInntekt),
                         )
                     },
                 ),
