@@ -31,14 +31,11 @@ spec:
     timeout: 2
   kafka:
     pool: {{ kafkaPool }}
-  secureLogs:
-    enabled: true
   prometheus:
     enabled: true
   observability:
     logging:
       destinations:
-        - id: secure_logs
         - id: loki
     autoInstrumentation:
       enabled: true
