@@ -56,18 +56,18 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiver(
     ) {
         val json = packet.toJson().parseJson()
 
-        val vedtaksperiodeIdListe =
+        val vedtaksperiodeIder =
             Pri.Key.VEDTAKSPERIODE_ID_LISTE.les(
                 UuidSerializer.set(),
                 json.fromJsonMapFiltered(Pri.Key.serializer()),
             )
 
         runCatching {
-            json.sendSvar(vedtaksperiodeIdListe)
+            json.sendSvar(vedtaksperiodeIder)
         }.onFailure(loggernaut::ukjentFeil)
     }
 
-    private fun JsonElement.sendSvar(vedtaksperiodeIdListe: Set<UUID>) {
+    private fun JsonElement.sendSvar(vedtaksperiodeIder: Set<UUID>) {
         val melding = fromJsonMapFiltered(Pri.Key.serializer())
 
         "Mottok melding på pri-topic".also {
@@ -75,7 +75,14 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiver(
             loggernaut.sikker.info("$it med innhold:\n${toPretty()}")
         }
 
-        val forespoersler = forespoerselDao.hentForespoerslerEksponertTilSimba(vedtaksperiodeIdListe)
+        val kafkaKey = vedtaksperiodeIder.minOrNull() ?: UUID.randomUUID()
+
+        val forespoersler =
+            if (vedtaksperiodeIder.isNotEmpty()) {
+                forespoerselDao.hentForespoerslerEksponertTilSimba(vedtaksperiodeIder)
+            } else {
+                emptyList()
+            }
 
         val hentForespoerslerForVedtaksperiodeIdListeSvarJson =
             HentForespoerslerForVedtaksperiodeIdListeSvar(
@@ -84,6 +91,7 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiver(
             ).toJson(HentForespoerslerForVedtaksperiodeIdListeSvar.serializer())
 
         priProducer.send(
+            kafkaKey,
             Pri.Key.BEHOV to HentForespoerslerForVedtaksperiodeIdListeSvar.behovType.toJson(Pri.BehovType.serializer()),
             Pri.Key.LØSNING to hentForespoerslerForVedtaksperiodeIdListeSvarJson,
         )

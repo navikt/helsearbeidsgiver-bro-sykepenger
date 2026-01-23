@@ -43,11 +43,11 @@ class ForespoerselDao(
                 .insert {
                     it[forespoerselId] = forespoersel.forespoerselId
                     it[this.eksponertForespoerselId] = eksponertForespoerselId
+                    it[vedtaksperiodeId] = forespoersel.vedtaksperiodeId
                     it[type] = forespoersel.type.name
                     it[status] = forespoersel.status.name
                     it[orgnr] = forespoersel.orgnr.verdi
                     it[fnr] = forespoersel.fnr.verdi
-                    it[vedtaksperiodeId] = forespoersel.vedtaksperiodeId
                     it[egenmeldingsperioder] = forespoersel.egenmeldingsperioder
                     it[sykmeldingsperioder] = forespoersel.sykmeldingsperioder
                     it[bestemmendeFravaersdager] = forespoersel.bestemmendeFravaersdager

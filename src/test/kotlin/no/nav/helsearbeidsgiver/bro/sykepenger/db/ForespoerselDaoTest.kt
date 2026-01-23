@@ -18,7 +18,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type.BEGRENSET
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.til
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
-import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockBegrensetForespurtDataListe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import no.nav.helsearbeidsgiver.utils.test.date.april
@@ -65,11 +64,10 @@ class ForespoerselDaoTest :
                 lagretRad[ForespoerselTable.eksponertForespoerselId] shouldBe forespoersel.forespoerselId
             }
 
-            test("Lagre forespørsel med begrenset forespurt data") {
+            test("Lagre begrenset forespørsel") {
                 val forespoersel =
                     mockForespoerselDto().copy(
                         type = BEGRENSET,
-                        forespurtData = mockBegrensetForespurtDataListe(),
                     )
 
                 val id = forespoersel.lagreEksponertNotNull()
@@ -1091,9 +1089,9 @@ class ForespoerselDaoTest :
 
             test("Henter alle forespørsler knyttet til flere vedtaksperiodeId") {
                 val a = mockForespoerselDto().copy(vedtaksperiodeId = UUID.randomUUID())
-                val b = mockForespoerselDto().copy(vedtaksperiodeId = UUID.randomUUID())
-                val c = mockForespoerselDto().copy(vedtaksperiodeId = b.vedtaksperiodeId)
-                val d = mockForespoerselDto().copy(vedtaksperiodeId = UUID.randomUUID())
+                val b = mockForespoerselDto().copy(vedtaksperiodeId = UUID.randomUUID()).oekOpprettet(1)
+                val c = mockForespoerselDto().copy(vedtaksperiodeId = b.vedtaksperiodeId).oekOpprettet(2)
+                val d = mockForespoerselDto().copy(vedtaksperiodeId = UUID.randomUUID()).oekOpprettet(3)
 
                 a.lagreEksponertNotNull()
                 b.lagreEksponertNotNull()

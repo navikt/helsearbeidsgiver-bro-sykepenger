@@ -128,45 +128,11 @@ private fun ForespurtData.hardcodedJson(): String =
             "paakrevd": ${arbeidsgiverperiode.paakrevd}
         },
         "inntekt": {
-            "paakrevd": ${inntekt.paakrevd},
-            "forslag": ${inntekt.forslag?.hardcodedJson()}
+            "paakrevd": ${inntekt.paakrevd}
         },
         "refusjon": {
-            "paakrevd": ${refusjon.paakrevd},
-            "forslag": ${refusjon.forslag.hardcodedJson()}
+            "paakrevd": ${refusjon.paakrevd}
         }
-    }
-    """
-
-private fun ForslagInntekt.hardcodedJson(): String =
-    """
-    {
-        "forrigeInntekt": ${forrigeInntekt?.hardcodedJson()}
-    }
-    """
-
-private fun ForrigeInntekt.hardcodedJson(): String =
-    """
-    {
-        "skjæringstidspunkt": "$skjæringstidspunkt",
-        "kilde": "$kilde",
-        "beløp": $beløp
-    }
-    """
-
-private fun ForslagRefusjon.hardcodedJson(): String =
-    """
-    {
-        "perioder": [${perioder.joinToString(transform = ForslagRefusjon.Periode::hardcodedJson)}],
-        "opphoersdato": ${opphoersdato.jsonStrOrNull()}
-    }
-    """
-
-private fun ForslagRefusjon.Periode.hardcodedJson(): String =
-    """
-    {
-        "fom": "$fom",
-        "beloep": $beloep
     }
     """
 
@@ -177,5 +143,3 @@ private fun Periode.hardcodedJson(): String =
         "tom": "$tom"
     }
     """
-
-private fun <T : Any> T?.jsonStrOrNull(): String? = this?.let { "\"$it\"" }

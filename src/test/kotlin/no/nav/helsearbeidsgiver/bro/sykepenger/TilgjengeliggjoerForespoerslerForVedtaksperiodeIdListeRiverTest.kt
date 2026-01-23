@@ -5,7 +5,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import io.mockk.verifySequence
+import kotlinx.serialization.json.JsonArray
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.HentForespoerslerForVedtaksperiodeIdListeSvar
@@ -32,10 +34,10 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiverTest :
         }
 
         test("Ved innkommende event, svar ut korrekt HentForespoerslerForVedtaksperiodeIdListeSvar") {
-            val vedtaksperiodeIdListe = setOf(Mock.vedtaksperiodeId1, Mock.vedtaksperiodeId2)
+            val vedtaksperiodeIder = setOf(Mock.vedtaksperiodeId1, Mock.vedtaksperiodeId2)
 
             every {
-                mockForespoerselDao.hentForespoerslerEksponertTilSimba(vedtaksperiodeIdListe)
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(vedtaksperiodeIder)
             } returns Mock.forespoersler
 
             val expectedPublished =
@@ -47,23 +49,24 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiverTest :
 
             testRapid.sendJson(
                 Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
-                Pri.Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIdListe.toList().toJson(UuidSerializer),
+                Pri.Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIder.toList().toJson(UuidSerializer),
                 Pri.Key.BOOMERANG to expectedPublished.boomerang,
             )
 
             verifySequence {
-                mockForespoerselDao.hentForespoerslerEksponertTilSimba(vedtaksperiodeIdListe)
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(vedtaksperiodeIder)
                 mockPriProducer.send(
+                    vedtaksperiodeIder.min(),
                     Pri.Key.BEHOV to HentForespoerslerForVedtaksperiodeIdListeSvar.behovType.toJson(Pri.BehovType.serializer()),
                     Pri.Key.LØSNING to expectedPublished.toJson(HentForespoerslerForVedtaksperiodeIdListeSvar.serializer()),
                 )
             }
         }
         test("Hvis ingen forespørsler finnes, svar med tom liste") {
-            val vedtaksperiodeIdListe = setOf(Mock.vedtaksperiodeId1, Mock.vedtaksperiodeId2)
+            val vedtaksperiodeIder = setOf(Mock.vedtaksperiodeId1, Mock.vedtaksperiodeId2)
 
             every {
-                mockForespoerselDao.hentForespoerslerEksponertTilSimba(vedtaksperiodeIdListe)
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(vedtaksperiodeIder)
             } returns emptyList()
 
             val expectedPublished =
@@ -74,16 +77,32 @@ class TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiverTest :
 
             testRapid.sendJson(
                 Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
-                Pri.Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIdListe.toList().toJson(UuidSerializer),
+                Pri.Key.VEDTAKSPERIODE_ID_LISTE to vedtaksperiodeIder.toList().toJson(UuidSerializer),
                 Pri.Key.BOOMERANG to expectedPublished.boomerang,
             )
 
             verifySequence {
-                mockForespoerselDao.hentForespoerslerEksponertTilSimba(vedtaksperiodeIdListe)
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(vedtaksperiodeIder)
                 mockPriProducer.send(
+                    vedtaksperiodeIder.min(),
                     Pri.Key.BEHOV to HentForespoerslerForVedtaksperiodeIdListeSvar.behovType.toJson(Pri.BehovType.serializer()),
                     Pri.Key.LØSNING to expectedPublished.toJson(HentForespoerslerForVedtaksperiodeIdListeSvar.serializer()),
                 )
+            }
+        }
+
+        test("Ikke spør databasen ved tom liste for vedtaksperiode-ID-er") {
+            testRapid.sendJson(
+                Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE.toJson(Pri.BehovType.serializer()),
+                Pri.Key.VEDTAKSPERIODE_ID_LISTE to JsonArray(emptyList()),
+                Pri.Key.BOOMERANG to mockJsonElement(),
+            )
+
+            verify(exactly = 0) {
+                mockForespoerselDao.hentForespoerslerEksponertTilSimba(any())
+            }
+            verifySequence {
+                mockPriProducer.send(any<UUID>(), *anyVararg())
             }
         }
     }) {

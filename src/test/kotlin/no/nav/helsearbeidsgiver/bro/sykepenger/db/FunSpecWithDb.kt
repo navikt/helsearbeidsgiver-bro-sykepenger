@@ -7,7 +7,7 @@ import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 import javax.sql.DataSource
 import org.jetbrains.exposed.sql.Database as ExposedDatabase
 
@@ -43,8 +43,8 @@ private fun dataSource(): DataSource {
         .migrate()
 }
 
-private fun postgres(): PostgreSQLContainer<Nothing> =
-    PostgreSQLContainer<Nothing>("postgres:14").apply {
+private fun postgres(): PostgreSQLContainer =
+    PostgreSQLContainer("postgres:14").apply {
         withReuse(true)
         withLabel("app-navn", "helsearbeidsgiver-bro-sykepenger")
         // nødvending for kunne kjøre migreringsscriptene V16-V18

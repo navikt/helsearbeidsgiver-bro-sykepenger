@@ -93,6 +93,7 @@ class TilgjengeliggjoerForespoerslerForFnrOgOrgnrRiver(
             ).toJson(HentForespoerslerForFnrOgOrgnrSvar.serializer())
 
         priProducer.send(
+            fnr,
             Pri.Key.BEHOV to HentForespoerslerForFnrOgOrgnrSvar.behovType.toJson(Pri.BehovType.serializer()),
             Pri.Key.LØSNING to hentForespoerslerForFnrOgOrgnrSvarJson,
         )

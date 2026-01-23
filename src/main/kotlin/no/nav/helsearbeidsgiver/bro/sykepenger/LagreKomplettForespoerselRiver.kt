@@ -74,11 +74,11 @@ class LagreKomplettForespoerselRiver(
         val forespoersel =
             ForespoerselDto(
                 forespoerselId = forespoerselId,
+                vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
                 type = Type.KOMPLETT,
                 status = Status.AKTIV,
                 orgnr = orgnr,
                 fnr = Spleis.Key.FØDSELSNUMMER.les(Fnr.serializer(), melding),
-                vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
                 egenmeldingsperioder = Spleis.Key.EGENMELDINGSPERIODER.les(Periode.serializer().list(), melding),
                 sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),
                 bestemmendeFravaersdager = bestemmendeFravaersdager,

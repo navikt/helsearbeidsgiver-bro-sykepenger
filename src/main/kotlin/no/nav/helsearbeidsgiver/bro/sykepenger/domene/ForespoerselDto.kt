@@ -16,11 +16,11 @@ import java.util.UUID
 
 data class ForespoerselDto(
     val forespoerselId: UUID,
+    val vedtaksperiodeId: UUID,
     val type: Type,
     val status: Status,
     val orgnr: Orgnr,
     val fnr: Fnr,
-    val vedtaksperiodeId: UUID,
     val egenmeldingsperioder: List<Periode>,
     val sykmeldingsperioder: List<Periode>,
     val bestemmendeFravaersdager: Map<Orgnr, LocalDate>,
@@ -35,6 +35,7 @@ data class ForespoerselDto(
                 forespoerselId = forespoerselId,
                 opprettet = opprettet,
                 oppdatert = oppdatert,
+                kastetTilInfotrygd = kastetTilInfotrygd,
             )
 }
 
@@ -56,7 +57,7 @@ enum class Type {
      * En begrenset forespørsel tilhører en vedtaksperiode som ble sendt til Infotrygd før den fikk tilstrekkelig informasjon om opplysningene som trengs.
      *
      * En begrenset forespørsel:
-     *   - ber alltid om Inntekt, Refusjon og Arbeidsgiverperiode og sender aldri med forslag til hva disse skal være (forespurt data)
+     *   - ber alltid om Arbeidsgiverperiode, Inntekt og Refusjon
      *   - mangler bestemmende fraværsdager
      */
     BEGRENSET,

@@ -20,14 +20,12 @@ import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
-import no.nav.helsearbeidsgiver.utils.pipe.ifFalse
-import no.nav.helsearbeidsgiver.utils.pipe.ifTrue
 import java.util.UUID
 
 class HentForespoerselRiver(
     rapid: RapidsConnection,
-    private val priProducer: PriProducer,
     private val forespoerselDao: ForespoerselDao,
+    private val priProducer: PriProducer,
 ) : River.PacketListener {
     init {
 
@@ -82,12 +80,7 @@ class HentForespoerselRiver(
                     Pri.Key.EKSPONERT_FORESPOERSEL_ID to forespoersel.finnEksponertForespoerselId().toJson(),
                     Pri.Key.STATUS to forespoersel.getStatus().toJson(),
                 )
-            priProducer
-                .sendWithKey(
-                    forespoersel.vedtaksperiodeId.toString(),
-                    *melding,
-                ).ifTrue { logger().info("Sa ifra om oppdatert forespørsel til LPS-API.") }
-                .ifFalse { logger().error("Klarte ikke å si ifra om oppdatert forespørsel til LPS-API.") }
+            priProducer.send(forespoersel.vedtaksperiodeId, *melding)
         } catch (e: Exception) {
             logger().error("Feil ved sending av forespørsel: ${e.message}", e)
         }

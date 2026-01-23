@@ -101,8 +101,8 @@ class MarkerBesvartFraSpleisRiverTest :
             }
 
             verify {
-                mockPriProducer.sendWithKey(
-                    inntektsmeldingHaandtert.vedtaksperiodeId.toString(),
+                mockPriProducer.send(
+                    inntektsmeldingHaandtert.vedtaksperiodeId,
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
                     Pri.Key.SENDT_TID to utesendingstidspunkt.toJson(),
@@ -118,7 +118,7 @@ class MarkerBesvartFraSpleisRiverTest :
             mockInnkommendeMelding(inntektsmeldingHaandtert)
 
             verify(exactly = 0) {
-                mockPriProducer.sendWithKey(any(), *anyVararg())
+                mockPriProducer.send(any<UUID>(), *anyVararg())
             }
         }
 
@@ -147,8 +147,8 @@ class MarkerBesvartFraSpleisRiverTest :
             }
 
             verify {
-                mockPriProducer.sendWithKey(
-                    inntektsmeldingHaandtert.vedtaksperiodeId.toString(),
+                mockPriProducer.send(
+                    inntektsmeldingHaandtert.vedtaksperiodeId,
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
                     Pri.Key.SENDT_TID to utesendingstidspunkt.toJson(),
@@ -181,8 +181,8 @@ class MarkerBesvartFraSpleisRiverTest :
             }
 
             verify {
-                mockPriProducer.sendWithKey(
-                    inntektsmeldingHaandtert.vedtaksperiodeId.toString(),
+                mockPriProducer.send(
+                    inntektsmeldingHaandtert.vedtaksperiodeId,
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
                     Pri.Key.SENDT_TID to utesendingstidspunkt.toJson(),

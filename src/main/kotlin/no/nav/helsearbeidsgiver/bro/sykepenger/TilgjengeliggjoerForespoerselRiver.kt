@@ -104,6 +104,7 @@ class TilgjengeliggjoerForespoerselRiver(
             }.toJson(ForespoerselSvar.serializer())
 
         priProducer.send(
+            forespoerselId,
             Pri.Key.BEHOV to ForespoerselSvar.behovType.toJson(Pri.BehovType.serializer()),
             Pri.Key.LØSNING to forespoerselSvarJson,
         )

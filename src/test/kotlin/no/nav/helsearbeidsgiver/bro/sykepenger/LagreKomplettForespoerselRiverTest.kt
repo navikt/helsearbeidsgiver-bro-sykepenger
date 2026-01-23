@@ -59,16 +59,14 @@ class LagreKomplettForespoerselRiverTest :
         }
 
         test("Forespørsel blir lagret og sender notifikasjon") {
-            val vetdaksperiodeId = UUID.randomUUID()
-            val opprettet = LocalDateTime.now()
-            val forespoersel = mockForespoerselDto(vedtaksperiodeId = vetdaksperiodeId, opprettet = opprettet)
+            val forespoersel = mockForespoerselDto()
 
             every { mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId) } returns null
 
             mockkStatic(::randomUuid) {
                 every { randomUuid() } returns forespoersel.forespoerselId
                 mockStatic(LocalDateTime::class) {
-                    every { LocalDateTime.now() } returns opprettet
+                    every { LocalDateTime.now() } returns forespoersel.opprettet
                     mockInnkommendeMelding(forespoersel)
                 }
             }
@@ -82,8 +80,8 @@ class LagreKomplettForespoerselRiverTest :
                     forespoersel.forespoerselId,
                 )
 
-                mockPriProducer.sendWithKey(
-                    vetdaksperiodeId.toString(),
+                mockPriProducer.send(
+                    forespoersel.vedtaksperiodeId,
                     *forespoersel.tilMeldingForespoerselMottatt(),
                 )
 
@@ -92,11 +90,9 @@ class LagreKomplettForespoerselRiverTest :
         }
 
         test("Oppdatert forespørsel (ubesvart) blir lagret og sender notifikasjon om oppdatering") {
-
             val eksponertForespoerselId = UUID.randomUUID()
-            val vetdaksperiodeId = UUID.randomUUID()
-            val opprettet = LocalDateTime.now()
-            val forespoersel = mockForespoerselDto(vedtaksperiodeId = vetdaksperiodeId, opprettet = opprettet)
+            val forespoersel = mockForespoerselDto()
+
             every {
                 mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
             } returns
@@ -112,7 +108,7 @@ class LagreKomplettForespoerselRiverTest :
                 every { randomUuid() } returns forespoersel.forespoerselId
 
                 mockStatic(LocalDateTime::class) {
-                    every { LocalDateTime.now() } returns opprettet
+                    every { LocalDateTime.now() } returns forespoersel.opprettet
                     mockInnkommendeMelding(forespoersel)
                 }
             }
@@ -129,8 +125,8 @@ class LagreKomplettForespoerselRiverTest :
             }
 
             verifySequence {
-                mockPriProducer.sendWithKey(
-                    vetdaksperiodeId.toString(),
+                mockPriProducer.send(
+                    forespoersel.vedtaksperiodeId,
                     *forespoersel.tilMeldingForespoerselOppdatert(eksponertForespoerselId),
                 )
             }
@@ -155,8 +151,7 @@ class LagreKomplettForespoerselRiverTest :
 
             verify(exactly = 0) {
                 mockForespoerselDao.lagre(any(), any())
-
-                mockPriProducer.sendWithKey(any(), *anyVararg())
+                mockPriProducer.send(any<UUID>(), *anyVararg())
             }
         }
     })
