@@ -5,7 +5,7 @@ import com.zaxxer.hikari.HikariDataSource
 import no.nav.helsearbeidsgiver.bro.sykepenger.Env
 import org.flywaydb.core.Flyway
 import javax.sql.DataSource
-import org.jetbrains.exposed.sql.Database as ExposedDatabase
+import org.jetbrains.exposed.v1.jdbc.Database as ExposedDatabase
 
 object Database {
     val dataSource by lazy { HikariDataSource(dbConfig) }

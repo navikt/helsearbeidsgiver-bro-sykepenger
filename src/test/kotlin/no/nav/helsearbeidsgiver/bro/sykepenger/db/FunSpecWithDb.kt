@@ -4,12 +4,12 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.spec.style.FunSpec
 import org.flywaydb.core.Flyway
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.deleteAll
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.jdbc.deleteAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.testcontainers.postgresql.PostgreSQLContainer
 import javax.sql.DataSource
-import org.jetbrains.exposed.sql.Database as ExposedDatabase
+import org.jetbrains.exposed.v1.jdbc.Database as ExposedDatabase
 
 abstract class FunSpecWithDb(
     tables: List<Table>,

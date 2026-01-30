@@ -30,14 +30,14 @@ import no.nav.helsearbeidsgiver.utils.test.date.oktober
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
-import org.jetbrains.exposed.exceptions.ExposedSQLException
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -56,12 +56,12 @@ class ForespoerselDaoTest :
                 val forespoersel = mockForespoerselDto()
 
                 val id = forespoersel.lagreEksponertNotNull()
-                val lagretRad = db.hentForespoerselRow(id).shouldNotBeNull()
+                val lagretRad = db.hentForespoerselRow(id, ::tilForespoerselMedEksponertId).shouldNotBeNull()
 
                 db.antallForespoersler() shouldBeExactly 1
-                tilForespoerselDto(lagretRad) shouldBe forespoersel
 
-                lagretRad[ForespoerselTable.eksponertForespoerselId] shouldBe forespoersel.forespoerselId
+                lagretRad.first shouldBe forespoersel.forespoerselId
+                lagretRad.second shouldBe forespoersel
             }
 
             test("Lagre begrenset forespørsel") {
@@ -71,12 +71,12 @@ class ForespoerselDaoTest :
                     )
 
                 val id = forespoersel.lagreEksponertNotNull()
-                val lagretRad = db.hentForespoerselRow(id).shouldNotBeNull()
+                val lagretRad = db.hentForespoerselRow(id, ::tilForespoerselMedEksponertId).shouldNotBeNull()
 
                 db.antallForespoersler() shouldBeExactly 1
-                tilForespoerselDto(lagretRad) shouldBe forespoersel
 
-                lagretRad[ForespoerselTable.eksponertForespoerselId] shouldBe forespoersel.forespoerselId
+                lagretRad.first shouldBe forespoersel.forespoerselId
+                lagretRad.second shouldBe forespoersel
             }
 
             test("Lagre forespørsel med annen eksponert forespørsel-ID") {
@@ -86,19 +86,20 @@ class ForespoerselDaoTest :
                 val idA = eksponertForespoersel.lagreEksponertNotNull()
                 val idB = ikkeEksponertForespoersel.lagreNotNull(eksponertForespoersel.forespoerselId)
 
-                val lagretRadA = db.hentForespoerselRow(idA).shouldNotBeNull()
-                val lagretRadB = db.hentForespoerselRow(idB).shouldNotBeNull()
+                val lagretRadA = db.hentForespoerselRow(idA, ::tilForespoerselMedEksponertId).shouldNotBeNull()
+                val lagretRadB = db.hentForespoerselRow(idB, ::tilForespoerselMedEksponertId).shouldNotBeNull()
 
                 db.antallForespoersler() shouldBeExactly 2
-                tilForespoerselDto(lagretRadA).shouldBeEqualToIgnoringFields(
+
+                lagretRadA.first shouldBe eksponertForespoersel.forespoerselId
+                lagretRadA.second.shouldBeEqualToIgnoringFields(
                     eksponertForespoersel,
                     ForespoerselDto::status,
                     ForespoerselDto::oppdatert,
                 )
-                tilForespoerselDto(lagretRadB) shouldBe ikkeEksponertForespoersel
 
-                lagretRadA[ForespoerselTable.eksponertForespoerselId] shouldBe eksponertForespoersel.forespoerselId
-                lagretRadB[ForespoerselTable.eksponertForespoerselId] shouldBe eksponertForespoersel.forespoerselId
+                lagretRadB.first shouldBe eksponertForespoersel.forespoerselId
+                lagretRadB.second shouldBe ikkeEksponertForespoersel
             }
 
             test("Lagring feiler dersom eksponert forespørsel-ID ikke finnes") {
@@ -1241,17 +1242,19 @@ private data class Besvarelse(
     val inntektsmeldingId: UUID?,
 )
 
-private fun Database.hentForespoersel(id: Long): ForespoerselDto? =
-    hentForespoerselRow(id)
-        ?.let(::tilForespoerselDto)
+private fun Database.hentForespoersel(id: Long): ForespoerselDto? = hentForespoerselRow(id, ::tilForespoerselDto)
 
-private fun Database.hentForespoerselRow(id: Long): ResultRow? =
+private fun <T : Any> Database.hentForespoerselRow(
+    id: Long,
+    transform: (ResultRow) -> T,
+): T? =
     transaction(this) {
         ForespoerselTable
             .selectAll()
             .where {
                 ForespoerselTable.id eq id
             }.firstOrNull()
+            ?.let(transform)
     }
 
 private fun Database.hentBesvarelse(fkId: Long): Besvarelse? =
@@ -1291,6 +1294,9 @@ private fun Database.antallBesvarelser(): Int =
     transaction(this) {
         BesvarelseTable.selectAll().count()
     }.toInt()
+
+private fun tilForespoerselMedEksponertId(row: ResultRow): Pair<UUID, ForespoerselDto> =
+    row[ForespoerselTable.eksponertForespoerselId] to tilForespoerselDto(row)
 
 private fun ForespoerselDto.oekOpprettet(sekunder: Long): ForespoerselDto = copy(opprettet = opprettet.plusSeconds(sekunder))
 
