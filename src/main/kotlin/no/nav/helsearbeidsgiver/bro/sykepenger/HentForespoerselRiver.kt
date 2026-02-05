@@ -7,8 +7,9 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDtoMedEksponertFsp
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
@@ -59,26 +60,32 @@ class HentForespoerselRiver(
             logger().error("Klarte ikke å lese vedtaksperiodeId fra melding: ${ex.message}", ex)
             return
         }
-        val forespoerselListe = forespoerselDao.hentForespoerslerForVedtaksperiodeId(vedtaksperiodeId)
+        val forespoerselListe = forespoerselDao.hentForespoerslerForVedtaksperiodeIdListe(setOf(vedtaksperiodeId))
         if (forespoerselListe.isEmpty()) {
             logger().error("Det er ingen forespørsel for vedtaksperiodeId=$vedtaksperiodeId.")
             return
         } else {
             logger().info("Fant ${forespoerselListe.size} forespørsel(er) for vedtaksperiodeId=$vedtaksperiodeId.")
 
-            forespoerselListe.forEach { sendForespoersel(it) }
+            forespoerselListe.forEach { sendForespoersel(it.second, it.first) }
         }
     }
 
-    private fun sendForespoersel(forespoersel: ForespoerselDtoMedEksponertFsp) {
+    private fun sendForespoersel(
+        forespoersel: ForespoerselDto,
+        eksponertId: UUID,
+    ) {
         try {
             val melding =
                 arrayOf(
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FOR_VEDTAKSPERIODE_ID.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
                     Pri.Key.FORESPOERSEL to ForespoerselSimba(forespoersel).toJson(ForespoerselSimba.serializer()),
-                    Pri.Key.EKSPONERT_FORESPOERSEL_ID to forespoersel.finnEksponertForespoerselId().toJson(),
-                    Pri.Key.STATUS to forespoersel.getStatus().toJson(),
+                    Pri.Key.EKSPONERT_FORESPOERSEL_ID to eksponertId.toJson(),
+                    Pri.Key.STATUS to
+                        forespoersel.status
+                            .tilForenkletStatus()
+                            .toJson(),
                 )
             priProducer.send(forespoersel.vedtaksperiodeId, *melding)
         } catch (e: Exception) {
@@ -86,3 +93,11 @@ class HentForespoerselRiver(
         }
     }
 }
+
+fun Status.tilForenkletStatus(): String =
+    when (this) {
+        Status.AKTIV -> "AKTIV"
+        Status.BESVART_SIMBA -> "BESVART"
+        Status.BESVART_SPLEIS -> "BESVART"
+        Status.FORKASTET -> "FORKASTET"
+    }

@@ -42,18 +42,4 @@ data class ForespoerselSimba(
         erBegrenset = forespoersel.type == Type.BEGRENSET,
         opprettet = forespoersel.opprettet.truncMillis(),
     )
-
-    constructor(forespoersel: ForespoerselDtoMedEksponertFsp) : this(
-        orgnr = forespoersel.orgnr,
-        fnr = forespoersel.fnr,
-        forespoerselId = forespoersel.forespoerselId,
-        vedtaksperiodeId = forespoersel.vedtaksperiodeId,
-        egenmeldingsperioder = forespoersel.egenmeldingsperioder,
-        sykmeldingsperioder = forespoersel.sykmeldingsperioder,
-        bestemmendeFravaersdager = forespoersel.bestemmendeFravaersdager,
-        forespurtData = forespoersel.forespurtData.tilForespurtData(),
-        erBesvart = forespoersel.status.erBesvart(),
-        erBegrenset = forespoersel.type == Type.BEGRENSET,
-        opprettet = forespoersel.opprettet.truncMillis(),
-    )
 }
