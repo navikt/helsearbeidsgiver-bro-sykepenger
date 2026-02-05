@@ -34,13 +34,20 @@ tasks {
         archiveBaseName.set("app")
         manifest {
             attributes["Main-Class"] = mainClassPath
-            attributes["Class-Path"] = configurations.runtimeClasspath.get().joinToString(separator = " ") {
-                it.name
-            }
+            attributes["Class-Path"] =
+                configurations
+                    .runtimeClasspath
+                    .get()
+                    .joinToString(separator = " ") { it.name }
         }
         doLast {
             configurations.runtimeClasspath.get().forEach {
-                val file = layout.buildDirectory.file("libs/${it.name}").get().asFile
+                val file =
+                    layout
+                        .buildDirectory
+                        .file("libs/${it.name}")
+                        .get()
+                        .asFile
                 if (!file.exists()) {
                     it.copyTo(file)
                 }
