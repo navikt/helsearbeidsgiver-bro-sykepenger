@@ -151,21 +151,6 @@ class ForespoerselDao(
             setOf(Status.AKTIV, Status.BESVART_SIMBA, Status.BESVART_SPLEIS),
         )
 
-    fun hentAktiveForespoerslerForOrgnrOgFnr(
-        orgnr: Orgnr,
-        fnr: Fnr,
-    ): List<ForespoerselDto> =
-        transaction(db) {
-            ForespoerselTable
-                .selectAll()
-                .where {
-                    (ForespoerselTable.orgnr eq orgnr.verdi) and
-                        (ForespoerselTable.fnr eq fnr.verdi)
-                }.map {
-                    it[ForespoerselTable.eksponertForespoerselId] to tilForespoerselDto(it)
-                }
-        }.finnNyesteForespoerselPerVedtaksperiodeId(setOf(Status.AKTIV))
-
     fun hentForespoerslerForVedtaksperiodeIdListe(vedtaksperiodeIder: Set<UUID>): List<Pair<UUID, ForespoerselDto>> =
         transaction(db) {
             ForespoerselTable
