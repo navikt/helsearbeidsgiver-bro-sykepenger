@@ -17,7 +17,6 @@ fun main() {
     LagreBegrensetForespoerselRiver(rapid, forespoerselDao, priProducer)
 
     TilgjengeliggjoerForespoerselRiver(rapid, forespoerselDao, priProducer)
-    TilgjengeliggjoerForespoerslerForFnrOgOrgnrRiver(rapid, forespoerselDao, priProducer)
     TilgjengeliggjoerForespoerslerForVedtaksperiodeIdListeRiver(rapid, forespoerselDao, priProducer)
 
     MarkerBesvartFraSimbaRiver(rapid, forespoerselDao)

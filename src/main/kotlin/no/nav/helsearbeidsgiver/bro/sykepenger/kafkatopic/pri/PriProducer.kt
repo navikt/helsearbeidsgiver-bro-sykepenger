@@ -5,7 +5,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.Env
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -27,22 +26,8 @@ class PriProducer(
         kafkaKey: UUID,
         vararg keyValuePairs: Pair<Pri.Key, JsonElement>,
     ) {
-        send(kafkaKey.toString(), keyValuePairs)
-    }
-
-    fun send(
-        kafkaKey: Fnr,
-        vararg keyValuePairs: Pair<Pri.Key, JsonElement>,
-    ) {
-        send(kafkaKey.verdi, keyValuePairs)
-    }
-
-    private fun send(
-        kafkaKey: String,
-        keyValuePairs: Array<out Pair<Pri.Key, JsonElement>>,
-    ) {
         val kafkaMessage = keyValuePairs.toMap().toJsonStr()
-        val record = ProducerRecord(topic, kafkaKey, kafkaMessage)
+        val record = ProducerRecord(topic, kafkaKey.toString(), kafkaMessage)
 
         runCatching {
             producer.send(record).get()

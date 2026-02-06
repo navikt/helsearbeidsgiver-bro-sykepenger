@@ -16,20 +16,13 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type.BEGRENSET
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.til
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import no.nav.helsearbeidsgiver.utils.test.date.april
-import no.nav.helsearbeidsgiver.utils.test.date.august
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.mars
-import no.nav.helsearbeidsgiver.utils.test.date.november
-import no.nav.helsearbeidsgiver.utils.test.date.oktober
-import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
@@ -1129,91 +1122,6 @@ class ForespoerselDaoTest :
                     ForespoerselDto::status,
                     ForespoerselDto::oppdatert,
                 )
-            }
-        }
-
-        context(ForespoerselDao::hentAktiveForespoerslerForOrgnrOgFnr.name) {
-            test("Henter kun aktive forespørsler for korrekt orgnr og fnr") {
-                val orgnr = Orgnr.genererGyldig()
-                val fnr = Fnr.genererGyldig()
-                val vedtaksperiodeId1 = UUID.randomUUID()
-                val vedtaksperiodeId2 = UUID.randomUUID()
-
-                val forespoersel1Gruppe1 =
-                    mockForespoerselDto().copy(
-                        orgnr = orgnr,
-                        fnr = fnr,
-                        vedtaksperiodeId = vedtaksperiodeId1,
-                        egenmeldingsperioder = listOf(23.oktober til 23.oktober),
-                        sykmeldingsperioder = listOf(24.oktober til 24.oktober),
-                    )
-
-                val forespoersel2Gruppe1 =
-                    mockForespoerselDto().copy(
-                        orgnr = orgnr,
-                        fnr = fnr,
-                        vedtaksperiodeId = vedtaksperiodeId1,
-                        sykmeldingsperioder = listOf(23.oktober til 24.oktober),
-                        opprettet = LocalDateTime.now().plusSeconds(3).truncMillis(),
-                    )
-
-                val forespoersel3Gruppe1 =
-                    mockForespoerselDto().copy(
-                        orgnr = orgnr,
-                        fnr = fnr,
-                        vedtaksperiodeId = vedtaksperiodeId1,
-                        sykmeldingsperioder = listOf(25.oktober til 25.oktober),
-                        opprettet = LocalDateTime.now().plusSeconds(6).truncMillis(),
-                    )
-
-                val forespoerselGruppe2 =
-                    mockForespoerselDto().copy(
-                        orgnr = orgnr,
-                        fnr = fnr,
-                        vedtaksperiodeId = vedtaksperiodeId2,
-                        sykmeldingsperioder = listOf(3.november til 6.november),
-                    )
-
-                val forespoerselAnnetOrgnr =
-                    mockForespoerselDto().copy(
-                        orgnr = Orgnr.genererGyldig(),
-                        vedtaksperiodeId = UUID.randomUUID(),
-                        sykmeldingsperioder = listOf(5.august til 5.august),
-                    )
-
-                val forespoerselAnnetFnr =
-                    mockForespoerselDto().copy(
-                        fnr = Fnr.genererGyldig(),
-                        vedtaksperiodeId = UUID.randomUUID(),
-                        sykmeldingsperioder = listOf(5.august til 5.august),
-                    )
-
-                // Skal ikke hentes (er forkastet)
-                forespoerselDao.lagre(forespoersel1Gruppe1, forespoersel1Gruppe1.forespoerselId)
-
-                // Skal ikke hentes (er besvart)
-                forespoerselDao.lagre(forespoersel2Gruppe1, forespoersel1Gruppe1.forespoerselId)
-                forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(
-                    vedtaksperiodeId1,
-                    LocalDateTime.now().plusSeconds(9).truncMillis(),
-                )
-
-                forespoerselDao.lagre(forespoersel3Gruppe1, forespoersel3Gruppe1.forespoerselId)
-                forespoerselDao.lagre(forespoerselGruppe2, forespoerselGruppe2.forespoerselId)
-
-                // Skal ikke hentes (annet orgnr)
-                forespoerselDao.lagre(forespoerselAnnetOrgnr, forespoerselAnnetOrgnr.forespoerselId)
-
-                // Skal ikke hentes (annet fnr)
-                forespoerselDao.lagre(forespoerselAnnetFnr, forespoerselAnnetFnr.forespoerselId)
-
-                val actualForespoersler = forespoerselDao.hentAktiveForespoerslerForOrgnrOgFnr(orgnr, fnr)
-
-                actualForespoersler.size shouldBeExactly 2
-
-                // Rekkefølgen kommer av opprettelsestidspunktet
-                actualForespoersler[0] shouldBe forespoerselGruppe2
-                actualForespoersler[1] shouldBe forespoersel3Gruppe1
             }
         }
 
