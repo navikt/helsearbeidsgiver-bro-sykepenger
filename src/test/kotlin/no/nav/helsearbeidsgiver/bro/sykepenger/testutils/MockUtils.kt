@@ -3,7 +3,6 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.testutils
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Arbeidsgiverperiode
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDtoMedEksponertFsp
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespurtData
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Inntekt
@@ -53,33 +52,6 @@ fun mockForespoerselDto(): ForespoerselDto {
                 Orgnr.genererGyldig() to 19.januar,
             ),
         forespurtData = mockSpleisForespurtDataListe(),
-    )
-}
-
-fun mockForespoerselDtoMedEksponertFsp(vedtaksperiodeId: UUID = MockUuid.vedtaksperiodeId): ForespoerselDtoMedEksponertFsp {
-    val orgnr = Orgnr.genererGyldig()
-
-    return ForespoerselDtoMedEksponertFsp(
-        forespoerselId = UUID.randomUUID(),
-        type = Type.KOMPLETT,
-        status = Status.AKTIV,
-        orgnr = orgnr,
-        fnr = Fnr.genererGyldig(),
-        vedtaksperiodeId = vedtaksperiodeId,
-        egenmeldingsperioder = listOf(Periode(1.januar, 1.januar)),
-        sykmeldingsperioder =
-            listOf(
-                Periode(2.januar, 10.januar),
-                Periode(15.januar, 20.januar),
-            ),
-        bestemmendeFravaersdager =
-            mapOf(
-                orgnr to 15.januar,
-                Orgnr.genererGyldig() to 17.januar,
-                Orgnr.genererGyldig() to 19.januar,
-            ),
-        forespurtData = mockSpleisForespurtDataListe(),
-        eksponertForespoerselId = UUID.randomUUID(),
     )
 }
 
