@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.tilMeldingForespoerselM
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.tilMeldingForespoerselOppdatert
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
@@ -49,7 +50,7 @@ class LagreKomplettForespoerselRiverTest :
                 Spleis.Key.EGENMELDINGSPERIODER to forespoersel.egenmeldingsperioder.toJson(Periode.serializer().list()),
                 Spleis.Key.SYKMELDINGSPERIODER to forespoersel.sykmeldingsperioder.toJson(Periode.serializer().list()),
                 Spleis.Key.BESTEMMENDE_FRAVÆRSDAGER to forespoersel.bestemmendeFravaersdager.toJson(bestemmendeFravaersdagerSerializer),
-                Spleis.Key.FORESPURT_DATA to forespoersel.forespurtData.toJson(SpleisForespurtDataDto.serializer().list()),
+                Spleis.Key.FORESPURT_DATA to forespoersel.forespurtData.toJson(SpleisForespurtDataDto.serializer().set()),
             )
         }
 

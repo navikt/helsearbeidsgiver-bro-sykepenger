@@ -52,7 +52,7 @@ class ForespoerselDtoTest :
                     },
                     "Oppdager ulik 'forespurtData'" to {
                         it.copy(
-                            forespurtData = listOf(SpleisInntekt),
+                            forespurtData = setOf(SpleisInntekt),
                         )
                     },
                 ),

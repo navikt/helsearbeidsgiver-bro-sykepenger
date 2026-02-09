@@ -24,7 +24,7 @@ data class ForespoerselDto(
     val egenmeldingsperioder: List<Periode>,
     val sykmeldingsperioder: List<Periode>,
     val bestemmendeFravaersdager: Map<Orgnr, LocalDate>,
-    val forespurtData: List<SpleisForespurtDataDto>,
+    val forespurtData: Set<SpleisForespurtDataDto>,
     val opprettet: LocalDateTime = LocalDateTime.now().truncMillis(),
     val oppdatert: LocalDateTime = LocalDateTime.now().truncMillis(),
     val kastetTilInfotrygd: LocalDateTime? = null,

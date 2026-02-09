@@ -28,7 +28,7 @@ class MapForespurtDataKtTest :
                     refusjon = Refusjon(paakrevd = true),
                 )
 
-            val mappedForespurtData = listOf(SpleisArbeidsgiverperiode, SpleisInntekt, SpleisRefusjon).tilForespurtData()
+            val mappedForespurtData = setOf(SpleisArbeidsgiverperiode, SpleisInntekt, SpleisRefusjon).tilForespurtData()
 
             mappedForespurtData shouldBe expectedForespurtData
         }
@@ -41,7 +41,7 @@ class MapForespurtDataKtTest :
                     refusjon = Refusjon(paakrevd = false),
                 )
 
-            val mappedForespurtData = emptyList<SpleisForespurtDataDto>().tilForespurtData()
+            val mappedForespurtData = emptySet<SpleisForespurtDataDto>().tilForespurtData()
 
             mappedForespurtData shouldBe expectedForespurtData
         }
@@ -54,7 +54,7 @@ class MapForespurtDataKtTest :
                     refusjon = Refusjon(paakrevd = true),
                 )
 
-            val mappedForespurtData = listOf(SpleisArbeidsgiverperiode, SpleisFastsattInntekt, SpleisRefusjon).tilForespurtData()
+            val mappedForespurtData = setOf(SpleisArbeidsgiverperiode, SpleisFastsattInntekt, SpleisRefusjon).tilForespurtData()
 
             mappedForespurtData shouldBe expectedForespurtData
         }
@@ -68,7 +68,7 @@ class MapForespurtDataKtTest :
                         refusjon = Refusjon(paakrevd = false),
                     )
 
-                val spleisForespurtData = listOf(SpleisArbeidsgiverperiode)
+                val spleisForespurtData = setOf(SpleisArbeidsgiverperiode)
 
                 val mappedForespurtData = spleisForespurtData.tilForespurtData()
 
@@ -83,7 +83,7 @@ class MapForespurtDataKtTest :
                         refusjon = Refusjon(paakrevd = true),
                     )
 
-                val mappedForespurtData = listOf(SpleisInntekt, SpleisRefusjon).tilForespurtData()
+                val mappedForespurtData = setOf(SpleisInntekt, SpleisRefusjon).tilForespurtData()
 
                 mappedForespurtData shouldBe expectedForespurtData
             }
@@ -98,7 +98,7 @@ class MapForespurtDataKtTest :
                         refusjon = Refusjon(paakrevd = false),
                     )
 
-                val spleisForespurtData = listOf(SpleisInntekt)
+                val spleisForespurtData = setOf(SpleisInntekt)
 
                 val mappedForespurtData = spleisForespurtData.tilForespurtData()
 
@@ -113,7 +113,7 @@ class MapForespurtDataKtTest :
                         refusjon = Refusjon(paakrevd = true),
                     )
 
-                val mappedForespurtData = listOf(SpleisArbeidsgiverperiode, SpleisRefusjon).tilForespurtData()
+                val mappedForespurtData = setOf(SpleisArbeidsgiverperiode, SpleisRefusjon).tilForespurtData()
 
                 mappedForespurtData shouldBe expectedForespurtData
             }
@@ -128,7 +128,7 @@ class MapForespurtDataKtTest :
                         refusjon = Refusjon(paakrevd = true),
                     )
 
-                val mappedForespurtData = listOf(SpleisRefusjon).tilForespurtData()
+                val mappedForespurtData = setOf(SpleisRefusjon).tilForespurtData()
 
                 mappedForespurtData shouldBe expectedForespurtData
             }
@@ -141,7 +141,7 @@ class MapForespurtDataKtTest :
                         refusjon = Refusjon(paakrevd = false),
                     )
 
-                val mappedForespurtData = listOf(SpleisArbeidsgiverperiode, SpleisInntekt).tilForespurtData()
+                val mappedForespurtData = setOf(SpleisArbeidsgiverperiode, SpleisInntekt).tilForespurtData()
 
                 mappedForespurtData shouldBe expectedForespurtData
             }

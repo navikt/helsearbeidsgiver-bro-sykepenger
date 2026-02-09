@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.log.MdcUtils
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
@@ -82,7 +83,7 @@ class LagreKomplettForespoerselRiver(
                 egenmeldingsperioder = Spleis.Key.EGENMELDINGSPERIODER.les(Periode.serializer().list(), melding),
                 sykmeldingsperioder = Spleis.Key.SYKMELDINGSPERIODER.les(Periode.serializer().list(), melding),
                 bestemmendeFravaersdager = bestemmendeFravaersdager,
-                forespurtData = Spleis.Key.FORESPURT_DATA.les(SpleisForespurtDataDto.serializer().list(), melding),
+                forespurtData = Spleis.Key.FORESPURT_DATA.les(SpleisForespurtDataDto.serializer().set(), melding),
             )
 
         val bfUtenEgenmld =

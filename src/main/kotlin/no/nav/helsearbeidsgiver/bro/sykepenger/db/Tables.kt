@@ -6,6 +6,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
 import no.nav.helsearbeidsgiver.utils.json.jsonConfig
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.java.javaUUID
@@ -27,7 +28,7 @@ object ForespoerselTable : Table("forespoersel") {
     val egenmeldingsperioder = jsonb("egenmeldingsperioder", jsonConfig, Periode.serializer().list())
     val sykmeldingsperioder = jsonb("sykmeldingsperioder", jsonConfig, Periode.serializer().list())
     val bestemmendeFravaersdager = jsonb("bestemmende_fravaersdager", jsonConfig, bestemmendeFravaersdagerSerializer)
-    val forespurtData = jsonb("forespurt_data", jsonConfig, SpleisForespurtDataDto.serializer().list())
+    val forespurtData = jsonb("forespurt_data", jsonConfig, SpleisForespurtDataDto.serializer().set())
     val opprettet = datetime("opprettet")
     val oppdatert = datetime("oppdatert")
     val kastetTilInfotrygd = datetime("kastet_til_infotrygd").nullable()
