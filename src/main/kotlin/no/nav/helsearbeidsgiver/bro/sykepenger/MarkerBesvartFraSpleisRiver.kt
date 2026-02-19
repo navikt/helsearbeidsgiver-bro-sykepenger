@@ -103,7 +103,7 @@ class MarkerBesvartFraSpleisRiver(
                     .firstOrNull()
                     ?.forespoerselId
 
-            if (forespoerselIdEksponertTilSimba == null) {
+            if (forespoerselIdEksponertTilSimba == null) { // TODO: Gir denne sjekken egentlig mening?
                 loggernaut.aapen.warn("Fant ingen forespørsler for den besvarte inntektsmeldingen")
                 loggernaut.sikker.warn("Fant ingen forespørsler for den besvarte inntektsmeldingen: ${toPretty()}")
             } else {
@@ -119,6 +119,9 @@ class MarkerBesvartFraSpleisRiver(
 
                 loggernaut.info("Sa ifra om besvart forespørsel til Simba.")
             }
+        } else {
+            loggernaut.aapen.warn("Ukjent vedtaksperiodeId besvart, forespørsel må lukkes manuelt.")
+            loggernaut.sikker.warn("Ukjent vedtaksperiodeId besvart, forespørsel må lukkes manuelt. Melding: $inntektsmeldingHaandtert")
         }
     }
 }
