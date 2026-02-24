@@ -23,6 +23,8 @@ import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.mars
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
@@ -1142,6 +1144,39 @@ class ForespoerselDaoTest :
             }
 
             db.antallForespoersler() shouldBeExactly 2
+        }
+
+        context(ForespoerselDao::hentForespoerslerForPerson.name) {
+            test("Slår opp forespørsel på fnr, gir tilbake sortert liste med nyeste først") {
+                val eksponertId = UUID.randomUUID()
+
+                val fsp = mockForespoerselDto()
+                fsp
+                    .copy(
+                        forespoerselId = eksponertId,
+                        sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)),
+                    ).also { it.lagreNotNull(eksponertId) }
+
+                fsp
+                    .copy(sykmeldingsperioder = listOf(Periode(2.januar, 30.januar)), opprettet = LocalDateTime.now().plusHours(1))
+                    .also { it.lagreNotNull(eksponertId) }
+
+                val forespoersler =
+                    forespoerselDao
+                        .hentForespoerslerForPerson(fsp.fnr)
+
+                forespoersler.size shouldBe 2
+                forespoersler[0].status shouldBe Status.AKTIV
+            }
+            test("Finner forespørsler på tvers av orgnr") {
+                val fnr = Fnr.genererGyldig()
+                val fsp1 = mockForespoerselDto().copy(fnr = fnr)
+                val fsp2 = mockForespoerselDto().copy(fnr = fnr)
+                forespoerselDao.hentForespoerslerForPerson(fnr) shouldBe emptyList()
+                forespoerselDao.lagre(fsp1, fsp1.forespoerselId)
+                forespoerselDao.lagre(fsp2, fsp2.forespoerselId)
+                forespoerselDao.hentForespoerslerForPerson(fnr).size shouldBe 2
+            }
         }
     })
 

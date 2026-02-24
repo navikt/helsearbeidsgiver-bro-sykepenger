@@ -128,6 +128,16 @@ class ForespoerselDao(
                 }
         }
 
+    fun hentForespoerslerForPerson(fnr: Fnr): List<ForespoerselDto> =
+        transaction(db) {
+            ForespoerselTable
+                .selectAll()
+                .where { ForespoerselTable.fnr eq fnr.toString() }
+                .map {
+                    tilForespoerselDto(it)
+                }.sortedByDescending { it.opprettet }
+        }
+
     fun hentVedtaksperiodeId(forespoerselId: UUID): UUID? =
         transaction(db) {
             ForespoerselTable
