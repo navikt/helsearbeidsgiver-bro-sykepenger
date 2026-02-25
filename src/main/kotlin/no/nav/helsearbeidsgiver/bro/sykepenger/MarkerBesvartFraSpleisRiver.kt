@@ -9,6 +9,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.InntektsmeldingHaandtertDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
@@ -122,7 +123,7 @@ class MarkerBesvartFraSpleisRiver(
         } else {
             val forespoersler =
                 forespoerselDao.hentForespoerslerForPerson(inntektsmeldingHaandtert.fnr).filter {
-                    it.orgnr == inntektsmeldingHaandtert.orgnr
+                    it.orgnr == inntektsmeldingHaandtert.orgnr && Status.AKTIV == it.status
                 }
             if (forespoersler.isEmpty()) {
                 loggernaut.aapen.info("Ingen forespørsel funnet, sannsynligvis kom IM før søknad / forespørsel")
@@ -133,7 +134,7 @@ class MarkerBesvartFraSpleisRiver(
                 loggernaut.aapen.warn("Ukjent vedtaksperiodeId besvart, forespørsel må lukkes manuelt.")
                 loggernaut.sikker.warn("Ukjent vedtaksperiodeId besvart, forespørsel må lukkes manuelt. Melding: $inntektsmeldingHaandtert")
                 loggernaut.sikker.warn(
-                    "Fant disse potensielle forespørslene: ${forespoersler.joinToString { it.forespoerselId.toString() }}",
+                    "Fant disse potensielle (aktive) forespørslene: ${forespoersler.joinToString { "'${it.forespoerselId}'" }}",
                 )
             }
         }
