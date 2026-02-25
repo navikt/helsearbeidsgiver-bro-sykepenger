@@ -9,6 +9,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.Transaction
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -133,9 +134,10 @@ class ForespoerselDao(
             ForespoerselTable
                 .selectAll()
                 .where { ForespoerselTable.fnr eq fnr.toString() }
+                .orderBy(ForespoerselTable.opprettet, SortOrder.DESC)
                 .map {
                     tilForespoerselDto(it)
-                }.sortedByDescending { it.opprettet }
+                }
         }
 
     fun hentVedtaksperiodeId(forespoerselId: UUID): UUID? =
