@@ -9,6 +9,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.InntektsmeldingHaandtertDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
@@ -103,7 +104,7 @@ class MarkerBesvartFraSpleisRiver(
                     .firstOrNull()
                     ?.forespoerselId
 
-            if (forespoerselIdEksponertTilSimba == null) { // TODO: Gir denne sjekken egentlig mening?
+            if (forespoerselIdEksponertTilSimba == null) { // TODO: Gir denne sjekken egentlig mening når antallOppdaterte allerede > 0 ?
                 loggernaut.aapen.warn("Fant ingen forespørsler for den besvarte inntektsmeldingen")
                 loggernaut.sikker.warn("Fant ingen forespørsler for den besvarte inntektsmeldingen: ${toPretty()}")
             } else {
@@ -120,8 +121,22 @@ class MarkerBesvartFraSpleisRiver(
                 loggernaut.info("Sa ifra om besvart forespørsel til Simba.")
             }
         } else {
-            loggernaut.aapen.warn("Ukjent vedtaksperiodeId besvart, forespørsel må lukkes manuelt.")
-            loggernaut.sikker.warn("Ukjent vedtaksperiodeId besvart, forespørsel må lukkes manuelt. Melding: $inntektsmeldingHaandtert")
+            val forespoersler =
+                forespoerselDao.hentForespoerslerForPerson(inntektsmeldingHaandtert.fnr).filter {
+                    it.orgnr == inntektsmeldingHaandtert.orgnr && Status.AKTIV == it.status
+                }
+            if (forespoersler.isEmpty()) {
+                loggernaut.aapen.info("Ingen forespørsel funnet, sannsynligvis kom IM før søknad / forespørsel")
+                loggernaut.sikker.info(
+                    "Ingen forespørsel funnet, sannsynligvis kom IM før søknad / forespørsel. Melding: $inntektsmeldingHaandtert",
+                )
+            } else {
+                loggernaut.aapen.warn("Ukjent vedtaksperiodeId besvart, forespørsel må lukkes manuelt.")
+                loggernaut.sikker.warn("Ukjent vedtaksperiodeId besvart, forespørsel må lukkes manuelt. Melding: $inntektsmeldingHaandtert")
+                loggernaut.sikker.warn(
+                    "Fant disse potensielle (aktive) forespørslene: ${forespoersler.joinToString { "'${it.forespoerselId}'" }}",
+                )
+            }
         }
     }
 }
