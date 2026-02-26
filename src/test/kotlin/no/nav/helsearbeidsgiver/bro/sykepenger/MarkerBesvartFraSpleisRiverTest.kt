@@ -9,14 +9,18 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.InntektsmeldingHaandtertDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockInntektsmeldingHaandtertDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
+import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -119,6 +123,105 @@ class MarkerBesvartFraSpleisRiverTest :
 
             verify(exactly = 0) {
                 mockPriProducer.send(any<UUID>(), *anyVararg())
+            }
+        }
+
+        context("VedtaksperiodeIder fra Spleis matcher ikke Bro - spleis sender IM_MOTTATT på en ukjent vedtaksperiodeID") {
+            // Håndteringen og disse testene kan fjernes når vi ikke lengre tar imot IM fra altinn2
+            val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = null)
+            val forespoerselMedAnnenVedtaksperiodeId =
+                mockForespoerselDto().copy(
+                    vedtaksperiodeId = UUID.randomUUID(),
+                    orgnr = inntektsmeldingHaandtert.orgnr,
+                    fnr = inntektsmeldingHaandtert.fnr,
+                )
+            val forkastetForespoersel = forespoerselMedAnnenVedtaksperiodeId.copy(status = Status.FORKASTET)
+            val forespoerselMedAnnetOrgnr =
+                mockForespoerselDto().copy(
+                    vedtaksperiodeId = UUID.randomUUID(),
+                    orgnr = Orgnr.genererGyldig(),
+                    fnr = inntektsmeldingHaandtert.fnr,
+                )
+
+            test("Lukker og sier ifra til Simba hvis det bare er en aktiv forespørsel") {
+
+                every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(any(), any(), any()) } returns 0
+
+                every { mockForespoerselDao.hentForespoerslerForPerson(inntektsmeldingHaandtert.fnr) } returns
+                    listOf(forespoerselMedAnnenVedtaksperiodeId)
+
+                mockInnkommendeMelding(inntektsmeldingHaandtert)
+                verify(exactly = 1) {
+                    // forsøker først med meldingen as-is:
+                    mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
+                        vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId,
+                        besvart = any(),
+                        inntektsmeldingId = any(),
+                    )
+                    // slår så opp på fnr
+                    mockForespoerselDao.hentForespoerslerForPerson(inntektsmeldingHaandtert.fnr)
+                    mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
+                        vedtaksperiodeId = forespoerselMedAnnenVedtaksperiodeId.vedtaksperiodeId,
+                        besvart = any(),
+                        inntektsmeldingId = any(),
+                    ) // oppdaterer aktiv fsp
+                    mockPriProducer.send(any<UUID>(), *anyVararg())
+                }
+            }
+
+            test("Lukker og sier ifra til Simba hvis det bare er en aktiv forespørsel, ser bort fra andre orgnr og statuser") {
+
+                every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(any(), any(), any()) } returns 0
+
+                every { mockForespoerselDao.hentForespoerslerForPerson(inntektsmeldingHaandtert.fnr) } returns
+                    listOf(forespoerselMedAnnenVedtaksperiodeId, forkastetForespoersel, forespoerselMedAnnetOrgnr)
+
+                mockInnkommendeMelding(inntektsmeldingHaandtert)
+                verify(exactly = 1) {
+                    // forsøker først med meldingen:
+                    mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
+                        vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId,
+                        besvart = any(),
+                        inntektsmeldingId = any(),
+                    )
+                    // slår opp på fnr:
+                    mockForespoerselDao.hentForespoerslerForPerson(inntektsmeldingHaandtert.fnr)
+                    mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
+                        vedtaksperiodeId = forespoerselMedAnnenVedtaksperiodeId.vedtaksperiodeId,
+                        besvart = any(),
+                        inntektsmeldingId = any(),
+                    ) // oppdaterer aktiv fsp
+                    mockPriProducer.send(any<UUID>(), *anyVararg())
+                }
+            }
+
+            test("Logger og gjør ingenting hvis flere enn en aktiv forespørsel") {
+
+                every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(any(), any(), any()) } returns 0
+
+                every { mockForespoerselDao.hentForespoerslerForPerson(inntektsmeldingHaandtert.fnr) } returns
+                    listOf(
+                        forespoerselMedAnnenVedtaksperiodeId,
+                        forespoerselMedAnnenVedtaksperiodeId.copy(forespoerselId = UUID.randomUUID()),
+                    )
+
+                mockInnkommendeMelding(inntektsmeldingHaandtert)
+                verify(exactly = 1) {
+                    mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
+                        inntektsmeldingHaandtert.vedtaksperiodeId,
+                        any(),
+                        any(),
+                    ) // forsøker først med meldingen
+                    mockForespoerselDao.hentForespoerslerForPerson(inntektsmeldingHaandtert.fnr) // slår opp på fnr
+                }
+                verify(exactly = 0) {
+                    mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
+                        forespoerselMedAnnenVedtaksperiodeId.vedtaksperiodeId,
+                        any(),
+                        any(),
+                    ) // oppdaterer aktiv fsp
+                    mockPriProducer.send(any<UUID>(), *anyVararg())
+                }
             }
         }
 

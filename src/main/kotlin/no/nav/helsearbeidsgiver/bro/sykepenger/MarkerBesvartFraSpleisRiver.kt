@@ -84,7 +84,8 @@ class MarkerBesvartFraSpleisRiver(
                 haandtert = Spleis.Key.OPPRETTET.les(LocalDateTimeSerializer, melding),
             )
 
-        val aktivForespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
+        val aktivForespoersel =
+            forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
 
         val antallOppdaterte =
             forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
@@ -131,11 +132,35 @@ class MarkerBesvartFraSpleisRiver(
                     "Ingen forespørsel funnet, sannsynligvis kom IM før søknad / forespørsel. Melding: $inntektsmeldingHaandtert",
                 )
             } else {
-                loggernaut.aapen.warn("Ukjent vedtaksperiodeId besvart, forespørsel må lukkes manuelt.")
-                loggernaut.sikker.warn("Ukjent vedtaksperiodeId besvart, forespørsel må lukkes manuelt. Melding: $inntektsmeldingHaandtert")
-                loggernaut.sikker.warn(
-                    "Fant disse potensielle (aktive) forespørslene: ${forespoersler.joinToString { "'${it.forespoerselId}'" }}",
-                )
+                if (forespoersler.size == 1) {
+                    val funnet = forespoersler.first()
+                    // TODO: duplisert av kode over, slå sammen og kjør løypa på samme måte som vanlig besvart
+                    loggernaut.sikker.info("Fant én aktiv forespørsel - lukker: $funnet")
+                    forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
+                        vedtaksperiodeId = funnet.vedtaksperiodeId,
+                        besvart = inntektsmeldingHaandtert.haandtert,
+                        inntektsmeldingId = inntektsmeldingId,
+                    )
+                    val felter =
+                        listOfNotNull(
+                            Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
+                            Pri.Key.FORESPOERSEL_ID to funnet.forespoerselId.toJson(),
+                            Pri.Key.SENDT_TID to LocalDateTime.now().toJson(),
+                            inntektsmeldingId?.let { Pri.Key.SPINN_INNTEKTSMELDING_ID to it.toJson() },
+                        ).toTypedArray()
+
+                    priProducer.send(inntektsmeldingHaandtert.vedtaksperiodeId, *felter)
+
+                    loggernaut.info("Sa ifra om besvart forespørsel ${funnet.forespoerselId} til Simba.")
+                } else {
+                    loggernaut.aapen.warn("Ukjent vedtaksperiodeId besvart og flere aktive forespørsler, forespørsel må lukkes manuelt.")
+                    loggernaut.sikker.warn(
+                        "Ukjent vedtaksperiodeId besvart og flere aktive forespørsler, forespørsel må lukkes manuelt. Melding: $inntektsmeldingHaandtert",
+                    )
+                    loggernaut.sikker.warn(
+                        "Fant disse potensielle (aktive) forespørslene: ${forespoersler.joinToString { "'${it.forespoerselId}'" }}",
+                    )
+                }
             }
         }
     }
