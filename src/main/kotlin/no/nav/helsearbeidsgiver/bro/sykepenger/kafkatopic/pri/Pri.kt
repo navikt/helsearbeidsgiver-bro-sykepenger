@@ -26,7 +26,7 @@ object Pri {
         EKSPONERT_FORESPOERSEL_ID("eksponertForespoerselId"),
         VEDTAKSPERIODE_ID("vedtaksperiode_id"),
         STATUS("status"),
-        SENDT_TID("sendt_tid"),
+        SENDT_TID("sendt_tid"), // TODO: Kanskje ikke denne er så viktig? Gjør testing litt kålete (må bruke mockStatic)
         ;
 
         override fun toString(): String = verdi
@@ -53,6 +53,7 @@ object Pri {
         FORESPOERSEL_BESVART,
         FORESPOERSEL_BESVART_SIMBA,
         FORESPOERSEL_FORKASTET,
+        FORESPOERSEL_MANUELT_FORKASTET, // Sendes fra HAG-Admin
         FORESPOERSEL_KASTET_TIL_INFOTRYGD,
         FORESPOERSEL_OPPDATERT,
         FORESPOERSEL_FOR_VEDTAKSPERIODE_ID,
