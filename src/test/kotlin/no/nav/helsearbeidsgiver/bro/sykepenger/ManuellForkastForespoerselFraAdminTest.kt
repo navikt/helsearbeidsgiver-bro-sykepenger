@@ -56,6 +56,11 @@ class ManuellForkastForespoerselFraAdminTest :
                         Pri.Key.SENDT_TID to utsendingstidspunkt.truncMillis().toJson(),
                         Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     )
+                    mockPriProducer.send(
+                        vedtaksperiodeId,
+                        Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID.toJson(Pri.BehovType.serializer()),
+                        Pri.Key.VEDTAKSPERIODE_ID to vedtaksperiodeId.toJson(),
+                    )
                 }
             }
         }

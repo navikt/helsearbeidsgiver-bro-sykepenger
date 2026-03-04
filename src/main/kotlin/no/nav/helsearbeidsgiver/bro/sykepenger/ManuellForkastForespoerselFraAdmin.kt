@@ -24,7 +24,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 /*
-  Tar imot melding fra Hag-admin om forespørsel som skal forkastes.
+  Tar imot melding fra Hag-admin om forespørsel (bruk eksponert forespørselId for å lukke sak og oppgave!) som skal forkastes.
   Typisk må dette gjøres manuelt når inntektsmeldinger fra Altinn2 trigger svar fra spleis på ukjente vedtaksperioder i bro,
   slik at forespørsler som egentlig er besvart og kan lukkes blir stuck med status AKTIV.
  */
@@ -86,8 +86,14 @@ class ManuellForkastForespoerselFraAdmin(
                     Pri.Key.SENDT_TID to LocalDateTime.now().truncMillis().toJson(),
                     Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                 )
-
                 loggernaut.info("Sa ifra på pri-topic om forkastet forespørsel med forespørselId: $forespoerselId")
+                // synkroniser til LPSAPI, fordi den eksponerte forespørselId brukes mot Simba for å lukke sak, men kan allerede være forkastet i bro og api
+                priProducer.send(
+                    vedtaksperiodeId,
+                    Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID.toJson(Pri.BehovType.serializer()),
+                    Pri.Key.VEDTAKSPERIODE_ID to vedtaksperiodeId.toJson(),
+                )
+                loggernaut.info("Trigget synkronisering av forespørsler for LPS-API for vedtaksperiodeId: $vedtaksperiodeId")
             } else {
                 loggernaut.warn("Fant ingen aktive forespørsler med forespørselId: $forespoerselId")
             }
