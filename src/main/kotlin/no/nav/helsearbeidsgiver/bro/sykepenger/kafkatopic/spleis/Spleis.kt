@@ -22,6 +22,7 @@ object Spleis {
         FORESPURT_DATA("forespurtData"),
         DOKUMENT_ID("dokumentId"),
         OPPRETTET("@opprettet"),
+        VEDTAKSPERIODE_IDER_MED_SAMME_FRAVAERSDAG("vedtaksperioderMedSammeFørsteFraværsdag"),
         ;
 
         override fun toString(): String = verdi

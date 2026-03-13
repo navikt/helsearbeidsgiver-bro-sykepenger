@@ -47,7 +47,7 @@ class MarkerBesvartFraSpleisRiver(
                         Spleis.Key.VEDTAKSPERIODE_ID,
                         Spleis.Key.OPPRETTET,
                     )
-                    msg.interestedKeys(Spleis.Key.DOKUMENT_ID)
+                    msg.interestedKeys(Spleis.Key.DOKUMENT_ID, Spleis.Key.VEDTAKSPERIODE_IDER_MED_SAMME_FRAVAERSDAG)
                 }
             }.register(this)
     }
@@ -121,6 +121,7 @@ class MarkerBesvartFraSpleisRiver(
                 loggernaut.info("Sa ifra om besvart forespørsel til Simba.")
             }
         } else {
+            // TODO: Ikke lukk aktive forespørsler hvis det er en selvbestemt Inntektsmelding..!
             val forespoersler =
                 forespoerselDao.hentForespoerslerForPerson(inntektsmeldingHaandtert.fnr).filter {
                     it.orgnr == inntektsmeldingHaandtert.orgnr && Status.AKTIV == it.status
