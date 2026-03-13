@@ -121,7 +121,6 @@ class MarkerBesvartFraSpleisRiver(
                 loggernaut.info("Sa ifra om besvart forespørsel til Simba.")
             }
         } else {
-            // TODO: Ikke lukk aktive forespørsler hvis det er en selvbestemt Inntektsmelding..!
             val forespoersler =
                 forespoerselDao.hentForespoerslerForPerson(inntektsmeldingHaandtert.fnr).filter {
                     it.orgnr == inntektsmeldingHaandtert.orgnr && Status.AKTIV == it.status
