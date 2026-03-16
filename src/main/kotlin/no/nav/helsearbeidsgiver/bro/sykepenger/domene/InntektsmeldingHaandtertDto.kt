@@ -11,4 +11,5 @@ data class InntektsmeldingHaandtertDto(
     val vedtaksperiodeId: UUID,
     val inntektsmeldingId: UUID?,
     val haandtert: LocalDateTime,
+    val vedtaksperiodeIdListe: List<UUID>? = null,
 )

@@ -128,6 +128,9 @@ class ForespoerselDao(
                 }
         }
 
+    /*
+    Behold denne metoden, kan være nyttig fra HAG-admin
+     */
     fun hentForespoerslerForPerson(fnr: Fnr): List<ForespoerselDto> =
         transaction(db) {
             ForespoerselTable
