@@ -102,13 +102,12 @@ class ForespoerselDao(
             oppdaterteForespoersler.size
         }
 
-    fun oppdaterForespoerslerSomForkastet(vedtaksperiodeId: UUID) {
+    fun oppdaterForespoerslerSomForkastet(vedtaksperiodeId: UUID): List<Long> =
         oppdaterStatuser(
             vedtaksperiodeId = vedtaksperiodeId,
             erstattStatuser = setOf(Status.AKTIV),
             nyStatus = Status.FORKASTET,
         )
-    }
 
     fun markerKastetTilInfotrygd(vedtaksperiodeId: UUID): List<Long> =
         transaction(db) {
