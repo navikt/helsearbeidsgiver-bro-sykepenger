@@ -53,7 +53,7 @@ class MarkerBesvartFraSpleisRiverTest :
             clearAllMocks()
         }
         context("Gammelt meldingsformat uten vedtaksperiodeListe") {
-            test("Innkommende event oppdaterer aktive forespørsler som er besvart") {
+            test("Innkommende event oppdaterer én aktiv (og eksponert) forespørsel som er besvart, sender én melding") {
                 val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = MockUuid.inntektsmeldingId)
                 val aktivForespoerselId = UUID.randomUUID()
                 val aktivOgEksponertForespoersel =
@@ -61,7 +61,6 @@ class MarkerBesvartFraSpleisRiverTest :
                         forespoerselId = aktivForespoerselId,
                         vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId,
                     )
-                every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(any(), any(), any()) } returns 1
                 every { mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(inntektsmeldingHaandtert.vedtaksperiodeId)) } returns
                     listOf(aktivOgEksponertForespoersel)
                 every { mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId) } returns
@@ -86,8 +85,6 @@ class MarkerBesvartFraSpleisRiverTest :
             test("Tåler at dokumentId mangler på innkommende event") {
                 val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = null)
 
-                every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(any(), any(), any()) } returns 1
-
                 mockInnkommendeMelding(inntektsmeldingHaandtert)
 
                 verifySequence {
@@ -101,16 +98,19 @@ class MarkerBesvartFraSpleisRiverTest :
                 }
             }
 
-            test("Sier ifra til Simba om besvart forespørsel dersom minst én forespørsel oppdateres") {
+            test("Sier ifra til Simba om besvarte forespørsler dersom flere enn én forespørsel oppdateres") {
                 val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = null)
-                val expectedForespoerselId = UUID.randomUUID()
+                val eksponertForespoerselId = UUID.randomUUID()
+                val aktivForespoerselId = UUID.randomUUID()
 
-                every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(any(), any(), any()) } returns 1
                 every {
                     mockForespoerselDao
                         .hentForespoerslerEksponertTilSimba(setOf(inntektsmeldingHaandtert.vedtaksperiodeId))
-                } returns listOf(mockForespoerselDto().copy(forespoerselId = expectedForespoerselId))
-
+                } returns listOf(mockForespoerselDto().copy(forespoerselId = eksponertForespoerselId))
+                every {
+                    mockForespoerselDao
+                        .hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
+                } returns mockForespoerselDto().copy(forespoerselId = aktivForespoerselId)
                 mockStatic(LocalDateTime::class) {
                     every { LocalDateTime.now() } returns utsendingstidspunkt
                     mockInnkommendeMelding(inntektsmeldingHaandtert)
@@ -118,9 +118,15 @@ class MarkerBesvartFraSpleisRiverTest :
 
                 verify {
                     mockPriProducer.send(
-                        expectedForespoerselId,
+                        eksponertForespoerselId,
                         Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
-                        Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
+                        Pri.Key.FORESPOERSEL_ID to eksponertForespoerselId.toJson(),
+                        Pri.Key.SENDT_TID to utsendingstidspunkt.toJson(),
+                    )
+                    mockPriProducer.send(
+                        aktivForespoerselId,
+                        Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
+                        Pri.Key.FORESPOERSEL_ID to aktivForespoerselId.toJson(),
                         Pri.Key.SENDT_TID to utsendingstidspunkt.toJson(),
                     )
                 }
@@ -129,7 +135,6 @@ class MarkerBesvartFraSpleisRiverTest :
             test("Sier _ikke_ ifra til Simba om besvart forespørsel dersom ingen forespørsler oppdateres") {
                 val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = null)
 
-                every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(any(), any(), any()) } returns 0
                 every { mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(inntektsmeldingHaandtert.vedtaksperiodeId)) } returns
                     emptyList()
                 every { mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId) } returns
@@ -141,49 +146,9 @@ class MarkerBesvartFraSpleisRiverTest :
                 }
             }
 
-            test("Sender forespørselId-en Simba forventer når forespørsel markeres som besvart") {
-                val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = null)
-                val expectedForespoerselId = UUID.randomUUID()
-
-                every {
-                    mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
-                        inntektsmeldingHaandtert.vedtaksperiodeId,
-                        any(),
-                        any(),
-                    )
-                } returns 1
-
-                every {
-                    mockForespoerselDao
-                        .hentForespoerslerEksponertTilSimba(setOf(inntektsmeldingHaandtert.vedtaksperiodeId))
-                } returns listOf(mockForespoerselDto().copy(forespoerselId = expectedForespoerselId))
-
-                mockStatic(LocalDateTime::class) {
-                    every { LocalDateTime.now() } returns utsendingstidspunkt
-                    mockInnkommendeMelding(inntektsmeldingHaandtert)
-                }
-
-                verify {
-                    mockPriProducer.send(
-                        expectedForespoerselId,
-                        Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
-                        Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
-                        Pri.Key.SENDT_TID to utsendingstidspunkt.toJson(),
-                    )
-                }
-            }
-
             test("Videresender inntektsmeldingId når forespørsel markeres som besvart") {
                 val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = MockUuid.inntektsmeldingId)
                 val expectedForespoerselId = UUID.randomUUID()
-
-                every {
-                    mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
-                        inntektsmeldingHaandtert.vedtaksperiodeId,
-                        any(),
-                        any(),
-                    )
-                } returns 1
 
                 every {
                     mockForespoerselDao
@@ -206,7 +171,7 @@ class MarkerBesvartFraSpleisRiverTest :
                 }
             }
         }
-        context("Nytt meldingsformat, med vedtaksperiodeListe") {
+        context("Nytt meldingsformat, med vedtaksperiodeListe") { //TODO: Kan slå sammen litt med over og forenkle
             test("Innkommende event med en aktiv forespørsel som blir besvart") {
                 val aktivForespoerselId = UUID.randomUUID()
                 val inntektsmeldingHaandtert =
@@ -218,7 +183,6 @@ class MarkerBesvartFraSpleisRiverTest :
                         forespoerselId = aktivForespoerselId,
                         vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId,
                     )
-                every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(any(), any(), any()) } returns 1
                 every { mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(inntektsmeldingHaandtert.vedtaksperiodeId)) } returns
                     listOf(aktivOgEksponertForespoersel)
                 every { mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId) } returns
@@ -252,8 +216,6 @@ class MarkerBesvartFraSpleisRiverTest :
                         forespoerselId = eksponertForespoerselId,
                         vedtaksperiodeId = vedtaksperiodeSomMatcher,
                     )
-                every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(MockUuid.vedtaksperiodeId, any(), any()) } returns 0
-                every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(vedtaksperiodeSomMatcher, any(), any()) } returns 1
                 every {
                     mockForespoerselDao.hentForespoerslerEksponertTilSimba(
                         inntektsmeldingHaandtert.vedtaksperiodeIdListe!!.toSet(),
@@ -302,7 +264,6 @@ class MarkerBesvartFraSpleisRiverTest :
                         forespoerselId = eksponertForespoerselId,
                         vedtaksperiodeId = vedtaksperiodeSomMatcher,
                     )
-                every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(vedtaksperiodeSomMatcher, any(), any()) } returns 2
                 every {
                     mockForespoerselDao.hentForespoerslerEksponertTilSimba(
                         inntektsmeldingHaandtert.vedtaksperiodeIdListe!!.toSet(),
