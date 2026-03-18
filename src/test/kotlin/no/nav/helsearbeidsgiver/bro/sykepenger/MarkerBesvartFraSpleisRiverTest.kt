@@ -55,10 +55,10 @@ class MarkerBesvartFraSpleisRiverTest :
         context("Gammelt meldingsformat uten vedtaksperiodeListe") {
             test("Innkommende event oppdaterer aktive forespørsler som er besvart") {
                 val inntektsmeldingHaandtert = mockInntektsmeldingHaandtertDto(dokumentId = MockUuid.inntektsmeldingId)
-                val aktivForespørselId = UUID.randomUUID()
+                val aktivForespoerselId = UUID.randomUUID()
                 val aktivOgEksponertForespoersel =
                     mockForespoerselDto().copy(
-                        forespoerselId = aktivForespørselId,
+                        forespoerselId = aktivForespoerselId,
                         vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId,
                     )
                 every { mockForespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(any(), any(), any()) } returns 1
@@ -76,10 +76,10 @@ class MarkerBesvartFraSpleisRiverTest :
                         inntektsmeldingHaandtert.haandtert,
                         inntektsmeldingHaandtert.inntektsmeldingId,
                     )
-                    mockPriProducer.send(aktivForespørselId, *anyVararg())
+                    mockPriProducer.send(aktivForespoerselId, *anyVararg())
                 }
                 verify(exactly = 1) {
-                    mockPriProducer.send(aktivForespørselId, *anyVararg())
+                    mockPriProducer.send(aktivForespoerselId, *anyVararg())
                 }
             }
 
