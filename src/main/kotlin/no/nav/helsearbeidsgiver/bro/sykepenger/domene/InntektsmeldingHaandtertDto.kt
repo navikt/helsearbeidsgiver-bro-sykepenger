@@ -8,8 +8,7 @@ import java.util.UUID
 data class InntektsmeldingHaandtertDto(
     val orgnr: Orgnr,
     val fnr: Fnr,
-    val vedtaksperiodeId: UUID,
     val inntektsmeldingId: UUID?,
     val haandtert: LocalDateTime,
-    val vedtaksperiodeIdListe: List<UUID>? = null,
+    val vedtaksperiodeIdListe: List<UUID>,
 )

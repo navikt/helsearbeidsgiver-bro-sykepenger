@@ -41,10 +41,10 @@ class MarkerBesvartFraSpleisRiver(
                     msg.requireKeys(
                         Spleis.Key.ORGANISASJONSNUMMER,
                         Spleis.Key.FØDSELSNUMMER,
-                        Spleis.Key.VEDTAKSPERIODE_ID,
+                        Spleis.Key.VEDTAKSPERIODE_IDER_MED_SAMME_FRAVAERSDAG,
                         Spleis.Key.OPPRETTET,
                     )
-                    msg.interestedKeys(Spleis.Key.DOKUMENT_ID, Spleis.Key.VEDTAKSPERIODE_IDER_MED_SAMME_FRAVAERSDAG)
+                    msg.interestedKeys(Spleis.Key.DOKUMENT_ID)
                 }
             }.register(this)
     }
@@ -74,10 +74,10 @@ class MarkerBesvartFraSpleisRiver(
 
         val vedtaksperioder =
             Spleis.Key.VEDTAKSPERIODE_IDER_MED_SAMME_FRAVAERSDAG
-                .lesOrNull(
+                .les(
                     UuidSerializer.set(),
                     melding,
-                ) ?: setOf(Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding))
+                )
         val besvartTid = Spleis.Key.OPPRETTET.les(LocalDateTimeSerializer, melding)
 
         val forespoerselIderEksponertTilSimba =
