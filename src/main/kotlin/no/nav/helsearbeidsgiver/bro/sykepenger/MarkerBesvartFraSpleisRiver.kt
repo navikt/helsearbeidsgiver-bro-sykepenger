@@ -79,14 +79,11 @@ class MarkerBesvartFraSpleisRiver(
                     melding,
                 )
         val besvartTid = Spleis.Key.OPPRETTET.les(LocalDateTimeSerializer, melding)
-        // bruk: hentForespoerslerForVedtaksperiodeIdListe
         val forespoerselIderEksponertTilSimba =
             forespoerselDao
                 .hentForespoerslerEksponertTilSimba(vedtaksperioder) // Denne henter bare nyeste! Kan være flere "gamle"
                 .map { it.forespoerselId }
 
-        // Skal egentlig ikke være mulig å ha flere aktive forespørsler i samme vedtaksperiodeId, men hvis det skjer,
-        // vil vi sette samtlige til besvart, men kun videresende forespoersel_besvart på en av de aktive, i tillegg til alle eksponerte
         val antallOppdaterte =
             vedtaksperioder.sumOf {
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
