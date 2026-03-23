@@ -79,16 +79,14 @@ class MarkerBesvartFraSpleisRiver(
                     melding,
                 )
         val besvartTid = Spleis.Key.OPPRETTET.les(LocalDateTimeSerializer, melding)
-
+        // bruk: hentForespoerslerForVedtaksperiodeIdListe
         val forespoerselIderEksponertTilSimba =
             forespoerselDao
-                .hentForespoerslerEksponertTilSimba(vedtaksperioder)
+                .hentForespoerslerEksponertTilSimba(vedtaksperioder) // Denne henter bare nyeste! Kan være flere "gamle"
                 .map { it.forespoerselId }
-        val aktivEllerEksponert =
-            vedtaksperioder
-                .mapNotNull { vedtaksperiode ->
-                    forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(vedtaksperiode)?.forespoerselId
-                }.union(forespoerselIderEksponertTilSimba)
+
+        // Skal egentlig ikke være mulig å ha flere aktive forespørsler i samme vedtaksperiodeId, men hvis det skjer,
+        // vil vi sette samtlige til besvart, men kun videresende forespoersel_besvart på en av de aktive, i tillegg til alle eksponerte
         val antallOppdaterte =
             vedtaksperioder.sumOf {
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
@@ -99,8 +97,8 @@ class MarkerBesvartFraSpleisRiver(
             }
         loggernaut.info("Fant og oppdaterte $antallOppdaterte forespørsler basert på vedtaksperioder: $vedtaksperioder.")
         loggernaut.info("Fant ${forespoerselIderEksponertTilSimba.size} eksponerte forespørsler")
-        loggernaut.info("Fant ${aktivEllerEksponert.size} forespørsler som er eksponert og / eller aktiv, gir beskjed")
-        aktivEllerEksponert.forEach { forespoerselId ->
+
+        forespoerselIderEksponertTilSimba.forEach { forespoerselId ->
             val felter =
                 listOfNotNull(
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
@@ -119,6 +117,15 @@ class MarkerBesvartFraSpleisRiver(
             loggernaut.sikker.info(
                 "Ingen forespørsel funnet, sannsynligvis kom IM før søknad / forespørsel. Melding: $melding",
             )
+        } else {
+            // Synkroniserer mot LPS-API
+            vedtaksperioder.forEach { vedtaksperiode ->
+                priProducer.send(
+                    vedtaksperiode,
+                    Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID.toJson(Pri.BehovType.serializer()),
+                    Pri.Key.VEDTAKSPERIODE_ID to vedtaksperiode.toJson(),
+                )
+            }
         }
     }
 }
