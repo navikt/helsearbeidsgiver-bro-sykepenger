@@ -62,7 +62,7 @@ class HentForespoerselRiver(
         }
         val forespoerselListe = forespoerselDao.hentForespoerslerForVedtaksperiodeIdListe(setOf(vedtaksperiodeId))
         if (forespoerselListe.isEmpty()) {
-            logger().error("Det er ingen forespørsel for vedtaksperiodeId=$vedtaksperiodeId.")
+            logger().info("Det er ingen forespørsel for vedtaksperiodeId=$vedtaksperiodeId.")
             return
         } else {
             logger().info("Fant ${forespoerselListe.size} forespørsel(er) for vedtaksperiodeId=$vedtaksperiodeId.")
