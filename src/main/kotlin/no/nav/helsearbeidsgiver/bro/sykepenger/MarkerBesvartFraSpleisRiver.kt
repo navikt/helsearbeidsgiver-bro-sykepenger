@@ -8,8 +8,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.InntektsmeldingHaandtertDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
@@ -23,10 +21,9 @@ import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
+import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
-import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
-import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDateTime
 
 class MarkerBesvartFraSpleisRiver(
@@ -44,7 +41,7 @@ class MarkerBesvartFraSpleisRiver(
                     msg.requireKeys(
                         Spleis.Key.ORGANISASJONSNUMMER,
                         Spleis.Key.FØDSELSNUMMER,
-                        Spleis.Key.VEDTAKSPERIODE_ID,
+                        Spleis.Key.VEDTAKSPERIODE_IDER_MED_SAMME_FRAVAERSDAG,
                         Spleis.Key.OPPRETTET,
                     )
                     msg.interestedKeys(Spleis.Key.DOKUMENT_ID)
@@ -75,66 +72,55 @@ class MarkerBesvartFraSpleisRiver(
 
         val inntektsmeldingId = Spleis.Key.DOKUMENT_ID.lesOrNull(UuidSerializer, melding)
 
-        val inntektsmeldingHaandtert =
-            InntektsmeldingHaandtertDto(
-                orgnr = Spleis.Key.ORGANISASJONSNUMMER.les(Orgnr.serializer(), melding),
-                fnr = Spleis.Key.FØDSELSNUMMER.les(Fnr.serializer(), melding),
-                vedtaksperiodeId = Spleis.Key.VEDTAKSPERIODE_ID.les(UuidSerializer, melding),
-                inntektsmeldingId = inntektsmeldingId,
-                haandtert = Spleis.Key.OPPRETTET.les(LocalDateTimeSerializer, melding),
-            )
-
-        val aktivForespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(inntektsmeldingHaandtert.vedtaksperiodeId)
+        val vedtaksperioder =
+            Spleis.Key.VEDTAKSPERIODE_IDER_MED_SAMME_FRAVAERSDAG
+                .les(
+                    UuidSerializer.set(),
+                    melding,
+                )
+        val besvartTid = Spleis.Key.OPPRETTET.les(LocalDateTimeSerializer, melding)
+        val forespoerselIderEksponertTilSimba =
+            forespoerselDao
+                .hentForespoerslerEksponertTilSimba(vedtaksperioder) // Denne henter bare nyeste! Kan være flere "gamle"
+                .map { it.forespoerselId }
 
         val antallOppdaterte =
-            forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
-                vedtaksperiodeId = inntektsmeldingHaandtert.vedtaksperiodeId,
-                besvart = inntektsmeldingHaandtert.haandtert,
-                inntektsmeldingId = inntektsmeldingId,
-            )
-
-        if (antallOppdaterte > 0) {
-            if (aktivForespoersel != null) {
-                loggernaut.info("Oppdaterte status til besvart fra Spleis for forespørsel ${aktivForespoersel.forespoerselId}.")
-            }
-
-            val forespoerselIdEksponertTilSimba =
-                forespoerselDao
-                    .hentForespoerslerEksponertTilSimba(setOf(inntektsmeldingHaandtert.vedtaksperiodeId))
-                    .firstOrNull()
-                    ?.forespoerselId
-
-            if (forespoerselIdEksponertTilSimba == null) { // TODO: Gir denne sjekken egentlig mening når antallOppdaterte allerede > 0 ?
-                loggernaut.aapen.warn("Fant ingen forespørsler for den besvarte inntektsmeldingen")
-                loggernaut.sikker.warn("Fant ingen forespørsler for den besvarte inntektsmeldingen: ${toPretty()}")
-            } else {
-                val felter =
-                    listOfNotNull(
-                        Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
-                        Pri.Key.FORESPOERSEL_ID to forespoerselIdEksponertTilSimba.toJson(),
-                        Pri.Key.SENDT_TID to LocalDateTime.now().toJson(),
-                        inntektsmeldingId?.let { Pri.Key.SPINN_INNTEKTSMELDING_ID to it.toJson() },
-                    ).toTypedArray()
-
-                priProducer.send(inntektsmeldingHaandtert.vedtaksperiodeId, *felter)
-
-                loggernaut.info("Sa ifra om besvart forespørsel til Simba.")
-            }
-        } else {
-            val forespoersler =
-                forespoerselDao.hentForespoerslerForPerson(inntektsmeldingHaandtert.fnr).filter {
-                    it.orgnr == inntektsmeldingHaandtert.orgnr && Status.AKTIV == it.status
-                }
-            if (forespoersler.isEmpty()) {
-                loggernaut.aapen.info("Ingen forespørsel funnet, sannsynligvis kom IM før søknad / forespørsel")
-                loggernaut.sikker.info(
-                    "Ingen forespørsel funnet, sannsynligvis kom IM før søknad / forespørsel. Melding: $inntektsmeldingHaandtert",
+            vedtaksperioder.sumOf {
+                forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
+                    vedtaksperiodeId = it,
+                    besvart = besvartTid,
+                    inntektsmeldingId = inntektsmeldingId,
                 )
-            } else {
-                loggernaut.aapen.warn("Ukjent vedtaksperiodeId besvart, forespørsel må lukkes manuelt.")
-                loggernaut.sikker.warn("Ukjent vedtaksperiodeId besvart, forespørsel må lukkes manuelt. Melding: $inntektsmeldingHaandtert")
-                loggernaut.sikker.warn(
-                    "Fant disse potensielle (aktive) forespørslene: ${forespoersler.joinToString { "'${it.forespoerselId}'" }}",
+            }
+        loggernaut.info("Fant og oppdaterte $antallOppdaterte forespørsler basert på vedtaksperioder: $vedtaksperioder.")
+        loggernaut.info("Fant ${forespoerselIderEksponertTilSimba.size} eksponerte forespørsler")
+
+        forespoerselIderEksponertTilSimba.forEach { forespoerselId ->
+            val felter =
+                listOfNotNull(
+                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
+                    Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
+                    Pri.Key.SENDT_TID to LocalDateTime.now().toJson(),
+                    inntektsmeldingId?.let { Pri.Key.SPINN_INNTEKTSMELDING_ID to it.toJson() },
+                ).toTypedArray()
+
+            priProducer.send(forespoerselId, *felter)
+
+            loggernaut.info("Sa ifra om besvart forespørsel $forespoerselId til Simba.")
+        }
+
+        if (antallOppdaterte == 0) {
+            loggernaut.aapen.info("Ingen forespørsel funnet, sannsynligvis kom IM før søknad / forespørsel")
+            loggernaut.sikker.info(
+                "Ingen forespørsel funnet, sannsynligvis kom IM før søknad / forespørsel. Melding: $melding",
+            )
+        } else {
+            // Synkroniserer mot LPS-API
+            vedtaksperioder.forEach { vedtaksperiode ->
+                priProducer.send(
+                    vedtaksperiode,
+                    Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID.toJson(Pri.BehovType.serializer()),
+                    Pri.Key.VEDTAKSPERIODE_ID to vedtaksperiode.toJson(),
                 )
             }
         }
