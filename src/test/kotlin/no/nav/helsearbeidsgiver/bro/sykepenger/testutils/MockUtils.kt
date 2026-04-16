@@ -91,9 +91,9 @@ fun mockInntektsmeldingHaandtertDto(dokumentId: UUID? = MockUuid.inntektsmelding
     InntektsmeldingHaandtertDto(
         orgnr = Orgnr.genererGyldig(),
         fnr = Fnr.genererGyldig(),
-        vedtaksperiodeId = MockUuid.vedtaksperiodeId,
         inntektsmeldingId = dokumentId,
         haandtert = LocalDateTime.MAX,
+        vedtaksperiodeIdListe = listOf(MockUuid.vedtaksperiodeId),
     )
 
 fun mockJsonElement(): JsonElement = """{"aTestKey":"aTestValue"}""".parseJson()

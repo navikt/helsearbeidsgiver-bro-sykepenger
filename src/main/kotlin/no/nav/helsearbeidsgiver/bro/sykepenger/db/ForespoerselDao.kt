@@ -10,6 +10,7 @@ import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.Transaction
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -102,13 +103,12 @@ class ForespoerselDao(
             oppdaterteForespoersler.size
         }
 
-    fun oppdaterForespoerslerSomForkastet(vedtaksperiodeId: UUID) {
+    fun oppdaterForespoerslerSomForkastet(vedtaksperiodeId: UUID): List<Long> =
         oppdaterStatuser(
             vedtaksperiodeId = vedtaksperiodeId,
             erstattStatuser = setOf(Status.AKTIV),
             nyStatus = Status.FORKASTET,
         )
-    }
 
     fun markerKastetTilInfotrygd(vedtaksperiodeId: UUID): List<Long> =
         transaction(db) {
@@ -126,6 +126,20 @@ class ForespoerselDao(
                     val msg = "Oppdaterte ${it.size} rader med kastet til Infotrygd tidspunkt. ids=$it"
                     logger.info(msg)
                     sikkerLogger.info(msg)
+                }
+        }
+
+    /*
+    Behold denne metoden, kan være nyttig fra HAG-admin
+     */
+    fun hentForespoerslerForPerson(fnr: Fnr): List<ForespoerselDto> =
+        transaction(db) {
+            ForespoerselTable
+                .selectAll()
+                .where { ForespoerselTable.fnr eq fnr.toString() }
+                .orderBy(ForespoerselTable.opprettet, SortOrder.DESC)
+                .map {
+                    tilForespoerselDto(it)
                 }
         }
 
