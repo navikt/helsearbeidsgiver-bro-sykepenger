@@ -9,7 +9,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisInntekt
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisRefusjon
 
-fun List<SpleisForespurtDataDto>.tilForespurtData(): ForespurtData =
+fun Set<SpleisForespurtDataDto>.tilForespurtData(): ForespurtData =
     ForespurtData(
         arbeidsgiverperiode =
             Arbeidsgiverperiode(

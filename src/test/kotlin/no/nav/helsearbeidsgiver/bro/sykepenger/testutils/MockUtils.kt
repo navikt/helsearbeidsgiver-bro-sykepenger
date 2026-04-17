@@ -55,8 +55,8 @@ fun mockForespoerselDto(): ForespoerselDto {
     )
 }
 
-fun mockSpleisForespurtDataListe(): List<SpleisForespurtDataDto> =
-    listOf(
+fun mockSpleisForespurtDataListe(): Set<SpleisForespurtDataDto> =
+    setOf(
         SpleisArbeidsgiverperiode,
         SpleisInntekt,
         SpleisRefusjon,

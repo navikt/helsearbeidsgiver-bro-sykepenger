@@ -14,6 +14,10 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Periode
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisArbeidsgiverperiode
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisInntekt
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisRefusjon
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type.BEGRENSET
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
@@ -256,6 +260,98 @@ class ForespoerselDaoTest :
                             .shouldNotBeNull()
 
                     actualForespoersel shouldBe aktivForespoersel.copy(forespoerselId = eksponertForespoersel.forespoerselId)
+                }
+            }
+
+            context("Henter aktiv forespørsel med historisk forespurt data") {
+                withData(
+                    mapOf(
+                        "Ignorerer forkastede" to
+                            Pair(
+                                listOf(
+                                    Status.FORKASTET to setOf(SpleisRefusjon),
+                                    Status.FORKASTET to setOf(SpleisArbeidsgiverperiode),
+                                    Status.AKTIV to setOf(SpleisInntekt),
+                                ),
+                                setOf(SpleisInntekt),
+                            ),
+                        "Hensyntar besvart fra Simba" to
+                            Pair(
+                                listOf(
+                                    Status.FORKASTET to setOf(SpleisArbeidsgiverperiode),
+                                    Status.BESVART_SIMBA to setOf(SpleisInntekt),
+                                    Status.AKTIV to setOf(SpleisRefusjon),
+                                ),
+                                setOf(SpleisInntekt, SpleisRefusjon),
+                            ),
+                        "Hensyntar besvart fra Spleis" to
+                            Pair(
+                                listOf(
+                                    Status.BESVART_SPLEIS to setOf(SpleisInntekt),
+                                    Status.FORKASTET to setOf(SpleisArbeidsgiverperiode),
+                                    Status.AKTIV to setOf(SpleisRefusjon),
+                                ),
+                                setOf(SpleisInntekt, SpleisRefusjon),
+                            ),
+                        "Hensyntar flere besvarte" to
+                            Pair(
+                                listOf(
+                                    Status.BESVART_SIMBA to setOf(SpleisArbeidsgiverperiode, SpleisInntekt),
+                                    Status.BESVART_SPLEIS to setOf(SpleisRefusjon),
+                                    Status.AKTIV to setOf(SpleisArbeidsgiverperiode),
+                                ),
+                                setOf(SpleisArbeidsgiverperiode, SpleisInntekt, SpleisRefusjon),
+                            ),
+                        "Hensyntar all forespurt data" to
+                            Pair(
+                                listOf(
+                                    Status.BESVART_SPLEIS to setOf(SpleisInntekt, SpleisRefusjon),
+                                    Status.FORKASTET to setOf(SpleisInntekt),
+                                    Status.AKTIV to setOf(SpleisArbeidsgiverperiode),
+                                ),
+                                setOf(SpleisArbeidsgiverperiode, SpleisInntekt, SpleisRefusjon),
+                            ),
+                        "Tåler overlapp" to
+                            Pair(
+                                listOf(
+                                    Status.BESVART_SPLEIS to setOf(SpleisInntekt, SpleisRefusjon),
+                                    Status.AKTIV to setOf(SpleisArbeidsgiverperiode, SpleisInntekt),
+                                ),
+                                setOf(SpleisArbeidsgiverperiode, SpleisInntekt, SpleisRefusjon),
+                            ),
+                        "Ignorerer eksisterende" to
+                            Pair(
+                                listOf(
+                                    Status.BESVART_SIMBA to setOf(SpleisInntekt),
+                                    Status.AKTIV to setOf(SpleisInntekt, SpleisRefusjon),
+                                ),
+                                setOf(SpleisInntekt, SpleisRefusjon),
+                            ),
+                    ),
+                ) { (statusOgForespurtData, expectedForespurtData) ->
+                    // Skal ikke påvirke innhold i forventet forespurt data pga. ulik vedtaksperiode-ID
+                    mockForespoerselDto()
+                        .copy(
+                            vedtaksperiodeId = UUID.randomUUID(),
+                            forespurtData = setOf(SpleisArbeidsgiverperiode),
+                        ).lagreEksponertNotNull()
+
+                    val expectedForespoersel =
+                        statusOgForespurtData
+                            .tilForespoersler()
+                            .onEach { it.lagreEksponertNotNull() }
+                            .lastOrNull { it.status == Status.AKTIV }
+                            .shouldNotBeNull()
+                            .copy(
+                                forespurtData = expectedForespurtData,
+                            )
+
+                    val actualForespoersel =
+                        forespoerselDao
+                            .hentAktivForespoerselForVedtaksperiodeId(expectedForespoersel.vedtaksperiodeId)
+                            .shouldNotBeNull()
+
+                    actualForespoersel shouldBe expectedForespoersel
                 }
             }
 
@@ -886,24 +982,6 @@ class ForespoerselDaoTest :
                 forespoerslerEksponertTilSimba.shouldContainExactly(a)
             }
 
-            test("tåler ingen forespørsler") {
-                val forespoerslerEksponertTilSimba =
-                    forespoerselDao.hentForespoerslerEksponertTilSimba(setOf(MockUuid.vedtaksperiodeId))
-
-                forespoerslerEksponertTilSimba.shouldBeEmpty()
-            }
-
-            test("tåler ingen ønskede forespørsler") {
-                val idA = mockForespoerselDto().lagreEksponertNotNull()
-
-                db.oppdaterStatus(idA, Status.FORKASTET)
-
-                val forespoerslerEksponertTilSimba =
-                    forespoerselDao.hentForespoerslerEksponertTilSimba(setOf(MockUuid.vedtaksperiodeId))
-
-                forespoerslerEksponertTilSimba.shouldBeEmpty()
-            }
-
             test("tåler mer enn to eksponerte forespørsler (med ujevnt antall forespørsler mellom)") {
                 val eksponertForespoerselIdB = UUID.randomUUID()
 
@@ -1031,6 +1109,135 @@ class ForespoerselDaoTest :
                     a,
                     c.copy(forespoerselId = b.forespoerselId),
                 )
+            }
+
+            context("Henter eksponerte forespørsler med historisk forespurt data") {
+                withData(
+                    mapOf(
+                        "Ignorerer forkastede" to
+                            Pair(
+                                listOf(
+                                    Status.FORKASTET to setOf(SpleisRefusjon),
+                                    Status.FORKASTET to setOf(SpleisArbeidsgiverperiode),
+                                    Status.AKTIV to setOf(SpleisInntekt),
+                                ),
+                                setOf(SpleisInntekt),
+                            ),
+                        "Hensyntar besvart fra Simba" to
+                            Pair(
+                                listOf(
+                                    Status.FORKASTET to setOf(SpleisArbeidsgiverperiode),
+                                    Status.BESVART_SIMBA to setOf(SpleisInntekt),
+                                    Status.AKTIV to setOf(SpleisRefusjon),
+                                ),
+                                setOf(SpleisInntekt, SpleisRefusjon),
+                            ),
+                        "Hensyntar besvart fra Spleis" to
+                            Pair(
+                                listOf(
+                                    Status.BESVART_SPLEIS to setOf(SpleisInntekt),
+                                    Status.FORKASTET to setOf(SpleisArbeidsgiverperiode),
+                                    Status.AKTIV to setOf(SpleisRefusjon),
+                                ),
+                                setOf(SpleisInntekt, SpleisRefusjon),
+                            ),
+                        "Hensyntar flere besvarte" to
+                            Pair(
+                                listOf(
+                                    Status.BESVART_SIMBA to setOf(SpleisArbeidsgiverperiode, SpleisInntekt),
+                                    Status.BESVART_SPLEIS to setOf(SpleisRefusjon),
+                                    Status.AKTIV to setOf(SpleisArbeidsgiverperiode),
+                                ),
+                                setOf(SpleisArbeidsgiverperiode, SpleisInntekt, SpleisRefusjon),
+                            ),
+                        "Hensyntar all forespurt data" to
+                            Pair(
+                                listOf(
+                                    Status.BESVART_SPLEIS to setOf(SpleisInntekt, SpleisRefusjon),
+                                    Status.FORKASTET to setOf(SpleisInntekt),
+                                    Status.AKTIV to setOf(SpleisArbeidsgiverperiode),
+                                ),
+                                setOf(SpleisArbeidsgiverperiode, SpleisInntekt, SpleisRefusjon),
+                            ),
+                        "Tåler overlapp" to
+                            Pair(
+                                listOf(
+                                    Status.BESVART_SPLEIS to setOf(SpleisInntekt, SpleisRefusjon),
+                                    Status.AKTIV to setOf(SpleisArbeidsgiverperiode, SpleisInntekt),
+                                ),
+                                setOf(SpleisArbeidsgiverperiode, SpleisInntekt, SpleisRefusjon),
+                            ),
+                        "Ignorerer eksisterende" to
+                            Pair(
+                                listOf(
+                                    Status.BESVART_SIMBA to setOf(SpleisInntekt),
+                                    Status.AKTIV to setOf(SpleisInntekt, SpleisRefusjon),
+                                ),
+                                setOf(SpleisInntekt, SpleisRefusjon),
+                            ),
+                        "Besvart fra Simba ivaretar historikk" to
+                            Pair(
+                                listOf(
+                                    Status.BESVART_SIMBA to setOf(SpleisArbeidsgiverperiode),
+                                    Status.FORKASTET to setOf(SpleisInntekt),
+                                    Status.BESVART_SPLEIS to setOf(SpleisRefusjon),
+                                    Status.BESVART_SIMBA to setOf(SpleisArbeidsgiverperiode),
+                                ),
+                                setOf(SpleisArbeidsgiverperiode, SpleisRefusjon),
+                            ),
+                        "Besvart fra Spleis ivaretar historikk" to
+                            Pair(
+                                listOf(
+                                    Status.BESVART_SPLEIS to setOf(SpleisArbeidsgiverperiode),
+                                    Status.FORKASTET to setOf(SpleisInntekt),
+                                    Status.BESVART_SIMBA to setOf(SpleisRefusjon),
+                                    Status.BESVART_SPLEIS to setOf(SpleisArbeidsgiverperiode),
+                                ),
+                                setOf(SpleisArbeidsgiverperiode, SpleisRefusjon),
+                            ),
+                    ),
+                ) { (statusOgForespurtData, expectedForespurtData) ->
+                    // Skal ikke påvirke innhold i forventet forespurt data pga. ulik vedtaksperiode-ID
+                    mockForespoerselDto()
+                        .copy(
+                            vedtaksperiodeId = UUID.randomUUID(),
+                            forespurtData = setOf(SpleisArbeidsgiverperiode),
+                        ).lagreEksponertNotNull()
+
+                    val expectedForespoersel =
+                        statusOgForespurtData
+                            .tilForespoersler()
+                            .onEach { it.lagreEksponertNotNull() }
+                            .lastOrNull { it.status != Status.FORKASTET }
+                            .shouldNotBeNull()
+                            .copy(
+                                forespurtData = expectedForespurtData,
+                            )
+
+                    val actualForespoersler =
+                        forespoerselDao.hentForespoerslerEksponertTilSimba(setOf(expectedForespoersel.vedtaksperiodeId))
+
+                    actualForespoersler shouldHaveSize 1
+                    actualForespoersler.first() shouldBe expectedForespoersel
+                }
+            }
+
+            test("tåler ingen forespørsler") {
+                val forespoerslerEksponertTilSimba =
+                    forespoerselDao.hentForespoerslerEksponertTilSimba(setOf(MockUuid.vedtaksperiodeId))
+
+                forespoerslerEksponertTilSimba.shouldBeEmpty()
+            }
+
+            test("tåler ingen ønskede forespørsler") {
+                val idA = mockForespoerselDto().lagreEksponertNotNull()
+
+                db.oppdaterStatus(idA, Status.FORKASTET)
+
+                val forespoerslerEksponertTilSimba =
+                    forespoerselDao.hentForespoerslerEksponertTilSimba(setOf(MockUuid.vedtaksperiodeId))
+
+                forespoerslerEksponertTilSimba.shouldBeEmpty()
             }
         }
 
@@ -1244,3 +1451,13 @@ private fun tilForespoerselMedEksponertId(row: ResultRow): Pair<UUID, Forespoers
 private fun ForespoerselDto.oekOpprettet(sekunder: Long): ForespoerselDto = copy(opprettet = opprettet.plusSeconds(sekunder))
 
 private fun now(): LocalDateTime = LocalDateTime.now().truncMillis()
+
+private fun List<Pair<Status, Set<SpleisForespurtDataDto>>>.tilForespoersler(): List<ForespoerselDto> =
+    mapIndexed { index, (status, forespurtData) ->
+        mockForespoerselDto()
+            .oekOpprettet(index.toLong())
+            .copy(
+                status = status,
+                forespurtData = forespurtData,
+            )
+    }

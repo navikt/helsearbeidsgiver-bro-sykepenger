@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockSpleisForespurtDataListe
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.list
+import no.nav.helsearbeidsgiver.utils.json.serializer.set
 import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.test.resource.readResource
@@ -18,7 +18,7 @@ class SpleisForespurtDataDtoTest :
         test("Forespurt data serialiseres korrekt") {
             val forespurtDataListe = mockSpleisForespurtDataListe()
 
-            val serialisertJson = forespurtDataListe.toJsonStr(SpleisForespurtDataDto.serializer().list())
+            val serialisertJson = forespurtDataListe.toJsonStr(SpleisForespurtDataDto.serializer().set())
 
             serialisertJson shouldBe expectedJson
         }
@@ -26,7 +26,7 @@ class SpleisForespurtDataDtoTest :
         test("Forespurt data deserialiseres korrekt") {
             val forespurtDataListe = mockSpleisForespurtDataListe()
 
-            val deserialisertJson = expectedJson.parseJson().fromJson(SpleisForespurtDataDto.serializer().list())
+            val deserialisertJson = expectedJson.parseJson().fromJson(SpleisForespurtDataDto.serializer().set())
 
             deserialisertJson shouldContainExactly forespurtDataListe
         }

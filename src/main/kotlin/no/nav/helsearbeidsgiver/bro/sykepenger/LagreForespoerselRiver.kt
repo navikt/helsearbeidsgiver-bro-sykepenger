@@ -120,7 +120,10 @@ sealed class LagreForespoerselRiver(
     ): UUID? =
         when {
             aktivForespoersel == null -> nyForespoersel.forespoerselId
+
+            // Siden vi legger til historisk forespurt data når en forespørsel leses fra databasen, så kan innkommende forespørsel anses som duplikat selv om forespurt data er ulik databaseraden til den aktive forespørselen
             !nyForespoersel.erDuplikatAv(aktivForespoersel) -> aktivForespoersel.forespoerselId
+
             else -> null
         }
 

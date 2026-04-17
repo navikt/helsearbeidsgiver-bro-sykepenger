@@ -1,6 +1,7 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.db
 
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
@@ -252,15 +253,32 @@ fun tilForespoerselDto(row: ResultRow): ForespoerselDto =
     )
 
 private fun List<Pair<UUID, ForespoerselDto>>.finnNyesteForespoerselPerVedtaksperiodeId(statuser: Set<Status>): List<ForespoerselDto> =
-    groupBy { it.second.vedtaksperiodeId }
-        .mapNotNull { (_, eksponertIdOgForespoerselListe) ->
-            eksponertIdOgForespoerselListe
-                .sortedByDescending { it.second.opprettet }
-                .firstOrNull { it.second.status in statuser }
-                ?.let { (eksponertForespoerselId, nyesteForespoersel) ->
-                    // Simba kjenner kun til eksponerte forespørsel-ID-er, så vi må bytte for at ID-en skal matche Simbas systemer.
-                    nyesteForespoersel.copy(
-                        forespoerselId = eksponertForespoerselId,
-                    )
-                }
-        }.sortedBy { it.opprettet }
+    map { (eksponertForespoerselId, nyesteForespoersel) ->
+        // Simba kjenner kun til eksponerte forespørsel-ID-er, så vi må bytte for at ID-en skal matche Simbas systemer.
+        nyesteForespoersel.copy(
+            forespoerselId = eksponertForespoerselId,
+        )
+    }.groupBy { it.vedtaksperiodeId }
+        .mapNotNull { (_, forespoersler) ->
+            forespoersler
+                .mergeHistoriskForespurtData()
+                .sortedBy { it.opprettet }
+                .lastOrNull { it.status in statuser }
+        }
+
+/**
+ * Slår sammen historisk forespurt data, slik at en forespørsel vil be om alt som er bedt om i tidligere forespørsler.
+ * Tar _ikke_ hensyn til om forespørsler tilhører ulike vedtaksperioder.
+ */
+private fun List<ForespoerselDto>.mergeHistoriskForespurtData(): List<ForespoerselDto> =
+    sortedBy { it.opprettet }
+        .fold(
+            emptySet<SpleisForespurtDataDto>() to emptyList<ForespoerselDto>(),
+        ) { (mergedForespurtData, mergedForespoersler), forespoersel ->
+            if (forespoersel.status == Status.FORKASTET || forespoersel.forespurtData == mergedForespurtData) {
+                mergedForespurtData to mergedForespoersler.plus(forespoersel)
+            } else {
+                val nyMerged = mergedForespurtData.plus(forespoersel.forespurtData)
+                nyMerged to mergedForespoersler.plus(forespoersel.copy(forespurtData = nyMerged))
+            }
+        }.second
