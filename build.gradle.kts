@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 val mainClassPath = "no.nav.helsearbeidsgiver.bro.sykepenger.AppKt"
 
 plugins {
@@ -15,9 +13,7 @@ application {
 }
 
 kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_21)
-    }
+    jvmToolchain(25)
 }
 
 tasks {
