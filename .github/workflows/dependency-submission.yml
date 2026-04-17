@@ -17,3 +17,5 @@ jobs:
     uses: navikt/hag-workflows/.github/workflows/dependency-submission.yml@main
     permissions:
       contents: write
+    with:
+      java-version: 25
