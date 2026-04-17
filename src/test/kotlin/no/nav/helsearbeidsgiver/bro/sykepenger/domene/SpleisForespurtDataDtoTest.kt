@@ -7,7 +7,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockSpleisForespurtData
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.set
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.test.resource.readResource
 
@@ -18,7 +18,7 @@ class SpleisForespurtDataDtoTest :
         test("Forespurt data serialiseres korrekt") {
             val forespurtDataListe = mockSpleisForespurtDataListe()
 
-            val serialisertJson = forespurtDataListe.toJsonStr(SpleisForespurtDataDto.serializer().set())
+            val serialisertJson = forespurtDataListe.toJson(SpleisForespurtDataDto.serializer().set()).toString()
 
             serialisertJson shouldBe expectedJson
         }

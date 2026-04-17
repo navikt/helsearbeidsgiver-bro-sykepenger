@@ -8,7 +8,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.Key
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.utils.collection.mapValuesNotNull
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
+import no.nav.helsearbeidsgiver.utils.json.toJson
 
 fun TestRapid.sendJson(vararg keyValuePairs: Pair<Key, JsonElement?>) {
     keyValuePairs
@@ -25,9 +25,10 @@ private fun Map<Key, JsonElement>.toJsonStr(): String =
 
 @Suppress("UNCHECKED_CAST")
 private fun <K : Key> Map<Key, JsonElement>.tryToJsonStr(serializer: KSerializer<K>): String? =
-    (this as? Map<K, JsonElement>)?.toJsonStr(
-        MapSerializer(
-            serializer,
-            JsonElement.serializer(),
-        ),
-    )
+    (this as? Map<K, JsonElement>)
+        ?.toJson(
+            MapSerializer(
+                serializer,
+                JsonElement.serializer(),
+            ),
+        )?.toString()

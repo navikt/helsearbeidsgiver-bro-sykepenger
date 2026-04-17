@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselSvarSuk
 import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
-import no.nav.helsearbeidsgiver.utils.json.toJsonStr
 import no.nav.helsearbeidsgiver.utils.test.json.removeJsonWhitespace
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
@@ -28,7 +27,7 @@ class ForespoerselSvarTest :
 
             val expectedJson = forespoerselSvar.hardcodedJson()
 
-            val actualJson = forespoerselSvar.toJsonStr(ForespoerselSvar.serializer())
+            val actualJson = forespoerselSvar.toJson(ForespoerselSvar.serializer()).toString()
 
             actualJson shouldBe expectedJson
         }
