@@ -52,7 +52,7 @@ class ForkastForespoerselRiverTest :
             }
         }
 
-        test("Sier ifra til Simba om at forespørsel er forkastet") {
+        test("Sier ifra til Simba om at forespørsel er forkastet og trigger LPS-API synkronisering") {
             val forespoersel = mockForespoerselDto()
             val utesendingstidspunkt = LocalDateTime.of(2024, 6, 1, 12, 0)
             mockStatic(LocalDateTime::class) {
@@ -70,6 +70,11 @@ class ForkastForespoerselRiverTest :
                         Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FORKASTET.toJson(Pri.NotisType.serializer()),
                         Pri.Key.SENDT_TID to utesendingstidspunkt.toJson(),
                         Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
+                    )
+                    mockPriProducer.send(
+                        vedtaksperiodeId,
+                        Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID.toJson(Pri.BehovType.serializer()),
+                        Pri.Key.VEDTAKSPERIODE_ID to vedtaksperiodeId.toJson(),
                     )
                 }
             }
