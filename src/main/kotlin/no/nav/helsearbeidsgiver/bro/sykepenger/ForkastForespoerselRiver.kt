@@ -80,8 +80,14 @@ internal class ForkastForespoerselRiver(
                 Pri.Key.SENDT_TID to LocalDateTime.now().truncMillis().toJson(),
                 Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
             )
-
             loggernaut.info("Sa ifra om forkastet forespørsel til Simba.")
+
+            priProducer.send(
+                forespoersel.vedtaksperiodeId,
+                Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID.toJson(Pri.BehovType.serializer()),
+                Pri.Key.VEDTAKSPERIODE_ID to vedtaksperiodeId.toJson(),
+            )
+            loggernaut.info("Trigget synkronisering av forespørsler for LPS-API for vedtaksperiodeId: $vedtaksperiodeId")
         }
     }
 }
