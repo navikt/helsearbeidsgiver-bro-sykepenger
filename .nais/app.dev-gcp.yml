@@ -1,0 +1,11 @@
+spec:
+  kafka:
+    pool: nav-dev
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_15
+        tier: db-f1-micro
+        databases:
+          - name: helsearbeidsgiver-bro-sykepenger
+            users:
+              - name: bro_datastream_bruker

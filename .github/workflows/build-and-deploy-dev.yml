@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-deploy:
-    uses: navikt/hag-workflows/.github/workflows/build-and-deploy.yml@main
+    uses: navikt/hag-workflows/.github/workflows/build-and-deploy.yml@nais-apply
     permissions:
       id-token: write
     with:
@@ -16,5 +16,6 @@ jobs:
       nais-manifest-vars: deploy/dev.yml
       project-id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
       java-version: 25
+      use-apply: true
     secrets:
       identity-provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}

@@ -29,8 +29,6 @@ spec:
     path: isready
     initialDelay: 10
     timeout: 2
-  kafka:
-    pool: {{ kafkaPool }}
   prometheus:
     enabled: true
   observability:
@@ -40,25 +38,6 @@ spec:
     autoInstrumentation:
       enabled: true
       runtime: java
-  gcp:
-    sqlInstances:
-      - type: POSTGRES_15
-        tier: {{ databaseTier }}
-        databases:
-          - name: helsearbeidsgiver-bro-sykepenger
-            users:
-              - name: bro_datastream_bruker
-        flags:
-          - name: cloudsql.enable_pgaudit
-            value: "true"
-          - name: pgaudit.log
-            value: "write,ddl,role"
-          - name: pgaudit.log_parameter
-            value: "on"
-          - name: cloudsql.logical_decoding
-            value: "on"
-          - name: pgaudit.log_relation
-            value: "on"
   accessPolicy:
     outbound:
       rules:
