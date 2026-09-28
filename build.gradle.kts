@@ -53,7 +53,7 @@ tasks {
 }
 
 repositories {
-    val githubPassword: String by project
+    val githubPassword = project.property("githubPassword") as String
 
     mavenCentral()
     maven {
@@ -66,20 +66,20 @@ repositories {
 }
 
 dependencies {
-    val exposedVersion: String by project
-    val flywayCoreVersion: String by project
-    val hagDomeneInntektsmeldingVersion: String by project
-    val hikariVersion: String by project
-    val kafkaClientVersion: String by project
-    val kotestVersion: String by project
-    val kotlinxSerializationVersion: String by project
-    val logbackVersion: String by project
-    val mockkVersion: String by project
-    val postgresqlVersion: String by project
-    val rapidsAndRiversTestVersion: String by project
-    val rapidsAndRiversVersion: String by project
-    val testcontainersVersion: String by project
-    val utilsVersion: String by project
+    val exposedVersion = project.property("exposedVersion") as String
+    val flywayCoreVersion = project.property("flywayCoreVersion") as String
+    val hagDomeneInntektsmeldingVersion = project.property("hagDomeneInntektsmeldingVersion") as String
+    val hikariVersion = project.property("hikariVersion") as String
+    val kafkaClientVersion = project.property("kafkaClientVersion") as String
+    val kotestVersion = project.property("kotestVersion") as String
+    val kotlinxSerializationVersion = project.property("kotlinxSerializationVersion") as String
+    val logbackVersion = project.property("logbackVersion") as String
+    val mockkVersion = project.property("mockkVersion") as String
+    val postgresqlVersion = project.property("postgresqlVersion") as String
+    val rapidsAndRiversTestVersion = project.property("rapidsAndRiversTestVersion") as String
+    val rapidsAndRiversVersion = project.property("rapidsAndRiversVersion") as String
+    val testcontainersVersion = project.property("testcontainersVersion") as String
+    val utilsVersion = project.property("utilsVersion") as String
 
     implementation("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
