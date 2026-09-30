@@ -12,9 +12,6 @@ jobs:
       id-token: write
     with:
       environment: dev
-      nais-manifest: deploy/nais.yml
-      nais-manifest-vars: deploy/dev.yml
       project-id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
-      java-version: 25
     secrets:
       identity-provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
