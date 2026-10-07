@@ -27,6 +27,14 @@ class Loggernaut<T : Any>(
         sikker.error(melding)
     }
 
+    fun error(
+        melding: String,
+        feil: Throwable,
+    ) {
+        aapen.error(melding)
+        sikker.error(melding, feil)
+    }
+
     fun ukjentFeil(feil: Throwable) {
         "Ukjent feil.".let {
             aapen.error("$it $seSikkerLogg")

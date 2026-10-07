@@ -87,8 +87,6 @@ class LagreBegrensetForespoerselRiverTest :
                         skalHaPaaminnelse = false,
                     ),
                 )
-
-                mockForespoerselDao.hentForespoerslerForVedtaksperiodeIdListe(setOf(forespoersel.vedtaksperiodeId))
             }
         }
 

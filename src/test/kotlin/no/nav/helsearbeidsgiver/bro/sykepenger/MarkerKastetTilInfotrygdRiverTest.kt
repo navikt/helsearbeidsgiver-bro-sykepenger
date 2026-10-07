@@ -59,7 +59,7 @@ class MarkerKastetTilInfotrygdRiverTest :
 
             verifySequence {
                 mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(mockForespoersel.vedtaksperiodeId))
-                mockForespoerselDao.markerKastetTilInfotrygd(mockForespoersel.vedtaksperiodeId)
+                mockForespoerselDao.oppdaterSomKastetTilInfotrygd(mockForespoersel.vedtaksperiodeId)
             }
 
             verify {
@@ -87,7 +87,7 @@ class MarkerKastetTilInfotrygdRiverTest :
 
                 verifySequence {
                     mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(mockForespoersel.vedtaksperiodeId))
-                    mockForespoerselDao.markerKastetTilInfotrygd(mockForespoersel.vedtaksperiodeId)
+                    mockForespoerselDao.oppdaterSomKastetTilInfotrygd(mockForespoersel.vedtaksperiodeId)
                 }
                 verify(exactly = 0) {
                     mockPriProducer.send(any<UUID>(), *anyVararg())
@@ -108,7 +108,7 @@ class MarkerKastetTilInfotrygdRiverTest :
                 mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(vedtaksperiodeId))
             }
             verify(exactly = 0) {
-                mockForespoerselDao.markerKastetTilInfotrygd(any())
+                mockForespoerselDao.oppdaterSomKastetTilInfotrygd(any())
                 mockPriProducer.send(any<UUID>(), *anyVararg())
             }
         }
@@ -126,7 +126,7 @@ class MarkerKastetTilInfotrygdRiverTest :
                 mockForespoerselDao.hentForespoerslerEksponertTilSimba(setOf(mockForespoersel.vedtaksperiodeId))
             }
             verify(exactly = 0) {
-                mockForespoerselDao.markerKastetTilInfotrygd(any())
+                mockForespoerselDao.oppdaterSomKastetTilInfotrygd(any())
                 mockPriProducer.send(any<UUID>(), *anyVararg())
             }
         }

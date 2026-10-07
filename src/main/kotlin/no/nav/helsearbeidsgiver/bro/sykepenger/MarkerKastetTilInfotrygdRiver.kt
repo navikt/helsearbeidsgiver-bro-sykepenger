@@ -75,7 +75,7 @@ class MarkerKastetTilInfotrygdRiver(
                 .firstOrNull()
 
         if (forespoersel != null && forespoersel.type == Type.KOMPLETT) {
-            forespoerselDao.markerKastetTilInfotrygd(vedtaksperiodeId)
+            forespoerselDao.oppdaterSomKastetTilInfotrygd(vedtaksperiodeId)
 
             if (forespoersel.status == Status.AKTIV) {
                 priProducer.send(

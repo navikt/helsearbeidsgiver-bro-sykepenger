@@ -5,7 +5,6 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.helsearbeidsgiver.bro.sykepenger.tilForespurtData
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -40,6 +39,6 @@ data class ForespoerselSimba(
         forespurtData = forespoersel.forespurtData.tilForespurtData(),
         erBesvart = forespoersel.status.erBesvart(),
         erBegrenset = forespoersel.type == Type.BEGRENSET,
-        opprettet = forespoersel.opprettet.truncMillis(),
+        opprettet = forespoersel.opprettet,
     )
 }
