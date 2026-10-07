@@ -19,10 +19,18 @@ object Pri {
         NOTIS("notis"),
         BOOMERANG("boomerang"),
         FORESPOERSEL_ID("forespoerselId"),
+        FNR("fnr"),
         SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
         VEDTAKSPERIODE_ID_LISTE("vedtaksperiode_id_liste"),
         SKAL_HA_PAAMINNELSE("skal_ha_paaminnelse"),
         FORESPOERSEL("forespoersel"),
+        FORESPOERSEL_LISTE("forespoersel_liste"),
+
+        /*
+           forespoersel_liste spør om fnr,
+           men kan ikke bruke fnr som kafkakey i svar fra priproducer så bruker RESPONS_ID som settes av klienten
+         */
+        RESPONS_ID("respons_id"),
         EKSPONERT_FORESPOERSEL_ID("eksponertForespoerselId"),
         VEDTAKSPERIODE_ID("vedtaksperiode_id"),
         STATUS("status"),
@@ -45,6 +53,7 @@ object Pri {
         TRENGER_FORESPØRSEL,
         HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID_LISTE,
         HENT_FORESPOERSLER_FOR_VEDTAKSPERIODE_ID,
+        HENT_FORESPOERSLER_FOR_PERSON,
     }
 
     @Serializable
@@ -57,6 +66,7 @@ object Pri {
         FORESPOERSEL_KASTET_TIL_INFOTRYGD,
         FORESPOERSEL_OPPDATERT,
         FORESPOERSEL_FOR_VEDTAKSPERIODE_ID,
+        FORESPOERSEL_LISTE_FOR_PERSON,
     }
 
     private object KeySerializer : AsStringSerializer<Key>(
