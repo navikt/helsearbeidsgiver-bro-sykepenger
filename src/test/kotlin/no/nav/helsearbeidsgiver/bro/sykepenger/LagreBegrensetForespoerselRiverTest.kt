@@ -2,7 +2,6 @@ package no.nav.helsearbeidsgiver.bro.sykepenger
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -18,6 +17,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.shouldBeEqualToWithApproximateDateTime
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.tilMeldingForespoerselMottatt
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.tilMeldingForespoerselOppdatert
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.randomUuid
@@ -65,6 +65,7 @@ class LagreBegrensetForespoerselRiverTest :
 
             mockStatic(::randomUuid) {
                 every { randomUuid() } returns forespoersel.forespoerselId
+
                 mockStatic(LocalDateTime::class) {
                     every { LocalDateTime.now() } returns forespoersel.opprettet
                     mockInnkommendeMelding(forespoersel)
@@ -76,7 +77,7 @@ class LagreBegrensetForespoerselRiverTest :
 
                 mockForespoerselDao.lagre(
                     withArg {
-                        it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)
+                        it.shouldBeEqualToWithApproximateDateTime(forespoersel)
                     },
                     forespoersel.forespoerselId,
                 )
@@ -107,6 +108,7 @@ class LagreBegrensetForespoerselRiverTest :
 
             mockkStatic(::randomUuid) {
                 every { randomUuid() } returns forespoersel.forespoerselId
+
                 mockStatic(LocalDateTime::class) {
                     every { LocalDateTime.now() } returns forespoersel.opprettet
                     mockInnkommendeMelding(forespoersel)
@@ -118,7 +120,7 @@ class LagreBegrensetForespoerselRiverTest :
 
                 mockForespoerselDao.lagre(
                     withArg {
-                        it.shouldBeEqualToIgnoringFields(forespoersel, forespoersel::oppdatert, forespoersel::opprettet)
+                        it.shouldBeEqualToWithApproximateDateTime(forespoersel)
                     },
                     eksponertForespoerselId,
                 )
@@ -132,7 +134,9 @@ class LagreBegrensetForespoerselRiverTest :
             }
         }
 
-        test("Duplisert forespørsel blir hverken lagret eller sender notifikasjon") {
+        test(
+            "Duplisert forespørsel blir hverken lagret eller sender notifikasjon, men oppdaterer tidspunkt for forrige kontakt fra Spleis",
+        ) {
             val forespoersel = mockBegrensetForespoerselDto()
 
             every {
@@ -147,6 +151,7 @@ class LagreBegrensetForespoerselRiverTest :
 
             verifySequence {
                 mockForespoerselDao.hentAktivForespoerselForVedtaksperiodeId(forespoersel.vedtaksperiodeId)
+                mockForespoerselDao.oppdaterForrigeKontaktFraSpleis(forespoersel.forespoerselId)
             }
 
             verify(exactly = 0) {

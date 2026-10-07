@@ -6,6 +6,8 @@ import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.date.shouldBeAfter
+import io.kotest.matchers.date.shouldBeWithin
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.nulls.shouldBeNull
@@ -39,6 +41,8 @@ import org.jetbrains.exposed.v1.jdbc.update
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
 class ForespoerselDaoTest :
     FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTable), { db ->
@@ -623,6 +627,32 @@ class ForespoerselDaoTest :
 
                 val forespoersel = db.hentForespoersel(id)
                 forespoersel?.status shouldBe Status.BESVART_SPLEIS
+            }
+        }
+
+        context(ForespoerselDao::oppdaterForrigeKontaktFraSpleis.name) {
+            test("Oppdaterer tidspunkt for forrige kontakt fra Spleis") {
+                val opprettet = LocalDateTime.now().minusDays(2).toDatabaseFormat()
+                val id =
+                    mockForespoerselDto()
+                        .copy(
+                            opprettet = opprettet,
+                            oppdatert = opprettet,
+                            forrigeKontaktFraSpleis = opprettet,
+                        ).lagreEksponertNotNull()
+
+                val foerOppdatering = db.hentForespoersel(id).shouldNotBeNull()
+
+                foerOppdatering.forrigeKontaktFraSpleis shouldBe opprettet
+
+                forespoerselDao.oppdaterForrigeKontaktFraSpleis(foerOppdatering.forespoerselId)
+
+                val etterOppdatering = db.hentForespoersel(id).shouldNotBeNull()
+
+                etterOppdatering.forrigeKontaktFraSpleis.also {
+                    it shouldBeAfter opprettet
+                    it.shouldBeWithin(1.seconds.toJavaDuration(), LocalDateTime.now())
+                }
             }
         }
 

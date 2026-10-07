@@ -17,6 +17,7 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.updateReturning
 import org.jetbrains.exposed.v1.jdbc.upsert
 import java.time.LocalDateTime
@@ -54,6 +55,7 @@ class ForespoerselDao(
                     it[forespurtData] = forespoersel.forespurtData
                     it[opprettet] = forespoersel.opprettet
                     it[oppdatert] = forespoersel.oppdatert
+                    it[forrigeKontaktFraSpleis] = forespoersel.forrigeKontaktFraSpleis
                 }.let {
                     it[ForespoerselTable.id]
                 }
@@ -108,6 +110,18 @@ class ForespoerselDao(
             erstattStatuser = setOf(Status.AKTIV),
             nyStatus = Status.FORKASTET,
         )
+
+    fun oppdaterForrigeKontaktFraSpleis(forespoerselId: UUID) {
+        transaction(db) {
+            ForespoerselTable.update(
+                where = {
+                    ForespoerselTable.forespoerselId eq forespoerselId
+                },
+            ) {
+                it[forrigeKontaktFraSpleis] = LocalDateTime.now()
+            }
+        }
+    }
 
     fun oppdaterSomKastetTilInfotrygd(vedtaksperiodeId: UUID): List<Long> =
         transaction(db) {
@@ -244,6 +258,7 @@ fun tilForespoerselDto(row: ResultRow): ForespoerselDto =
         forespurtData = row[ForespoerselTable.forespurtData],
         opprettet = row[ForespoerselTable.opprettet],
         oppdatert = row[ForespoerselTable.oppdatert],
+        forrigeKontaktFraSpleis = row[ForespoerselTable.forrigeKontaktFraSpleis],
         kastetTilInfotrygd = row[ForespoerselTable.kastetTilInfotrygd],
     )
 

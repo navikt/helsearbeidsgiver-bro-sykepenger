@@ -27,6 +27,7 @@ data class ForespoerselDto(
     val forespurtData: Set<SpleisForespurtDataDto>,
     val opprettet: LocalDateTime = LocalDateTime.now().toDatabaseFormat(),
     val oppdatert: LocalDateTime = LocalDateTime.now().toDatabaseFormat(),
+    val forrigeKontaktFraSpleis: LocalDateTime = LocalDateTime.now().toDatabaseFormat(),
     val kastetTilInfotrygd: LocalDateTime? = null,
 ) {
     fun erDuplikatAv(other: ForespoerselDto): Boolean =
@@ -35,6 +36,7 @@ data class ForespoerselDto(
                 forespoerselId = forespoerselId,
                 opprettet = opprettet,
                 oppdatert = oppdatert,
+                forrigeKontaktFraSpleis = forrigeKontaktFraSpleis,
                 kastetTilInfotrygd = kastetTilInfotrygd,
             )
 }
