@@ -22,7 +22,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type.BEGRENSET
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
@@ -39,6 +38,7 @@ import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class ForespoerselDaoTest :
@@ -395,7 +395,7 @@ class ForespoerselDaoTest :
 
                 val id1 = mockForespoerselDto().copy(forespoerselId = eksponertForespoerselId).lagreEksponertNotNull()
                 val id2 = mockForespoerselDto().lagreNotNull(eksponertForespoerselId)
-                val forespoerselBesvart = now()
+                val forespoerselBesvart = LocalDateTime.now().toDatabaseFormat()
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
                     MockUuid.vedtaksperiodeId,
@@ -421,7 +421,7 @@ class ForespoerselDaoTest :
 
                 val id1 = mockForespoerselDto().copy(forespoerselId = eksponertForespoerselId).lagreEksponertNotNull()
                 val id2 = mockForespoerselDto().lagreNotNull(eksponertForespoerselId)
-                val forespoerselBesvart = now()
+                val forespoerselBesvart = LocalDateTime.now().toDatabaseFormat()
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
                     MockUuid.vedtaksperiodeId,
@@ -528,7 +528,7 @@ class ForespoerselDaoTest :
 
                 val id1 = mockForespoerselDto().copy(forespoerselId = eksponertForespoerselId).lagreEksponertNotNull()
                 val id2 = mockForespoerselDto().lagreNotNull(eksponertForespoerselId)
-                val besvart = now()
+                val besvart = LocalDateTime.now().toDatabaseFormat()
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(
                     vedtaksperiodeId = MockUuid.vedtaksperiodeId,
@@ -611,23 +611,23 @@ class ForespoerselDaoTest :
             }
 
             test("Oppdaterer ikke besvart fra Simba til forkastet") {
-                val forespoerselId = mockForespoerselDto().copy(status = Status.BESVART_SIMBA).lagreEksponertNotNull()
+                val id = mockForespoerselDto().copy(status = Status.BESVART_SIMBA).lagreEksponertNotNull()
                 forespoerselDao.oppdaterForespoerslerSomForkastet(MockUuid.vedtaksperiodeId)
 
-                val forespoersel = db.hentForespoersel(forespoerselId)
+                val forespoersel = db.hentForespoersel(id)
                 forespoersel?.status shouldBe Status.BESVART_SIMBA
             }
 
             test("Oppdaterer ikke besvart fra Spleis til forkastet") {
-                val forespoerselId = mockForespoerselDto().copy(status = Status.BESVART_SPLEIS).lagreEksponertNotNull()
+                val id = mockForespoerselDto().copy(status = Status.BESVART_SPLEIS).lagreEksponertNotNull()
                 forespoerselDao.oppdaterForespoerslerSomForkastet(MockUuid.vedtaksperiodeId)
 
-                val forespoersel = db.hentForespoersel(forespoerselId)
+                val forespoersel = db.hentForespoersel(id)
                 forespoersel?.status shouldBe Status.BESVART_SPLEIS
             }
         }
 
-        context(ForespoerselDao::markerKastetTilInfotrygd.name) {
+        context(ForespoerselDao::oppdaterSomKastetTilInfotrygd.name) {
             test(
                 "Oppdaterer alle forespørsler knyttet til en vedtaksperiodeId med tidspunkt for når vedtaksperioden kastes til infotrygd",
             ) {
@@ -651,7 +651,7 @@ class ForespoerselDaoTest :
                 forespoersel2Foer.kastetTilInfotrygd.shouldBeNull()
                 forespoersel3Foer.kastetTilInfotrygd.shouldBeNull()
 
-                forespoerselDao.markerKastetTilInfotrygd(MockUuid.vedtaksperiodeId)
+                forespoerselDao.oppdaterSomKastetTilInfotrygd(MockUuid.vedtaksperiodeId)
 
                 val (
                     forespoersel1Etter,
@@ -729,7 +729,7 @@ class ForespoerselDaoTest :
             test("henter for besvart fra Simba") {
                 val forespoersel = mockForespoerselDto().also(ForespoerselDto::lagreEksponertNotNull)
 
-                forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(MockUuid.vedtaksperiodeId, now())
+                forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(MockUuid.vedtaksperiodeId, LocalDateTime.now())
 
                 val vedtaksperiodeId = forespoerselDao.hentVedtaksperiodeId(forespoersel.forespoerselId)
 
@@ -741,7 +741,7 @@ class ForespoerselDaoTest :
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
                     MockUuid.vedtaksperiodeId,
-                    now(),
+                    LocalDateTime.now(),
                     UUID.randomUUID(),
                 )
 
@@ -760,7 +760,7 @@ class ForespoerselDaoTest :
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
                     MockUuid.vedtaksperiodeId,
-                    now(),
+                    LocalDateTime.now(),
                     UUID.randomUUID(),
                 )
 
@@ -783,7 +783,7 @@ class ForespoerselDaoTest :
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
                     MockUuid.vedtaksperiodeId,
-                    now(),
+                    LocalDateTime.now(),
                     UUID.randomUUID(),
                 )
 
@@ -793,7 +793,7 @@ class ForespoerselDaoTest :
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
                     MockUuid.vedtaksperiodeId,
-                    now(),
+                    LocalDateTime.now(),
                     UUID.randomUUID(),
                 )
 
@@ -823,14 +823,14 @@ class ForespoerselDaoTest :
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
                     MockUuid.vedtaksperiodeId,
-                    now(),
+                    LocalDateTime.now(),
                     UUID.randomUUID(),
                 )
 
                 val idC = mockForespoerselDto().copy(forespoerselId = eksponertForespoerselId2).lagreEksponertNotNull()
                 val idD = mockForespoerselDto().lagreNotNull(eksponertForespoerselId2)
 
-                forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(MockUuid.vedtaksperiodeId, now())
+                forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(MockUuid.vedtaksperiodeId, LocalDateTime.now())
 
                 val c = db.hentForespoersel(idC).shouldNotBeNull()
                 val d = db.hentForespoersel(idD).shouldNotBeNull()
@@ -857,7 +857,7 @@ class ForespoerselDaoTest :
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
                     MockUuid.vedtaksperiodeId,
-                    now(),
+                    LocalDateTime.now(),
                     UUID.randomUUID(),
                 )
 
@@ -879,7 +879,7 @@ class ForespoerselDaoTest :
             test("én besvart fra Simba og én aktiv") {
                 val idA = mockForespoerselDto().lagreEksponertNotNull()
 
-                forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(MockUuid.vedtaksperiodeId, now())
+                forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(MockUuid.vedtaksperiodeId, LocalDateTime.now())
 
                 val idB = mockForespoerselDto().lagreEksponertNotNull()
 
@@ -899,7 +899,7 @@ class ForespoerselDaoTest :
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
                     MockUuid.vedtaksperiodeId,
-                    now(),
+                    LocalDateTime.now(),
                     UUID.randomUUID(),
                 )
 
@@ -952,7 +952,7 @@ class ForespoerselDaoTest :
             test("kun én besvart (fra Simba) forespoersel") {
                 val idA = mockForespoerselDto().lagreEksponertNotNull()
 
-                forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(MockUuid.vedtaksperiodeId, now())
+                forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(MockUuid.vedtaksperiodeId, LocalDateTime.now())
 
                 val a = db.hentForespoersel(idA).shouldNotBeNull()
 
@@ -969,7 +969,7 @@ class ForespoerselDaoTest :
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
                     MockUuid.vedtaksperiodeId,
-                    now(),
+                    LocalDateTime.now(),
                     UUID.randomUUID(),
                 )
 
@@ -990,7 +990,7 @@ class ForespoerselDaoTest :
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
                     MockUuid.vedtaksperiodeId,
-                    now(),
+                    LocalDateTime.now(),
                     UUID.randomUUID(),
                 )
 
@@ -999,7 +999,7 @@ class ForespoerselDaoTest :
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
                     MockUuid.vedtaksperiodeId,
-                    now(),
+                    LocalDateTime.now(),
                     UUID.randomUUID(),
                 )
 
@@ -1092,7 +1092,7 @@ class ForespoerselDaoTest :
 
                 val idD = mockForespoerselDto().copy(vedtaksperiodeId = vid3).lagreEksponertNotNull()
 
-                forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(vid1, now())
+                forespoerselDao.oppdaterForespoerslerSomBesvartFraSimba(vid1, LocalDateTime.now())
 
                 val a = db.hentForespoersel(idA).shouldNotBeNull()
                 val b = db.hentForespoersel(idB).shouldNotBeNull()
@@ -1255,7 +1255,7 @@ class ForespoerselDaoTest :
 
                 forespoerselDao.oppdaterForespoerslerSomBesvartFraSpleis(
                     MockUuid.vedtaksperiodeId,
-                    now(),
+                    LocalDateTime.now(),
                     UUID.randomUUID(),
                 )
 
@@ -1484,8 +1484,6 @@ private fun tilForespoerselMedEksponertId(row: ResultRow): Pair<UUID, Forespoers
 
 private fun ForespoerselDto.oekOpprettet(sekunder: Long): ForespoerselDto = copy(opprettet = opprettet.plusSeconds(sekunder))
 
-private fun now(): LocalDateTime = LocalDateTime.now().truncMillis()
-
 private fun List<Pair<Status, Set<SpleisForespurtDataDto>>>.tilForespoersler(): List<ForespoerselDto> =
     mapIndexed { index, (status, forespurtData) ->
         mockForespoerselDto()
@@ -1495,3 +1493,5 @@ private fun List<Pair<Status, Set<SpleisForespurtDataDto>>>.tilForespoersler(): 
                 forespurtData = forespurtData,
             )
     }
+
+private fun LocalDateTime.toDatabaseFormat(): LocalDateTime = truncatedTo(ChronoUnit.MICROS)

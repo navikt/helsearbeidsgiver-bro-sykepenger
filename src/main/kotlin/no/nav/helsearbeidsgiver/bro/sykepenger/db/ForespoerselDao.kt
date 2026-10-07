@@ -4,9 +4,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.SpleisForespurtDataDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
-import no.nav.helsearbeidsgiver.utils.log.logger
-import no.nav.helsearbeidsgiver.utils.log.sikkerLogger
+import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -27,8 +25,7 @@ import java.util.UUID
 class ForespoerselDao(
     private val db: Database,
 ) {
-    private val logger = logger()
-    private val sikkerLogger = sikkerLogger()
+    private val loggernaut = Loggernaut(this)
 
     fun lagre(
         forespoersel: ForespoerselDto,
@@ -60,6 +57,8 @@ class ForespoerselDao(
                 }.let {
                     it[ForespoerselTable.id]
                 }
+        }.also { id ->
+            loggernaut.info("Forespørsel lagret med id='$id'.")
         }
 
     fun oppdaterForespoerslerSomBesvartFraSpleis(
@@ -110,7 +109,7 @@ class ForespoerselDao(
             nyStatus = Status.FORKASTET,
         )
 
-    fun markerKastetTilInfotrygd(vedtaksperiodeId: UUID): List<Long> =
+    fun oppdaterSomKastetTilInfotrygd(vedtaksperiodeId: UUID): List<Long> =
         transaction(db) {
             ForespoerselTable
                 .updateReturning(
@@ -119,14 +118,12 @@ class ForespoerselDao(
                         ForespoerselTable.vedtaksperiodeId eq vedtaksperiodeId
                     },
                 ) {
-                    it[kastetTilInfotrygd] = LocalDateTime.now().truncMillis()
+                    it[kastetTilInfotrygd] = LocalDateTime.now()
                 }.map {
                     it[ForespoerselTable.id]
-                }.also {
-                    val msg = "Oppdaterte ${it.size} rader med kastet til Infotrygd tidspunkt. ids=$it"
-                    logger.info(msg)
-                    sikkerLogger.info(msg)
                 }
+        }.also { ider ->
+            loggernaut.info("Oppdaterte ${ider.size} rader med kastet til Infotrygd tidspunkt. ider=$ider")
         }
 
     /*
@@ -206,10 +203,8 @@ class ForespoerselDao(
                     }.map {
                         it[ForespoerselTable.id]
                     }
-            }.also {
-                val msg = "Oppdaterte ${it.size} rader med ny status '$nyStatus'. ids=$it"
-                logger.info(msg)
-                sikkerLogger.info(msg)
+            }.also { ider ->
+                loggernaut.info("Oppdaterte ${ider.size} rader med ny status '$nyStatus'. ids=$ider")
             }
 
     private fun hentForespoerslerEksponertTilSimba(

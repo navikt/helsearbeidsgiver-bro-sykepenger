@@ -4,7 +4,6 @@ package no.nav.helsearbeidsgiver.bro.sykepenger.domene
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.LocalDateTimeSerializer
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -12,6 +11,7 @@ import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 data class ForespoerselDto(
@@ -25,8 +25,8 @@ data class ForespoerselDto(
     val sykmeldingsperioder: List<Periode>,
     val bestemmendeFravaersdager: Map<Orgnr, LocalDate>,
     val forespurtData: Set<SpleisForespurtDataDto>,
-    val opprettet: LocalDateTime = LocalDateTime.now().truncMillis(),
-    val oppdatert: LocalDateTime = LocalDateTime.now().truncMillis(),
+    val opprettet: LocalDateTime = LocalDateTime.now().toDatabaseFormat(),
+    val oppdatert: LocalDateTime = LocalDateTime.now().toDatabaseFormat(),
     val kastetTilInfotrygd: LocalDateTime? = null,
 ) {
     fun erDuplikatAv(other: ForespoerselDto): Boolean =
@@ -74,3 +74,6 @@ infix fun LocalDate.til(tom: LocalDate): Periode =
         fom = this,
         tom = tom,
     )
+
+/** Timestamps i databasen er begrenset til mikrosekunder.  */
+private fun LocalDateTime.toDatabaseFormat(): LocalDateTime = truncatedTo(ChronoUnit.MICROS)

@@ -11,7 +11,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.sendJson
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.test.mock.mockStatic
@@ -53,7 +52,7 @@ class ManuellForkastForespoerselFraAdminTest :
                     mockPriProducer.send(
                         vedtaksperiodeId,
                         Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FORKASTET.toJson(Pri.NotisType.serializer()),
-                        Pri.Key.SENDT_TID to utsendingstidspunkt.truncMillis().toJson(),
+                        Pri.Key.SENDT_TID to utsendingstidspunkt.toJson(),
                         Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     )
                     mockPriProducer.send(

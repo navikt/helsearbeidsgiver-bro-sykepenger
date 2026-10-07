@@ -85,8 +85,6 @@ class LagreKomplettForespoerselRiverTest :
                     forespoersel.vedtaksperiodeId,
                     *forespoersel.tilMeldingForespoerselMottatt(),
                 )
-
-                mockForespoerselDao.hentForespoerslerForVedtaksperiodeIdListe(setOf(forespoersel.vedtaksperiodeId))
             }
         }
 
