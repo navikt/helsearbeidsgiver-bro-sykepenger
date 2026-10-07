@@ -11,7 +11,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
@@ -57,8 +56,7 @@ sealed class LagreForespoerselRiver(
                     .lagreForespoersel(forespoerselId)
             }.onFailure(loggernaut::ukjentFeil)
                 .getOrElse {
-                    loggernaut.aapen.error("Klarte ikke å lagre forespørsel!")
-                    loggernaut.sikker.error("Klarte ikke å lagre forespørsel!", it)
+                    loggernaut.error("Klarte ikke å lagre forespørsel!", it)
                 }
         }
     }
@@ -78,73 +76,40 @@ sealed class LagreForespoerselRiver(
         loggernaut.sikker.info("Mottok melding med innhold:\n${toPretty()}")
 
         val nyForespoersel = lesForespoersel(forespoerselId, melding)
-        loggernaut.sikker.info("Forespoersel lest: $nyForespoersel")
+        loggernaut.sikker.info("Forespoersel lest:\n$nyForespoersel")
 
         MdcUtils.withLogFields(
             Log.type(nyForespoersel.type),
             Log.vedtaksperiodeId(nyForespoersel.vedtaksperiodeId),
         ) {
-            lagreForespoersel(nyForespoersel)
+            lagreForespoerselHvisIkkeDuplikat(nyForespoersel)
         }
     }
 
-    private fun lagreForespoersel(nyForespoersel: ForespoerselDto) {
+    private fun lagreForespoerselHvisIkkeDuplikat(nyForespoersel: ForespoerselDto) {
         val aktivForespoersel = forespoerselDao.hentAktivForespoerselForVedtaksperiodeId(nyForespoersel.vedtaksperiodeId)
-        val skalHaPaaminnelse = nyForespoersel.type == Type.KOMPLETT
-        val eksponertForespoerselId = finnEksponertForespoerselId(aktivForespoersel, nyForespoersel)
 
         when {
-            eksponertForespoerselId == null -> {
-                "Lagret ikke duplikatforespørsel.".also {
-                    loggernaut.aapen.info(it)
-                    loggernaut.sikker.info(it)
-                }
+            aktivForespoersel == null -> {
+                forespoerselDao.lagre(nyForespoersel, nyForespoersel.forespoerselId)
+                sendMeldingOmNyForespoersel(nyForespoersel)
             }
 
-            aktivForespoersel == null -> {
-                lagreForespoersel(nyForespoersel, eksponertForespoerselId)
-                sendMeldingOmNyForespoersel(nyForespoersel, skalHaPaaminnelse)
-                loggVedGjentatteForespoersler(nyForespoersel)
+            // Siden vi legger til historisk forespurt data når en forespørsel leses fra databasen, så kan innkommende forespørsel anses som duplikat selv om forespurt data er ulik databaseraden til den aktive forespørselen
+            !nyForespoersel.erDuplikatAv(aktivForespoersel) -> {
+                forespoerselDao.lagre(nyForespoersel, aktivForespoersel.forespoerselId)
+                sendMeldingOmOppdatering(nyForespoersel, aktivForespoersel.forespoerselId)
             }
 
             else -> {
-                lagreForespoersel(nyForespoersel, eksponertForespoerselId)
-                sendMeldingOmOppdatering(nyForespoersel, eksponertForespoerselId)
+                loggernaut.info("Lagret ikke duplikatforespørsel.")
             }
         }
     }
 
-    private fun finnEksponertForespoerselId(
-        aktivForespoersel: ForespoerselDto?,
-        nyForespoersel: ForespoerselDto,
-    ): UUID? =
-        when {
-            aktivForespoersel == null -> nyForespoersel.forespoerselId
+    private fun sendMeldingOmNyForespoersel(nyForespoersel: ForespoerselDto) {
+        val skalHaPaaminnelse = nyForespoersel.type == Type.KOMPLETT
 
-            // Siden vi legger til historisk forespurt data når en forespørsel leses fra databasen, så kan innkommende forespørsel anses som duplikat selv om forespurt data er ulik databaseraden til den aktive forespørselen
-            !nyForespoersel.erDuplikatAv(aktivForespoersel) -> aktivForespoersel.forespoerselId
-
-            else -> null
-        }
-
-    private fun lagreForespoersel(
-        nyForespoersel: ForespoerselDto,
-        eksponertForespoerselId: UUID,
-    ) {
-        forespoerselDao
-            .lagre(nyForespoersel, eksponertForespoerselId)
-            .let { id ->
-                "Forespørsel lagret med id=$id.".also {
-                    loggernaut.aapen.info(it)
-                    loggernaut.sikker.info(it)
-                }
-            }
-    }
-
-    private fun sendMeldingOmNyForespoersel(
-        nyForespoersel: ForespoerselDto,
-        skalHaPaaminnelse: Boolean,
-    ) {
         val melding =
             arrayOf(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
@@ -173,19 +138,5 @@ sealed class LagreForespoerselRiver(
         priProducer.send(nyForespoersel.vedtaksperiodeId, *melding)
 
         loggernaut.info("Sa ifra om oppdatert forespørsel til LPS-API.")
-    }
-
-    private fun loggVedGjentatteForespoersler(nyForespoersel: ForespoerselDto) {
-        val besvarteForespoersler =
-            forespoerselDao
-                .hentForespoerslerForVedtaksperiodeIdListe(setOf(nyForespoersel.vedtaksperiodeId))
-                .filter { it.second.status in setOf(Status.BESVART_SIMBA, Status.BESVART_SPLEIS) }
-
-        if (besvarteForespoersler.size > 3) {
-            loggernaut.warn(
-                "Ny IM har nettopp blitt etterspurt for vedtaksperiode-ID ${nyForespoersel.vedtaksperiodeId}, " +
-                    "som allerede har blitt besvart mer enn 3 ganger.",
-            )
-        }
     }
 }

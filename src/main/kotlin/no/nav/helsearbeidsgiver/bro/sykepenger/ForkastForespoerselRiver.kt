@@ -15,7 +15,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.les
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.requireKeys
-import no.nav.helsearbeidsgiver.bro.sykepenger.utils.truncMillis
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
@@ -77,7 +76,7 @@ internal class ForkastForespoerselRiver(
             priProducer.send(
                 forespoersel.vedtaksperiodeId,
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_FORKASTET.toJson(Pri.NotisType.serializer()),
-                Pri.Key.SENDT_TID to LocalDateTime.now().truncMillis().toJson(),
+                Pri.Key.SENDT_TID to LocalDateTime.now().toJson(),
                 Pri.Key.FORESPOERSEL_ID to forespoersel.forespoerselId.toJson(),
             )
             loggernaut.info("Sa ifra om forkastet forespørsel til Simba.")
