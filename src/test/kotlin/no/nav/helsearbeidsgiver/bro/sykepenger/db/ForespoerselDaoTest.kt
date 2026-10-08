@@ -632,26 +632,55 @@ class ForespoerselDaoTest :
 
         context(ForespoerselDao::oppdaterForrigeKontaktFraSpleis.name) {
             test("Oppdaterer tidspunkt for forrige kontakt fra Spleis") {
-                val opprettet = LocalDateTime.now().minusDays(2).toDatabaseFormat()
-                val id =
-                    mockForespoerselDto()
-                        .copy(
-                            opprettet = opprettet,
-                            oppdatert = opprettet,
-                            forrigeKontaktFraSpleis = opprettet,
-                        ).lagreEksponertNotNull()
+                val eksponertForespoersel =
+                    LocalDateTime.now().minusDays(3).toDatabaseFormat().let { opprettet ->
+                        mockForespoerselDto()
+                            .copy(
+                                opprettet = opprettet,
+                                oppdatert = opprettet,
+                                forrigeKontaktFraSpleis = opprettet,
+                            )
+                    }
+                val aktivForespoersel =
+                    eksponertForespoersel.opprettet.plusDays(1).let { opprettet ->
+                        eksponertForespoersel
+                            .copy(
+                                forespoerselId = UUID.randomUUID(),
+                                egenmeldingsperioder = emptyList(), // Ikke duplikat
+                                opprettet = opprettet,
+                                oppdatert = opprettet,
+                                forrigeKontaktFraSpleis = opprettet,
+                            )
+                    }
 
-                val foerOppdatering = db.hentForespoersel(id).shouldNotBeNull()
+                val idEksponert = eksponertForespoersel.lagreEksponertNotNull()
+                val idAktiv = aktivForespoersel.lagreNotNull(eksponertForespoersel.forespoerselId)
 
-                foerOppdatering.forrigeKontaktFraSpleis shouldBe opprettet
+                db.hentForespoersel(idEksponert).shouldNotBeNull().also {
+                    it.status shouldBe Status.FORKASTET
+                    it.forespoerselId shouldBe eksponertForespoersel.forespoerselId
+                    it.forrigeKontaktFraSpleis shouldBe eksponertForespoersel.opprettet
+                }
 
-                forespoerselDao.oppdaterForrigeKontaktFraSpleis(foerOppdatering.forespoerselId)
+                db.hentForespoersel(idAktiv).shouldNotBeNull().also {
+                    it.status shouldBe Status.AKTIV
+                    it.forespoerselId shouldBe aktivForespoersel.forespoerselId
+                    it.forrigeKontaktFraSpleis shouldBe aktivForespoersel.opprettet
+                }
 
-                val etterOppdatering = db.hentForespoersel(id).shouldNotBeNull()
+                forespoerselDao.oppdaterForrigeKontaktFraSpleis(aktivForespoersel.forespoerselId)
 
-                etterOppdatering.forrigeKontaktFraSpleis.also {
-                    it shouldBeAfter opprettet
-                    it.shouldBeWithin(1.seconds.toJavaDuration(), LocalDateTime.now())
+                // Ingen endring
+                db.hentForespoersel(idEksponert).shouldNotBeNull().also {
+                    it.status shouldBe Status.FORKASTET
+                    it.forrigeKontaktFraSpleis shouldBe eksponertForespoersel.opprettet
+                }
+
+                // 'forrigeKontaktFraSpleis' oppdatert
+                db.hentForespoersel(idAktiv).shouldNotBeNull().also {
+                    it.status shouldBe Status.AKTIV
+                    it.forrigeKontaktFraSpleis shouldBeAfter aktivForespoersel.opprettet
+                    it.forrigeKontaktFraSpleis.shouldBeWithin(1.seconds.toJavaDuration(), LocalDateTime.now())
                 }
             }
         }
