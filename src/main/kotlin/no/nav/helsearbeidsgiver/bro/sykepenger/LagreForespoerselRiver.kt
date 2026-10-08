@@ -102,6 +102,7 @@ sealed class LagreForespoerselRiver(
             }
 
             else -> {
+                forespoerselDao.oppdaterForrigeKontaktFraSpleis(aktivForespoersel.forespoerselId)
                 loggernaut.info("Lagret ikke duplikatforespørsel.")
             }
         }

@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
+import io.kotest.matchers.string.shouldEndWith
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
 import no.nav.helsearbeidsgiver.utils.test.date.september
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
@@ -15,6 +16,21 @@ import java.util.UUID
 
 class ForespoerselDtoTest :
     FunSpec({
+
+        context("tidspunkt er på databaseformat (mikrosekundpresisjon)") {
+            withData(
+                mapOf<String, (ForespoerselDto) -> LocalDateTime>(
+                    ForespoerselDto::opprettet.name to { it.opprettet },
+                    ForespoerselDto::oppdatert.name to { it.oppdatert },
+                    ForespoerselDto::forrigeKontaktFraSpleis.name to { it.forrigeKontaktFraSpleis },
+                ),
+            ) { lesTidspunkt ->
+                val tidspunkt = lesTidspunkt(mockForespoerselDto())
+
+                tidspunkt.nano.toString() shouldEndWith "000"
+            }
+        }
+
         context("erDuplikat") {
             withData(
                 mapOf<String, (ForespoerselDto) -> ForespoerselDto>(
@@ -22,6 +38,7 @@ class ForespoerselDtoTest :
                     "Ignorerer 'forespoerselId'" to { it.copy(forespoerselId = UUID.randomUUID()) },
                     "Ignorerer 'opprettet'" to { it.copy(opprettet = LocalDateTime.now().minusDays(5)) },
                     "Ignorerer 'oppdatert'" to { it.copy(oppdatert = LocalDateTime.now().plusDays(10)) },
+                    "Ignorerer 'forrigeKontaktFraSpleis'" to { it.copy(forrigeKontaktFraSpleis = LocalDateTime.now().plusDays(14)) },
                     "Ignorerer 'kastetTilInfotrygd'" to { it.copy(kastetTilInfotrygd = LocalDateTime.now().plusDays(17)) },
                 ),
             ) { endreFn ->

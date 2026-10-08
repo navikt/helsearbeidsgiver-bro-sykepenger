@@ -31,6 +31,7 @@ object ForespoerselTable : Table("forespoersel") {
     val forespurtData = jsonb("forespurt_data", jsonConfig, SpleisForespurtDataDto.serializer().set())
     val opprettet = datetime("opprettet")
     val oppdatert = datetime("oppdatert")
+    val forrigeKontaktFraSpleis = datetime("forrige_kontakt_fra_spleis")
     val kastetTilInfotrygd = datetime("kastet_til_infotrygd").nullable()
 }
 
