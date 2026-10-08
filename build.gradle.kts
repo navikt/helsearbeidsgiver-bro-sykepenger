@@ -76,7 +76,6 @@ dependencies {
     val logbackVersion = project.property("logbackVersion") as String
     val mockkVersion = project.property("mockkVersion") as String
     val postgresqlVersion = project.property("postgresqlVersion") as String
-    val rapidsAndRiversTestVersion = project.property("rapidsAndRiversTestVersion") as String
     val rapidsAndRiversVersion = project.property("rapidsAndRiversVersion") as String
     val testcontainersVersion = project.property("testcontainersVersion") as String
     val utilsVersion = project.property("utilsVersion") as String
@@ -99,7 +98,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")
 
     testImplementation(testFixtures("no.nav.helsearbeidsgiver:utils:$utilsVersion"))
-    testImplementation("com.github.navikt.tbd-libs:rapids-and-rivers-test:$rapidsAndRiversTestVersion")
+    testImplementation("com.github.navikt.rapids-and-rivers:rapids-and-rivers-test:$rapidsAndRiversVersion")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-framework-engine:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
