@@ -8,7 +8,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.Loggernaut
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.jetbrains.exposed.v1.core.ResultRow
-import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.Transaction
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -141,17 +140,27 @@ class ForespoerselDao(
         }
 
     /*
-    Behold denne metoden, kan være nyttig fra HAG-admin
+        Brukes av HAG-Admin (kanskje også NKS)
+        for å kunne søke opp forespørsler (eksponerte pga sak/oppgave),
+        for et gitt fnr
      */
-    fun hentForespoerslerForPerson(fnr: Fnr): List<ForespoerselDto> =
+    fun hentEksponerteForespoerslerForPerson(fnr: Fnr): List<ForespoerselDto> =
         transaction(db) {
-            ForespoerselTable
-                .selectAll()
-                .where { ForespoerselTable.fnr eq fnr.toString() }
-                .orderBy(ForespoerselTable.opprettet, SortOrder.DESC)
-                .map {
-                    tilForespoerselDto(it)
-                }
+            val forespoerslerForPerson =
+                ForespoerselTable
+                    .selectAll()
+                    .where { ForespoerselTable.fnr eq fnr.toString() }
+                    .map {
+                        tilForespoerselDto(it)
+                    }
+            val vedtaksperiodeIder = forespoerslerForPerson.map { it.vedtaksperiodeId }.toSet()
+            hentForespoerslerEksponertTilSimba(
+                vedtaksperiodeIder = vedtaksperiodeIder,
+                statuser = Status.entries.toSet(), // hent forespørsler med alle slags statuser
+            ).sortedWith(
+                compareBy<ForespoerselDto> { it.orgnr.verdi }
+                    .thenBy { it.opprettet },
+            )
         }
 
     fun hentVedtaksperiodeId(forespoerselId: UUID): UUID? =

@@ -30,6 +30,7 @@ import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
@@ -1383,38 +1384,72 @@ class ForespoerselDaoTest :
             db.antallForespoersler() shouldBeExactly 2
         }
 
-        context(ForespoerselDao::hentForespoerslerForPerson.name) {
-            test("Slår opp forespørsel på fnr, gir tilbake sortert liste med nyeste først") {
-                val eksponertId = UUID.randomUUID()
+        context(ForespoerselDao::hentEksponerteForespoerslerForPerson.name) {
+            test("Slår opp forespørsler på fnr, gir tilbake kun de som er eksponert") {
+                val eksponertId1 = UUID.randomUUID()
+                val eksponertId2 = UUID.randomUUID()
+                val eksponertId3 = UUID.randomUUID()
 
+                val nyereForespoerselId = UUID.randomUUID()
                 val fsp = mockForespoerselDto()
                 fsp
                     .copy(
-                        forespoerselId = eksponertId,
+                        forespoerselId = eksponertId1,
                         sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)),
-                    ).also { it.lagreNotNull(eksponertId) }
+                    ).also { it.lagreEksponertNotNull() }
 
+                // "Erstatter" den over - nyere forespørsel setter gammel til forkastet, den nye blir aktiv med eksponertId lik den forrige
+                val nyPeriode = listOf(Periode(2.januar, 31.januar))
                 fsp
                     .copy(
-                        sykmeldingsperioder = listOf(Periode(2.januar, 30.januar)),
+                        forespoerselId = nyereForespoerselId,
+                        sykmeldingsperioder = nyPeriode,
+                    ).also { it.lagreNotNull(eksponertId1) }
+
+                // En annen vedtaksperiode:
+                fsp
+                    .copy(
+                        forespoerselId = eksponertId2,
+                        vedtaksperiodeId = UUID.randomUUID(),
+                        sykmeldingsperioder = listOf(Periode(3.januar, 30.januar)),
                         opprettet = LocalDateTime.now().plusHours(1),
-                    ).also { it.lagreNotNull(eksponertId) }
+                    ).also { it.lagreEksponertNotNull() }
+
+                // En annen person, skal ikke returneres:
+                fsp
+                    .copy(
+                        fnr = Fnr.genererGyldig(),
+                        forespoerselId = eksponertId3,
+                        vedtaksperiodeId = UUID.randomUUID(),
+                    ).also { it.lagreEksponertNotNull() }
 
                 val forespoersler =
                     forespoerselDao
-                        .hentForespoerslerForPerson(fsp.fnr)
+                        .hentEksponerteForespoerslerForPerson(fsp.fnr)
 
                 forespoersler.size shouldBe 2
                 forespoersler[0].status shouldBe Status.AKTIV
+                forespoersler[0].forespoerselId shouldBe eksponertId1
+                forespoersler[0].sykmeldingsperioder shouldBe nyPeriode
+
+                forespoersler[1].status shouldBe Status.AKTIV
+                forespoersler[1].forespoerselId shouldBe eksponertId2
             }
             test("Finner forespørsler på tvers av orgnr") {
                 val fnr = Fnr.genererGyldig()
-                val fsp1 = mockForespoerselDto().copy(fnr = fnr)
-                val fsp2 = mockForespoerselDto().copy(fnr = fnr)
-                forespoerselDao.hentForespoerslerForPerson(fnr) shouldBe emptyList()
+                val orgnr1 = Orgnr.genererGyldig()
+                val orgnr2 = Orgnr.genererGyldig()
+                val sortert = listOf(orgnr1, orgnr2).sortedBy { it.verdi }
+
+                val fsp1 = mockForespoerselDto().copy(fnr = fnr, orgnr = sortert[0])
+                val fsp2 = mockForespoerselDto().copy(fnr = fnr, orgnr = sortert[1], vedtaksperiodeId = UUID.randomUUID())
+                forespoerselDao.hentEksponerteForespoerslerForPerson(fnr) shouldBe emptyList()
                 forespoerselDao.lagre(fsp1, fsp1.forespoerselId)
                 forespoerselDao.lagre(fsp2, fsp2.forespoerselId)
-                forespoerselDao.hentForespoerslerForPerson(fnr).size shouldBe 2
+                val liste = forespoerselDao.hentEksponerteForespoerslerForPerson(fnr)
+                liste.size shouldBe 2
+                liste[0].orgnr shouldBe sortert[0]
+                liste[1].orgnr shouldBe sortert[1]
             }
         }
     })
