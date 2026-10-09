@@ -16,7 +16,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.utils.les
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.requireKeys
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
-import no.nav.helsearbeidsgiver.utils.json.serializer.UuidSerializer
 import no.nav.helsearbeidsgiver.utils.json.toJson
 import no.nav.helsearbeidsgiver.utils.json.toPretty
 import no.nav.helsearbeidsgiver.utils.log.logger
@@ -41,7 +40,7 @@ class HentForespoerslerForPersonRiver(
             .apply {
                 validate { msg ->
                     msg.demandValues(Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_PERSON.name)
-                    msg.requireKeys(Pri.Key.FNR, Pri.Key.RESPONS_ID)
+                    msg.requireKeys(Pri.Key.FNR)
                 }
             }.register(this)
     }
@@ -57,16 +56,10 @@ class HentForespoerslerForPersonRiver(
         logger().info("Mottok melding på pri-topic av type '${Pri.BehovType.HENT_FORESPOERSLER_FOR_PERSON}'.")
         sikkerLogger().info("Mottok melding på pri-topic med innhold:\n${json.toPretty()}")
         val fnr: Fnr
-        val responsId: UUID
         try {
             fnr =
                 Pri.Key.FNR.les(
                     Fnr.serializer(),
-                    json.fromJsonMapFiltered(Pri.Key.serializer()),
-                )
-            responsId =
-                Pri.Key.RESPONS_ID.les(
-                    UuidSerializer,
                     json.fromJsonMapFiltered(Pri.Key.serializer()),
                 )
         } catch (ex: Exception) {
@@ -79,24 +72,21 @@ class HentForespoerslerForPersonRiver(
         } else {
             sikkerLogger().info("Fant ${forespoerselListe.size} forespørsel(er) for fnr=$fnr.")
         }
-        sendForespoerselListe(forespoerselListe, responsId)
+        sendForespoerselListe(forespoerselListe)
     }
 
-    private fun sendForespoerselListe(
-        forespoerselListe: List<ForespoerselDto>,
-        responsId: UUID,
-    ) {
+    private fun sendForespoerselListe(forespoerselListe: List<ForespoerselDto>) {
         try {
             val liste =
-                forespoerselListe.map { forespoerselDto -> ForespoerselSimba(forespoerselDto) }.toJson(ForespoerselSimba.serializer())
+                forespoerselListe.map(::ForespoerselSimba).toJson(ForespoerselSimba.serializer())
             val melding =
                 arrayOf(
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_LISTE to liste,
                 )
-            priProducer.send(responsId, *melding)
+            priProducer.send(UUID.randomUUID(), *melding)
         } catch (e: Exception) {
-            logger().error("Feil ved sending av forespørsel: ${e.message}", e)
+            sikkerLogger().error("Feil ved sending av forespørsel: ${e.message}", e)
         }
     }
 }

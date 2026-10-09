@@ -25,12 +25,6 @@ object Pri {
         SKAL_HA_PAAMINNELSE("skal_ha_paaminnelse"),
         FORESPOERSEL("forespoersel"),
         FORESPOERSEL_LISTE("forespoersel_liste"),
-
-        /*
-           forespoersel_liste spør om fnr,
-           men kan ikke bruke fnr som kafkakey i svar fra priproducer så bruker RESPONS_ID som settes av klienten
-         */
-        RESPONS_ID("respons_id"),
         EKSPONERT_FORESPOERSEL_ID("eksponertForespoerselId"),
         VEDTAKSPERIODE_ID("vedtaksperiode_id"),
         STATUS("status"),

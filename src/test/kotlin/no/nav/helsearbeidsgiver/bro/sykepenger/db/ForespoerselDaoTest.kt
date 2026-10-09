@@ -1369,10 +1369,11 @@ class ForespoerselDaoTest :
                     ).also { it.lagreEksponertNotNull() }
 
                 // "Erstatter" den over - nyere forespørsel setter gammel til forkastet, den nye blir aktiv med eksponertId lik den forrige
+                val nyPeriode = listOf(Periode(2.januar, 31.januar))
                 fsp
                     .copy(
                         forespoerselId = nyereForespoerselId,
-                        sykmeldingsperioder = listOf(Periode(2.januar, 31.januar)),
+                        sykmeldingsperioder = nyPeriode,
                     ).also { it.lagreNotNull(eksponertId1) }
 
                 // En annen vedtaksperiode:
@@ -1399,6 +1400,8 @@ class ForespoerselDaoTest :
                 forespoersler.size shouldBe 2
                 forespoersler[0].status shouldBe Status.AKTIV
                 forespoersler[0].forespoerselId shouldBe eksponertId1
+                forespoersler[0].sykmeldingsperioder shouldBe nyPeriode
+
                 forespoersler[1].status shouldBe Status.AKTIV
                 forespoersler[1].forespoerselId shouldBe eksponertId2
             }

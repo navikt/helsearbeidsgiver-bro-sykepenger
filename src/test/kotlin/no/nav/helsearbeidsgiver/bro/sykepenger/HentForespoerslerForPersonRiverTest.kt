@@ -6,6 +6,7 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifySequence
+import kotlinx.serialization.json.JsonArray
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
@@ -21,9 +22,7 @@ class HentForespoerslerForPersonRiverTest :
     FunSpec({
         val testRapid = TestRapid()
         val mockForespoerselDao = mockk<ForespoerselDao>(relaxed = true)
-        val mockPriProducer =
-            mockk<PriProducer>(relaxed = true) {
-            }
+        val mockPriProducer = mockk<PriProducer>(relaxed = true)
 
         HentForespoerslerForPersonRiver(
             rapid = testRapid,
@@ -48,16 +47,14 @@ class HentForespoerslerForPersonRiverTest :
                     forespoersel2,
                 ),
             )
-            val responsId = UUID.randomUUID()
             testRapid.sendJson(
                 Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_PERSON.toJson(Pri.BehovType.serializer()),
                 Pri.Key.FNR to fnr.toJson(),
-                Pri.Key.RESPONS_ID to responsId.toJson(),
             )
             verifySequence {
                 mockForespoerselDao.hentEksponerteForespoerslerForPerson(fnr)
                 mockPriProducer.send(
-                    responsId,
+                    any(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_LISTE to
                         listOf(ForespoerselSimba(forespoersel1), ForespoerselSimba(forespoersel2)).toJson(ForespoerselSimba.serializer()),
@@ -74,19 +71,16 @@ class HentForespoerslerForPersonRiverTest :
                 emptyList(),
             )
 
-            val responsId = UUID.randomUUID()
             testRapid.sendJson(
                 Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_PERSON.toJson(Pri.BehovType.serializer()),
                 Pri.Key.FNR to fnr.toJson(),
-                Pri.Key.RESPONS_ID to responsId.toJson(),
             )
             verifySequence {
                 mockForespoerselDao.hentEksponerteForespoerslerForPerson(fnr)
                 mockPriProducer.send(
-                    responsId,
+                    any(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()),
-                    Pri.Key.FORESPOERSEL_LISTE to
-                        emptyList<ForespoerselSimba>().toJson(ForespoerselSimba.serializer()),
+                    Pri.Key.FORESPOERSEL_LISTE to JsonArray(emptyList()),
                 )
             }
         }
