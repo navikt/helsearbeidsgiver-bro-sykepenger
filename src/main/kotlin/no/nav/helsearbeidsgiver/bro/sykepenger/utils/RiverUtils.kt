@@ -1,11 +1,11 @@
 package no.nav.helsearbeidsgiver.bro.sykepenger.utils
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.Key
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.pipe.mapFirst
+import tools.jackson.databind.JsonNode
 
 fun JsonMessage.demandValues(vararg keyAndValuePairs: Pair<Key, String>) {
     keyAndValuePairs
