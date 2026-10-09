@@ -111,11 +111,12 @@ class ForespoerselDao(
             nyStatus = Status.FORKASTET,
         )
 
-    fun oppdaterForrigeKontaktFraSpleis(forespoerselId: UUID) {
+    fun oppdaterForrigeKontaktFraSpleis(eksponertForespoerselId: UUID) {
         transaction(db) {
             ForespoerselTable.update(
                 where = {
-                    ForespoerselTable.forespoerselId eq forespoerselId
+                    (ForespoerselTable.eksponertForespoerselId eq eksponertForespoerselId) and
+                        (ForespoerselTable.status eq Status.AKTIV.name)
                 },
             ) {
                 it[forrigeKontaktFraSpleis] = LocalDateTime.now()

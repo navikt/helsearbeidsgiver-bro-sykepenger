@@ -24,6 +24,8 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type.BEGRENSET
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.somOpprettet
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.toDatabaseFormat
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
@@ -39,13 +41,12 @@ import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
 class ForespoerselDaoTest :
-    FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTable), { db ->
+    FunSpecWithDb({ db ->
         val forespoerselDao = ForespoerselDao(db)
 
         fun ForespoerselDto.lagreNotNull(eksponertForespoerselId: UUID): Long =
@@ -632,26 +633,13 @@ class ForespoerselDaoTest :
 
         context(ForespoerselDao::oppdaterForrigeKontaktFraSpleis.name) {
             test("Oppdaterer tidspunkt for forrige kontakt fra Spleis") {
-                val eksponertForespoersel =
-                    LocalDateTime.now().minusDays(3).toDatabaseFormat().let { opprettet ->
-                        mockForespoerselDto()
-                            .copy(
-                                opprettet = opprettet,
-                                oppdatert = opprettet,
-                                forrigeKontaktFraSpleis = opprettet,
-                            )
-                    }
+                val eksponertForespoersel = mockForespoerselDto().somOpprettet(LocalDateTime.now().minusDays(3))
                 val aktivForespoersel =
-                    eksponertForespoersel.opprettet.plusDays(1).let { opprettet ->
-                        eksponertForespoersel
-                            .copy(
-                                forespoerselId = UUID.randomUUID(),
-                                egenmeldingsperioder = emptyList(), // Ikke duplikat
-                                opprettet = opprettet,
-                                oppdatert = opprettet,
-                                forrigeKontaktFraSpleis = opprettet,
-                            )
-                    }
+                    eksponertForespoersel
+                        .copy(
+                            forespoerselId = UUID.randomUUID(),
+                            egenmeldingsperioder = emptyList(), // Ikke duplikat
+                        ).somOpprettet(eksponertForespoersel.opprettet.plusDays(1))
 
                 val idEksponert = eksponertForespoersel.lagreEksponertNotNull()
                 val idAktiv = aktivForespoersel.lagreNotNull(eksponertForespoersel.forespoerselId)
@@ -668,7 +656,7 @@ class ForespoerselDaoTest :
                     it.forrigeKontaktFraSpleis shouldBe aktivForespoersel.opprettet
                 }
 
-                forespoerselDao.oppdaterForrigeKontaktFraSpleis(aktivForespoersel.forespoerselId)
+                forespoerselDao.oppdaterForrigeKontaktFraSpleis(eksponertForespoersel.forespoerselId)
 
                 // Ingen endring
                 db.hentForespoersel(idEksponert).shouldNotBeNull().also {
@@ -1520,5 +1508,3 @@ private fun List<Pair<Status, Set<SpleisForespurtDataDto>>>.tilForespoersler(): 
                 forespurtData = forespurtData,
             )
     }
-
-private fun LocalDateTime.toDatabaseFormat(): LocalDateTime = truncatedTo(ChronoUnit.MICROS)

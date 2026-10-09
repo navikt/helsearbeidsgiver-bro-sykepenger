@@ -4,7 +4,6 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.spec.style.FunSpec
 import org.flywaydb.core.Flyway
-import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.testcontainers.postgresql.PostgreSQLContainer
@@ -12,23 +11,48 @@ import javax.sql.DataSource
 import org.jetbrains.exposed.v1.jdbc.Database as ExposedDatabase
 
 abstract class FunSpecWithDb(
-    tables: List<Table>,
     body: FunSpec.(ExposedDatabase) -> Unit,
 ) : FunSpec({
-        val db = ExposedDatabase.connect(dataSource())
+        val postgres = postgres()
+        val dataSource = dataSource(postgres)
+        val db = ExposedDatabase.connect(dataSource)
 
         beforeTest {
             transaction(db) {
-                tables.forEach { it.deleteAll() }
+                listOf(ForespoerselTable, BesvarelseTable).forEach { it.deleteAll() }
             }
+        }
+
+        afterSpec {
+            dataSource.close()
+            postgres.close()
         }
 
         body(db)
     })
 
-private fun dataSource(): DataSource {
-    val postgres = postgres()
-    return HikariConfig()
+private fun postgres(): PostgreSQLContainer =
+    PostgreSQLContainer("postgres:15")
+        .withReuse(true)
+        .withLabel("app", "helsearbeidsgiver-bro-sykepenger")
+        .also {
+            // Nødvendig for å kjøre migrering V16-V18
+            it.setCommand("postgres", "-c", "fsync=off", "-c", "log_statement=all", "-c", "wal_level=logical")
+
+            it.start()
+
+            println(
+                """
+                Databasecontainer er startet opp 🐘
+                port='${it.firstMappedPort}'
+                jdbcUrl='jdbc:postgresql://localhost:${it.firstMappedPort}/test'
+                credentials: 'test' og 'test'
+                """.trimIndent(),
+            )
+        }
+
+private fun dataSource(postgres: PostgreSQLContainer): HikariDataSource =
+    HikariConfig()
         .apply {
             jdbcUrl = postgres.jdbcUrl
             username = postgres.username
@@ -40,30 +64,15 @@ private fun dataSource(): DataSource {
             maxLifetime = 600001
             initializationFailTimeout = 5000
         }.let(::HikariDataSource)
+        .also(::migrate)
+
+private fun migrate(dataSource: DataSource) {
+    Flyway
+        .configure()
+        .dataSource(dataSource)
+        .failOnMissingLocations(true)
+        .cleanDisabled(false)
+        .load()
+        .also(Flyway::clean)
         .migrate()
 }
-
-private fun postgres(): PostgreSQLContainer =
-    PostgreSQLContainer("postgres:14").apply {
-        withReuse(true)
-        withLabel("app-navn", "helsearbeidsgiver-bro-sykepenger")
-        // nødvending for kunne kjøre migreringsscriptene V16-V18
-        setCommand("postgres", "-c", "fsync=off", "-c", "log_statement=all", "-c", "wal_level=logical")
-        start()
-        println(
-            "🎩 Databasen er startet opp, portnummer: $firstMappedPort, " +
-                "jdbcUrl: jdbc:postgresql://localhost:$firstMappedPort/test, credentials: test og test",
-        )
-    }
-
-private fun DataSource.migrate() =
-    also {
-        Flyway
-            .configure()
-            .dataSource(this)
-            .failOnMissingLocations(true)
-            .cleanDisabled(false)
-            .load()
-            .also(Flyway::clean)
-            .migrate()
-    }
