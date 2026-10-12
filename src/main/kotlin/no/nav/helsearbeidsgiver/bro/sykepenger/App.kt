@@ -25,6 +25,7 @@ fun main() {
     MarkerKastetTilInfotrygdRiver(rapid, forespoerselDao, priProducer)
 
     ManuellForkastForespoerselFraAdmin(rapid, forespoerselDao, priProducer)
+    HentForespoerslerForPersonRiver(rapid, forespoerselDao, priProducer)
 
     // Midlertidig river for at LPS-appen kan hente oppdaterte forespørsler
     HentForespoerselRiver(rapid, forespoerselDao, priProducer)
