@@ -22,6 +22,7 @@ import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
 import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 object MockUuid {
@@ -52,6 +53,15 @@ fun mockForespoerselDto(): ForespoerselDto {
                 Orgnr.genererGyldig() to 19.januar,
             ),
         forespurtData = mockSpleisForespurtDataListe(),
+    )
+}
+
+fun ForespoerselDto.somOpprettet(opprettet: LocalDateTime): ForespoerselDto {
+    val opprettetFormatert = opprettet.toDatabaseFormat()
+    return copy(
+        opprettet = opprettetFormatert,
+        oppdatert = opprettetFormatert,
+        forrigeKontaktFraSpleis = opprettetFormatert,
     )
 }
 
@@ -97,3 +107,5 @@ fun mockInntektsmeldingHaandtertDto(dokumentId: UUID? = MockUuid.inntektsmelding
     )
 
 fun mockJsonElement(): JsonElement = """{"aTestKey":"aTestValue"}""".parseJson()
+
+fun LocalDateTime.toDatabaseFormat(): LocalDateTime = truncatedTo(ChronoUnit.MICROS)

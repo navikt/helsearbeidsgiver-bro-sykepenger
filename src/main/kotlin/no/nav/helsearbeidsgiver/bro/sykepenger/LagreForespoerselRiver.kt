@@ -56,7 +56,7 @@ sealed class LagreForespoerselRiver(
                     .lagreForespoersel(forespoerselId)
             }.onFailure(loggernaut::ukjentFeil)
                 .getOrElse {
-                    loggernaut.error("Klarte ikke å lagre forespørsel!", it)
+                    loggernaut.error("Klarte ikke lagre forespørsel!", it)
                 }
         }
     }

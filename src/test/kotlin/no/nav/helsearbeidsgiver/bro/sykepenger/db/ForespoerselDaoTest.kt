@@ -24,12 +24,15 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Status
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type.BEGRENSET
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.MockUuid
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.somOpprettet
+import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.toDatabaseFormat
 import no.nav.helsearbeidsgiver.utils.test.date.april
 import no.nav.helsearbeidsgiver.utils.test.date.februar
 import no.nav.helsearbeidsgiver.utils.test.date.januar
 import no.nav.helsearbeidsgiver.utils.test.date.mars
 import no.nav.helsearbeidsgiver.utils.test.wrapper.genererGyldig
 import no.nav.helsearbeidsgiver.utils.wrapper.Fnr
+import no.nav.helsearbeidsgiver.utils.wrapper.Orgnr
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
@@ -39,13 +42,12 @@ import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
 class ForespoerselDaoTest :
-    FunSpecWithDb(listOf(ForespoerselTable, BesvarelseTable), { db ->
+    FunSpecWithDb({ db ->
         val forespoerselDao = ForespoerselDao(db)
 
         fun ForespoerselDto.lagreNotNull(eksponertForespoerselId: UUID): Long =
@@ -632,26 +634,42 @@ class ForespoerselDaoTest :
 
         context(ForespoerselDao::oppdaterForrigeKontaktFraSpleis.name) {
             test("Oppdaterer tidspunkt for forrige kontakt fra Spleis") {
-                val opprettet = LocalDateTime.now().minusDays(2).toDatabaseFormat()
-                val id =
-                    mockForespoerselDto()
+                val eksponertForespoersel = mockForespoerselDto().somOpprettet(LocalDateTime.now().minusDays(3))
+                val aktivForespoersel =
+                    eksponertForespoersel
                         .copy(
-                            opprettet = opprettet,
-                            oppdatert = opprettet,
-                            forrigeKontaktFraSpleis = opprettet,
-                        ).lagreEksponertNotNull()
+                            forespoerselId = UUID.randomUUID(),
+                            egenmeldingsperioder = emptyList(), // Ikke duplikat
+                        ).somOpprettet(eksponertForespoersel.opprettet.plusDays(1))
 
-                val foerOppdatering = db.hentForespoersel(id).shouldNotBeNull()
+                val idEksponert = eksponertForespoersel.lagreEksponertNotNull()
+                val idAktiv = aktivForespoersel.lagreNotNull(eksponertForespoersel.forespoerselId)
 
-                foerOppdatering.forrigeKontaktFraSpleis shouldBe opprettet
+                db.hentForespoersel(idEksponert).shouldNotBeNull().also {
+                    it.status shouldBe Status.FORKASTET
+                    it.forespoerselId shouldBe eksponertForespoersel.forespoerselId
+                    it.forrigeKontaktFraSpleis shouldBe eksponertForespoersel.opprettet
+                }
 
-                forespoerselDao.oppdaterForrigeKontaktFraSpleis(foerOppdatering.forespoerselId)
+                db.hentForespoersel(idAktiv).shouldNotBeNull().also {
+                    it.status shouldBe Status.AKTIV
+                    it.forespoerselId shouldBe aktivForespoersel.forespoerselId
+                    it.forrigeKontaktFraSpleis shouldBe aktivForespoersel.opprettet
+                }
 
-                val etterOppdatering = db.hentForespoersel(id).shouldNotBeNull()
+                forespoerselDao.oppdaterForrigeKontaktFraSpleis(eksponertForespoersel.forespoerselId)
 
-                etterOppdatering.forrigeKontaktFraSpleis.also {
-                    it shouldBeAfter opprettet
-                    it.shouldBeWithin(1.seconds.toJavaDuration(), LocalDateTime.now())
+                // Ingen endring
+                db.hentForespoersel(idEksponert).shouldNotBeNull().also {
+                    it.status shouldBe Status.FORKASTET
+                    it.forrigeKontaktFraSpleis shouldBe eksponertForespoersel.opprettet
+                }
+
+                // 'forrigeKontaktFraSpleis' oppdatert
+                db.hentForespoersel(idAktiv).shouldNotBeNull().also {
+                    it.status shouldBe Status.AKTIV
+                    it.forrigeKontaktFraSpleis shouldBeAfter aktivForespoersel.opprettet
+                    it.forrigeKontaktFraSpleis.shouldBeWithin(1.seconds.toJavaDuration(), LocalDateTime.now())
                 }
             }
         }
@@ -1383,38 +1401,72 @@ class ForespoerselDaoTest :
             db.antallForespoersler() shouldBeExactly 2
         }
 
-        context(ForespoerselDao::hentForespoerslerForPerson.name) {
-            test("Slår opp forespørsel på fnr, gir tilbake sortert liste med nyeste først") {
-                val eksponertId = UUID.randomUUID()
+        context(ForespoerselDao::hentEksponerteForespoerslerForPerson.name) {
+            test("Slår opp forespørsler på fnr, gir tilbake kun de som er eksponert") {
+                val eksponertId1 = UUID.randomUUID()
+                val eksponertId2 = UUID.randomUUID()
+                val eksponertId3 = UUID.randomUUID()
 
+                val nyereForespoerselId = UUID.randomUUID()
                 val fsp = mockForespoerselDto()
                 fsp
                     .copy(
-                        forespoerselId = eksponertId,
+                        forespoerselId = eksponertId1,
                         sykmeldingsperioder = listOf(Periode(1.januar, 31.januar)),
-                    ).also { it.lagreNotNull(eksponertId) }
+                    ).also { it.lagreEksponertNotNull() }
 
+                // "Erstatter" den over - nyere forespørsel setter gammel til forkastet, den nye blir aktiv med eksponertId lik den forrige
+                val nyPeriode = listOf(Periode(2.januar, 31.januar))
                 fsp
                     .copy(
-                        sykmeldingsperioder = listOf(Periode(2.januar, 30.januar)),
+                        forespoerselId = nyereForespoerselId,
+                        sykmeldingsperioder = nyPeriode,
+                    ).also { it.lagreNotNull(eksponertId1) }
+
+                // En annen vedtaksperiode:
+                fsp
+                    .copy(
+                        forespoerselId = eksponertId2,
+                        vedtaksperiodeId = UUID.randomUUID(),
+                        sykmeldingsperioder = listOf(Periode(3.januar, 30.januar)),
                         opprettet = LocalDateTime.now().plusHours(1),
-                    ).also { it.lagreNotNull(eksponertId) }
+                    ).also { it.lagreEksponertNotNull() }
+
+                // En annen person, skal ikke returneres:
+                fsp
+                    .copy(
+                        fnr = Fnr.genererGyldig(),
+                        forespoerselId = eksponertId3,
+                        vedtaksperiodeId = UUID.randomUUID(),
+                    ).also { it.lagreEksponertNotNull() }
 
                 val forespoersler =
                     forespoerselDao
-                        .hentForespoerslerForPerson(fsp.fnr)
+                        .hentEksponerteForespoerslerForPerson(fsp.fnr)
 
                 forespoersler.size shouldBe 2
                 forespoersler[0].status shouldBe Status.AKTIV
+                forespoersler[0].forespoerselId shouldBe eksponertId1
+                forespoersler[0].sykmeldingsperioder shouldBe nyPeriode
+
+                forespoersler[1].status shouldBe Status.AKTIV
+                forespoersler[1].forespoerselId shouldBe eksponertId2
             }
             test("Finner forespørsler på tvers av orgnr") {
                 val fnr = Fnr.genererGyldig()
-                val fsp1 = mockForespoerselDto().copy(fnr = fnr)
-                val fsp2 = mockForespoerselDto().copy(fnr = fnr)
-                forespoerselDao.hentForespoerslerForPerson(fnr) shouldBe emptyList()
+                val orgnr1 = Orgnr.genererGyldig()
+                val orgnr2 = Orgnr.genererGyldig()
+                val sortert = listOf(orgnr1, orgnr2).sortedBy { it.verdi }
+
+                val fsp1 = mockForespoerselDto().copy(fnr = fnr, orgnr = sortert[0])
+                val fsp2 = mockForespoerselDto().copy(fnr = fnr, orgnr = sortert[1], vedtaksperiodeId = UUID.randomUUID())
+                forespoerselDao.hentEksponerteForespoerslerForPerson(fnr) shouldBe emptyList()
                 forespoerselDao.lagre(fsp1, fsp1.forespoerselId)
                 forespoerselDao.lagre(fsp2, fsp2.forespoerselId)
-                forespoerselDao.hentForespoerslerForPerson(fnr).size shouldBe 2
+                val liste = forespoerselDao.hentEksponerteForespoerslerForPerson(fnr)
+                liste.size shouldBe 2
+                liste[0].orgnr shouldBe sortert[0]
+                liste[1].orgnr shouldBe sortert[1]
             }
         }
     })
@@ -1491,5 +1543,3 @@ private fun List<Pair<Status, Set<SpleisForespurtDataDto>>>.tilForespoersler(): 
                 forespurtData = forespurtData,
             )
     }
-
-private fun LocalDateTime.toDatabaseFormat(): LocalDateTime = truncatedTo(ChronoUnit.MICROS)
