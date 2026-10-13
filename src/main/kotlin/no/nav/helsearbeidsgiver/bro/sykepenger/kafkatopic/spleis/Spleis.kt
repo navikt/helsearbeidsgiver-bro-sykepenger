@@ -6,33 +6,40 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.Key as TopicKey
 
 object Spleis {
     @Serializable(KeySerializer::class)
-    enum class Key(
-        override val verdi: String,
-    ) : TopicKey {
+    enum class Key : TopicKey {
         // Egendefinerte
-        TYPE("type"),
-        ORGANISASJONSNUMMER("organisasjonsnummer"),
-        FØDSELSNUMMER("fødselsnummer"),
-        VEDTAKSPERIODE_ID("vedtaksperiodeId"),
-        BESTEMMENDE_FRAVÆRSDAGER("bestemmendeFraværsdager"),
-        SYKMELDINGSPERIODER("sykmeldingsperioder"),
-        EGENMELDINGSPERIODER("egenmeldingsperioder"),
-        FOM("fom"),
-        TOM("tom"),
-        FORESPURT_DATA("forespurtData"),
-        DOKUMENT_ID("dokumentId"),
-        OPPRETTET("@opprettet"),
-        VEDTAKSPERIODE_IDER_MED_SAMME_FRAVAERSDAG("vedtaksperioderMedSammeFørsteFraværsdag"),
+        TYPE,
+        ORGANISASJONSNUMMER,
+        FØDSELSNUMMER,
+        VEDTAKSPERIODE_ID,
+        BESTEMMENDE_FRAVÆRSDAGER,
+        SYKMELDINGSPERIODER,
+        EGENMELDINGSPERIODER,
+        FOM,
+        TOM,
+        FORESPURT_DATA,
+        DOKUMENT_ID,
+        OPPRETTET,
+        VEDTAKSPERIODE_IDER_MED_SAMME_FRAVAERSDAG,
         ;
 
-        override fun toString(): String = verdi
+        override fun toString(): String =
+            when (this) {
+                BESTEMMENDE_FRAVÆRSDAGER -> "bestemmendeFraværsdager"
+                DOKUMENT_ID -> "dokumentId"
+                FORESPURT_DATA -> "forespurtData"
+                OPPRETTET -> "@opprettet"
+                VEDTAKSPERIODE_ID -> "vedtaksperiodeId"
+                VEDTAKSPERIODE_IDER_MED_SAMME_FRAVAERSDAG -> "vedtaksperioderMedSammeFørsteFraværsdag"
+                else -> name.lowercase()
+            }
 
         companion object {
-            fun fromJson(json: String): Key =
-                Key.entries.firstOrNull {
-                    json == it.verdi
+            fun fromJson(key: String): Key =
+                entries.firstOrNull {
+                    key == it.toString()
                 }
-                    ?: throw IllegalArgumentException("Fant ingen Spleis.Key med verdi som matchet '$json'.")
+                    ?: throw IllegalArgumentException("Fant ingen Spleis.Key med verdi som samsvarte med '$key'.")
         }
     }
 

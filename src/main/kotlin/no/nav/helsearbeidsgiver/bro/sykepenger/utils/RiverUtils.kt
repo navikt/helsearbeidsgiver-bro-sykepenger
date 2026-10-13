@@ -9,29 +9,29 @@ import tools.jackson.databind.JsonNode
 
 fun JsonMessage.demandValues(vararg keyAndValuePairs: Pair<Key, String>) {
     keyAndValuePairs
-        .map { it.mapFirst(Key::verdi) }
+        .map { it.mapFirst(Key::toString) }
         .forEach { (key, value) ->
             demandValue(key, value)
         }
 }
 
 fun JsonMessage.rejectKeys(vararg keys: Key) {
-    val keysAsStr = keys.map(Key::verdi).toTypedArray()
+    val keysAsStr = keys.map(Key::toString).toTypedArray()
     rejectKey(*keysAsStr)
 }
 
 fun JsonMessage.requireKeys(vararg keys: Key) {
-    val keysAsStr = keys.map(Key::verdi).toTypedArray()
+    val keysAsStr = keys.map(Key::toString).toTypedArray()
     requireKey(*keysAsStr)
 }
 
 fun JsonMessage.interestedKeys(vararg keys: Key) {
-    val keysAsStr = keys.map(Key::verdi).toTypedArray()
+    val keysAsStr = keys.map(Key::toString).toTypedArray()
     interestedIn(*keysAsStr)
 }
 
 fun JsonMessage.require(vararg keyAndParserPairs: Pair<Key, (JsonElement) -> Any>) {
-    val keyStringAndParserPairs = keyAndParserPairs.map { it.mapFirst(Key::verdi) }
+    val keyStringAndParserPairs = keyAndParserPairs.map { it.mapFirst(Key::toString) }
     validate(JsonMessage::require, keyStringAndParserPairs)
 }
 
