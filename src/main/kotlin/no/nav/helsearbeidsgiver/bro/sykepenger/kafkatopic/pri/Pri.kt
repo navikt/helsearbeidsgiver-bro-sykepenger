@@ -19,6 +19,7 @@ object Pri {
         NOTIS("notis"),
         BOOMERANG("boomerang"),
         FORESPOERSEL_ID("forespoerselId"),
+        FORESPOERSEL_SVAR_ID("forespoerselSvarId"),
         FNR("fnr"),
         SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
         VEDTAKSPERIODE_ID_LISTE("vedtaksperiode_id_liste"),

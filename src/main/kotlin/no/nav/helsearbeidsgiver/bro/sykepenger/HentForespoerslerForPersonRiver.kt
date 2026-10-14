@@ -6,6 +6,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
+import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
@@ -55,15 +56,17 @@ class HentForespoerslerForPersonRiver(
 
         logger().info("Mottok melding på pri-topic av type '${Pri.BehovType.HENT_FORESPOERSLER_FOR_PERSON}'.")
         sikkerLogger().info("Mottok melding på pri-topic med innhold:\n${json.toPretty()}")
+        val message = json.fromJsonMapFiltered(Pri.Key.serializer())
         val fnr: Fnr
+        val correlationId: String?
         try {
-            fnr =
-                Pri.Key.FNR.les(
-                    Fnr.serializer(),
-                    json.fromJsonMapFiltered(Pri.Key.serializer()),
-                )
+            fnr = Pri.Key.FNR.les(Fnr.serializer(), message)
+            correlationId =
+                message[Pri.Key.FORESPOERSEL_SVAR_ID]?.let {
+                    Pri.Key.FORESPOERSEL_SVAR_ID.les(String.serializer(), message)
+                }
         } catch (ex: Exception) {
-            sikkerLogger().error("Klarte ikke å lese fnr fra melding: ${ex.message}", ex)
+            sikkerLogger().error("Klarte ikke å lese fnr eller korrelasjons-ID fra melding: ${ex.message}", ex)
             return
         }
         val forespoerselListe = forespoerselDao.hentEksponerteForespoerslerForPerson(fnr)
@@ -72,19 +75,25 @@ class HentForespoerslerForPersonRiver(
         } else {
             sikkerLogger().info("Fant ${forespoerselListe.size} forespørsel(er) for fnr=$fnr.")
         }
-        sendForespoerselListe(forespoerselListe)
+        sendForespoerselListe(forespoerselListe, correlationId)
     }
 
-    private fun sendForespoerselListe(forespoerselListe: List<ForespoerselDto>) {
+    private fun sendForespoerselListe(
+        forespoerselListe: List<ForespoerselDto>,
+        correlationId: String?,
+    ) {
         try {
             val liste =
                 forespoerselListe.map(::ForespoerselSimba).toJson(ForespoerselSimba.serializer())
             val melding =
-                arrayOf(
-                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()),
-                    Pri.Key.FORESPOERSEL_LISTE to liste,
-                )
-            priProducer.send(UUID.randomUUID(), *melding)
+                buildList {
+                    add(Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()))
+                    add(Pri.Key.FORESPOERSEL_LISTE to liste)
+                    correlationId?.let {
+                        add(Pri.Key.FORESPOERSEL_SVAR_ID to it.toJson())
+                    }
+                }
+            priProducer.send(UUID.randomUUID(), *melding.toTypedArray())
         } catch (e: Exception) {
             sikkerLogger().error("Feil ved sending av forespørsel: ${e.message}", e)
         }

@@ -35,6 +35,7 @@ class HentForespoerslerForPersonRiverTest :
 
         test("Henter forespørsel for fnr") {
             val fnr = Fnr.genererGyldig()
+            val correlationId = UUID.randomUUID().toString()
             val vedtaksperiodeId = UUID.randomUUID()
             val forespoersel1 = mockForespoerselDto().copy(vedtaksperiodeId = vedtaksperiodeId)
             val forespoersel2 = mockForespoerselDto().copy(vedtaksperiodeId = vedtaksperiodeId)
@@ -50,6 +51,7 @@ class HentForespoerslerForPersonRiverTest :
             testRapid.sendJson(
                 Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_PERSON.toJson(Pri.BehovType.serializer()),
                 Pri.Key.FNR to fnr.toJson(),
+                Pri.Key.FORESPOERSEL_SVAR_ID to correlationId.toJson(),
             )
             verifySequence {
                 mockForespoerselDao.hentEksponerteForespoerslerForPerson(fnr)
@@ -58,18 +60,43 @@ class HentForespoerslerForPersonRiverTest :
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_LISTE to
                         listOf(ForespoerselSimba(forespoersel1), ForespoerselSimba(forespoersel2)).toJson(ForespoerselSimba.serializer()),
+                    Pri.Key.FORESPOERSEL_SVAR_ID to correlationId.toJson(),
                 )
             }
         }
 
         test("Returnerer tom liste hvis ingen fsp eksisterer for et gitt fnr") {
             val fnr = Fnr.genererGyldig()
+            val correlationId = UUID.randomUUID().toString()
 
             every {
                 mockForespoerselDao.hentEksponerteForespoerslerForPerson(fnr)
             }.returns(
                 emptyList(),
             )
+
+            testRapid.sendJson(
+                Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_PERSON.toJson(Pri.BehovType.serializer()),
+                Pri.Key.FNR to fnr.toJson(),
+                Pri.Key.FORESPOERSEL_SVAR_ID to correlationId.toJson(),
+            )
+            verifySequence {
+                mockForespoerselDao.hentEksponerteForespoerslerForPerson(fnr)
+                mockPriProducer.send(
+                    any(),
+                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()),
+                    Pri.Key.FORESPOERSEL_LISTE to JsonArray(emptyList()),
+                    Pri.Key.FORESPOERSEL_SVAR_ID to correlationId.toJson(),
+                )
+            }
+        }
+
+        test("Støtter eldre kall uten korrelasjons-ID") {
+            val fnr = Fnr.genererGyldig()
+
+            every {
+                mockForespoerselDao.hentEksponerteForespoerslerForPerson(fnr)
+            }.returns(emptyList())
 
             testRapid.sendJson(
                 Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_PERSON.toJson(Pri.BehovType.serializer()),
