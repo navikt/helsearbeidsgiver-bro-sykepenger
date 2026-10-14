@@ -101,7 +101,6 @@ class MarkerBesvartFraSpleisRiver(
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
                     Pri.Key.SENDT_TID to LocalDateTime.now().toJson(),
-                    inntektsmeldingId?.let { Pri.Key.SPINN_INNTEKTSMELDING_ID to it.toJson() },
                 ).toTypedArray()
 
             priProducer.send(forespoerselId, *felter)

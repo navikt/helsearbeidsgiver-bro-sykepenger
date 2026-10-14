@@ -11,7 +11,6 @@ import kotlinx.serialization.json.JsonElement
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.Type
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.spleis.Spleis
@@ -109,14 +108,11 @@ sealed class LagreForespoerselRiver(
     }
 
     private fun sendMeldingOmNyForespoersel(nyForespoersel: ForespoerselDto) {
-        val skalHaPaaminnelse = nyForespoersel.type == Type.KOMPLETT
-
         val melding =
             arrayOf(
                 Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
                 Pri.Key.FORESPOERSEL_ID to nyForespoersel.forespoerselId.toJson(),
                 Pri.Key.FORESPOERSEL to ForespoerselSimba(nyForespoersel).toJson(ForespoerselSimba.serializer()),
-                Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
             )
 
         priProducer.send(nyForespoersel.vedtaksperiodeId, *melding)

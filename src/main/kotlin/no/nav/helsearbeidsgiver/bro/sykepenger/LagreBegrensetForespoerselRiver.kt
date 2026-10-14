@@ -37,7 +37,7 @@ class LagreBegrensetForespoerselRiver(
             .apply {
                 validate { msg ->
                     msg.demandValues(Spleis.Key.TYPE to Spleis.Event.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER_BEGRENSET.name)
-                    msg.requireArray(Spleis.Key.SYKMELDINGSPERIODER.verdi) {
+                    msg.requireArray(Spleis.Key.SYKMELDINGSPERIODER.toString()) {
                         require(
                             Spleis.Key.FOM to { it.fromJson(LocalDateSerializer) },
                             Spleis.Key.TOM to { it.fromJson(LocalDateSerializer) },

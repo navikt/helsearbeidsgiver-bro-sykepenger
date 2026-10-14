@@ -8,37 +8,40 @@ object Pri {
     const val TOPIC = "helsearbeidsgiver.pri"
 
     @Serializable(KeySerializer::class)
-    enum class Key(
-        override val verdi: String,
-    ) : TopicKey {
+    enum class Key : TopicKey {
         // Predefinerte fra rapids-and-rivers-biblioteket
-        BEHOV("@behov"),
-        LØSNING("@løsning"),
+        BEHOV,
+        LØSNING,
 
         // Egendefinerte
-        NOTIS("notis"),
-        BOOMERANG("boomerang"),
-        FORESPOERSEL_ID("forespoerselId"),
-        FNR("fnr"),
-        SPINN_INNTEKTSMELDING_ID("spinnInntektsmeldingId"),
-        VEDTAKSPERIODE_ID_LISTE("vedtaksperiode_id_liste"),
-        SKAL_HA_PAAMINNELSE("skal_ha_paaminnelse"),
-        FORESPOERSEL("forespoersel"),
-        FORESPOERSEL_LISTE("forespoersel_liste"),
-        EKSPONERT_FORESPOERSEL_ID("eksponertForespoerselId"),
-        VEDTAKSPERIODE_ID("vedtaksperiode_id"),
-        STATUS("status"),
-        SENDT_TID("sendt_tid"), // TODO: Kanskje ikke denne er så viktig? Gjør testing litt kålete (må bruke mockStatic)
+        NOTIS,
+        BOOMERANG,
+        FNR,
+        FORESPOERSEL,
+        FORESPOERSEL_LISTE,
+        FORESPOERSEL_ID,
+        EKSPONERT_FORESPOERSEL_ID,
+        VEDTAKSPERIODE_ID,
+        VEDTAKSPERIODE_ID_LISTE,
+        STATUS,
+        SENDT_TID, // TODO: Kanskje ikke denne er så viktig? Gjør testing litt kålete (må bruke mockStatic)
         ;
 
-        override fun toString(): String = verdi
+        override fun toString(): String =
+            when (this) {
+                BEHOV -> "@behov"
+                LØSNING -> "@løsning"
+                FORESPOERSEL_ID -> "forespoerselId"
+                EKSPONERT_FORESPOERSEL_ID -> "eksponertForespoerselId"
+                else -> name.lowercase()
+            }
 
         companion object {
-            fun fromJson(json: String): Key =
-                Key.entries.firstOrNull {
-                    json == it.verdi
+            fun fromJson(key: String): Key =
+                entries.firstOrNull {
+                    key == it.toString()
                 }
-                    ?: throw IllegalArgumentException("Fant ingen Pri.Key med verdi som matchet '$json'.")
+                    ?: throw IllegalArgumentException("Fant ingen Pri.Key med verdi som samsvarte med '$key'.")
         }
     }
 
@@ -56,9 +59,9 @@ object Pri {
         FORESPOERSEL_BESVART,
         FORESPOERSEL_BESVART_SIMBA,
         FORESPOERSEL_FORKASTET,
-        FORESPOERSEL_MANUELT_FORKASTET, // Sendes fra HAG-Admin
-        FORESPOERSEL_KASTET_TIL_INFOTRYGD,
         FORESPOERSEL_OPPDATERT,
+        FORESPOERSEL_KASTET_TIL_INFOTRYGD,
+        FORESPOERSEL_MANUELT_FORKASTET, // Sendes fra HAG-Admin
         FORESPOERSEL_FOR_VEDTAKSPERIODE_ID,
         FORESPOERSEL_LISTE_FOR_PERSON,
     }

@@ -184,7 +184,6 @@ class MarkerBesvartFraSpleisRiverTest :
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_BESVART.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_ID to expectedForespoerselId.toJson(),
                     Pri.Key.SENDT_TID to utsendingstidspunkt.toJson(),
-                    Pri.Key.SPINN_INNTEKTSMELDING_ID to MockUuid.inntektsmeldingId.toJson(),
                 )
             }
         }
