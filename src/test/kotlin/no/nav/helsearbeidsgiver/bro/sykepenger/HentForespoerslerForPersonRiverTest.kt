@@ -51,7 +51,7 @@ class HentForespoerslerForPersonRiverTest :
             testRapid.sendJson(
                 Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_PERSON.toJson(Pri.BehovType.serializer()),
                 Pri.Key.FNR to fnr.toJson(),
-                Pri.Key.FORESPOERSEL_SVAR_ID to correlationId.toJson(),
+                Pri.Key.CORRELATION_ID to correlationId.toJson(),
             )
             verifySequence {
                 mockForespoerselDao.hentEksponerteForespoerslerForPerson(fnr)
@@ -60,7 +60,7 @@ class HentForespoerslerForPersonRiverTest :
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_LISTE to
                         listOf(ForespoerselSimba(forespoersel1), ForespoerselSimba(forespoersel2)).toJson(ForespoerselSimba.serializer()),
-                    Pri.Key.FORESPOERSEL_SVAR_ID to correlationId.toJson(),
+                    Pri.Key.CORRELATION_ID to correlationId.toJson(),
                 )
             }
         }
@@ -78,7 +78,7 @@ class HentForespoerslerForPersonRiverTest :
             testRapid.sendJson(
                 Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_PERSON.toJson(Pri.BehovType.serializer()),
                 Pri.Key.FNR to fnr.toJson(),
-                Pri.Key.FORESPOERSEL_SVAR_ID to correlationId.toJson(),
+                Pri.Key.CORRELATION_ID to correlationId.toJson(),
             )
             verifySequence {
                 mockForespoerselDao.hentEksponerteForespoerslerForPerson(fnr)
@@ -86,7 +86,7 @@ class HentForespoerslerForPersonRiverTest :
                     any(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_LISTE to JsonArray(emptyList()),
-                    Pri.Key.FORESPOERSEL_SVAR_ID to correlationId.toJson(),
+                    Pri.Key.CORRELATION_ID to correlationId.toJson(),
                 )
             }
         }

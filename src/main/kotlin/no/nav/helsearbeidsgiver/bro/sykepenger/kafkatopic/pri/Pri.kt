@@ -25,6 +25,7 @@ object Pri {
         VEDTAKSPERIODE_ID_LISTE,
         STATUS,
         SENDT_TID, // TODO: Kanskje ikke denne er så viktig? Gjør testing litt kålete (må bruke mockStatic)
+        CORRELATION_ID
         ;
 
         override fun toString(): String =

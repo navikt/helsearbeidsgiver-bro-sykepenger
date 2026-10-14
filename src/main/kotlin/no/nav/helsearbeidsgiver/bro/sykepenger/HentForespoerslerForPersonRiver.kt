@@ -15,6 +15,7 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.les
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.requireKeys
+import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -62,8 +63,8 @@ class HentForespoerslerForPersonRiver(
         try {
             fnr = Pri.Key.FNR.les(Fnr.serializer(), message)
             correlationId =
-                message[Pri.Key.FORESPOERSEL_SVAR_ID]?.let {
-                    Pri.Key.FORESPOERSEL_SVAR_ID.les(String.serializer(), message)
+                message[Pri.Key.CORRELATION_ID]?.let {
+                    it.fromJson(String.serializer())
                 }
         } catch (ex: Exception) {
             sikkerLogger().error("Klarte ikke å lese fnr eller korrelasjons-ID fra melding: ${ex.message}", ex)
@@ -90,7 +91,7 @@ class HentForespoerslerForPersonRiver(
                     add(Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()))
                     add(Pri.Key.FORESPOERSEL_LISTE to liste)
                     correlationId?.let {
-                        add(Pri.Key.FORESPOERSEL_SVAR_ID to it.toJson())
+                        add(Pri.Key.CORRELATION_ID to it.toJson())
                     }
                 }
             priProducer.send(UUID.randomUUID(), *melding.toTypedArray())
