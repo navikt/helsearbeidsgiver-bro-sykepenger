@@ -41,13 +41,13 @@ class LagreKomplettForespoerselRiver(
             .apply {
                 validate { msg ->
                     msg.demandValues(Spleis.Key.TYPE to Spleis.Event.TRENGER_OPPLYSNINGER_FRA_ARBEIDSGIVER_KOMPLETT.name)
-                    msg.requireArray(Spleis.Key.EGENMELDINGSPERIODER.verdi) {
+                    msg.requireArray(Spleis.Key.EGENMELDINGSPERIODER.toString()) {
                         require(
                             Spleis.Key.FOM to { it.fromJson(LocalDateSerializer) },
                             Spleis.Key.TOM to { it.fromJson(LocalDateSerializer) },
                         )
                     }
-                    msg.requireArray(Spleis.Key.SYKMELDINGSPERIODER.verdi) {
+                    msg.requireArray(Spleis.Key.SYKMELDINGSPERIODER.toString()) {
                         require(
                             Spleis.Key.FOM to { it.fromJson(LocalDateSerializer) },
                             Spleis.Key.TOM to { it.fromJson(LocalDateSerializer) },

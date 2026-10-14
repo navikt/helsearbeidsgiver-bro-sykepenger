@@ -13,7 +13,6 @@ fun ForespoerselDto.tilMeldingForespoerselMottatt(skalHaPaaminnelse: Boolean = t
         Pri.Key.NOTIS to Pri.NotisType.FORESPØRSEL_MOTTATT.toJson(Pri.NotisType.serializer()),
         Pri.Key.FORESPOERSEL_ID to forespoerselId.toJson(),
         Pri.Key.FORESPOERSEL to ForespoerselSimba(this).toJson(ForespoerselSimba.serializer()),
-        Pri.Key.SKAL_HA_PAAMINNELSE to skalHaPaaminnelse.toJson(Boolean.serializer()),
     )
 
 fun ForespoerselDto.tilMeldingForespoerselOppdatert(eksponertForespoerselId: UUID): Array<Pair<Pri.Key, JsonElement>> =
