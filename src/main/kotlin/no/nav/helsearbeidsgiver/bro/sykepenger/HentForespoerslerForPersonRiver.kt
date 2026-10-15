@@ -54,6 +54,7 @@ class HentForespoerslerForPersonRiver(
         val json = packet.toJson().parseJson()
 
         logger().info("Mottok melding på pri-topic av type '${Pri.BehovType.HENT_FORESPOERSLER_FOR_PERSON}'.")
+
         sikkerLogger().info("Mottok melding på pri-topic med innhold:\n${json.toPretty()}")
         val message = json.fromJsonMapFiltered(Pri.Key.serializer())
         val fnr: Fnr
