@@ -2,11 +2,9 @@ package no.nav.helsearbeidsgiver.bro.sykepenger
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
-import io.mockk.Called
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonArray
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
@@ -92,5 +90,4 @@ class HentForespoerslerForPersonRiverTest :
                 )
             }
         }
-
     })
