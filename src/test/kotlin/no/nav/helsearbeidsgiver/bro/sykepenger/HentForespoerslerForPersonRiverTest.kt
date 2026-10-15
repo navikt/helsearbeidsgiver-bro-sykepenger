@@ -58,6 +58,7 @@ class HentForespoerslerForPersonRiverTest :
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_LISTE to
                         listOf(ForespoerselSimba(forespoersel1), ForespoerselSimba(forespoersel2)).toJson(ForespoerselSimba.serializer()),
+                    Pri.Key.FNR to fnr.toJson(),
                 )
             }
         }
@@ -81,6 +82,7 @@ class HentForespoerslerForPersonRiverTest :
                     any(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_LISTE to JsonArray(emptyList()),
+                    Pri.Key.FNR to fnr.toJson(),
                 )
             }
         }

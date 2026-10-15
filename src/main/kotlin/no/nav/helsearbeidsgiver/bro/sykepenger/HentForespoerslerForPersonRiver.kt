@@ -54,14 +54,12 @@ class HentForespoerslerForPersonRiver(
         val json = packet.toJson().parseJson()
 
         logger().info("Mottok melding på pri-topic av type '${Pri.BehovType.HENT_FORESPOERSLER_FOR_PERSON}'.")
+
         sikkerLogger().info("Mottok melding på pri-topic med innhold:\n${json.toPretty()}")
+        val message = json.fromJsonMapFiltered(Pri.Key.serializer())
         val fnr: Fnr
         try {
-            fnr =
-                Pri.Key.FNR.les(
-                    Fnr.serializer(),
-                    json.fromJsonMapFiltered(Pri.Key.serializer()),
-                )
+            fnr = Pri.Key.FNR.les(Fnr.serializer(), message)
         } catch (ex: Exception) {
             sikkerLogger().error("Klarte ikke å lese fnr fra melding: ${ex.message}", ex)
             return
@@ -72,19 +70,22 @@ class HentForespoerslerForPersonRiver(
         } else {
             sikkerLogger().info("Fant ${forespoerselListe.size} forespørsel(er) for fnr=$fnr.")
         }
-        sendForespoerselListe(forespoerselListe)
+        sendForespoerselListe(forespoerselListe, fnr)
     }
 
-    private fun sendForespoerselListe(forespoerselListe: List<ForespoerselDto>) {
+    private fun sendForespoerselListe(
+        forespoerselListe: List<ForespoerselDto>,
+        fnr: Fnr,
+    ) {
         try {
             val liste =
                 forespoerselListe.map(::ForespoerselSimba).toJson(ForespoerselSimba.serializer())
-            val melding =
-                arrayOf(
-                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()),
-                    Pri.Key.FORESPOERSEL_LISTE to liste,
-                )
-            priProducer.send(UUID.randomUUID(), *melding)
+            priProducer.send(
+                UUID.randomUUID(),
+                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()),
+                Pri.Key.FORESPOERSEL_LISTE to liste,
+                Pri.Key.FNR to fnr.toJson(),
+            )
         } catch (e: Exception) {
             sikkerLogger().error("Feil ved sending av forespørsel: ${e.message}", e)
         }
