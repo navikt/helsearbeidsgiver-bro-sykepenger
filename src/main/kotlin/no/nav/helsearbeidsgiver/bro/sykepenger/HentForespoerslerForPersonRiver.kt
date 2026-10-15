@@ -6,7 +6,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
-import kotlinx.serialization.builtins.serializer
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
@@ -41,7 +40,7 @@ class HentForespoerslerForPersonRiver(
             .apply {
                 validate { msg ->
                     msg.demandValues(Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_PERSON.name)
-                    msg.requireKeys(Pri.Key.FNR, Pri.Key.CORRELATION_ID)
+                    msg.requireKeys(Pri.Key.FNR)
                 }
             }.register(this)
     }
@@ -58,12 +57,10 @@ class HentForespoerslerForPersonRiver(
         sikkerLogger().info("Mottok melding på pri-topic med innhold:\n${json.toPretty()}")
         val message = json.fromJsonMapFiltered(Pri.Key.serializer())
         val fnr: Fnr
-        val correlationId: String
         try {
             fnr = Pri.Key.FNR.les(Fnr.serializer(), message)
-            correlationId = Pri.Key.CORRELATION_ID.les(String.serializer(), message)
         } catch (ex: Exception) {
-            sikkerLogger().error("Klarte ikke å lese fnr eller korrelasjons-ID fra melding: ${ex.message}", ex)
+            sikkerLogger().error("Klarte ikke å lese fnr fra melding: ${ex.message}", ex)
             return
         }
         val forespoerselListe = forespoerselDao.hentEksponerteForespoerslerForPerson(fnr)
@@ -72,12 +69,12 @@ class HentForespoerslerForPersonRiver(
         } else {
             sikkerLogger().info("Fant ${forespoerselListe.size} forespørsel(er) for fnr=$fnr.")
         }
-        sendForespoerselListe(forespoerselListe, correlationId)
+        sendForespoerselListe(forespoerselListe, fnr)
     }
 
     private fun sendForespoerselListe(
         forespoerselListe: List<ForespoerselDto>,
-        correlationId: String,
+        fnr: Fnr,
     ) {
         try {
             val liste =
@@ -86,7 +83,7 @@ class HentForespoerslerForPersonRiver(
                 UUID.randomUUID(),
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()),
                 Pri.Key.FORESPOERSEL_LISTE to liste,
-                Pri.Key.CORRELATION_ID to correlationId.toJson(),
+                Pri.Key.FNR to fnr.toJson(),
             )
         } catch (e: Exception) {
             sikkerLogger().error("Feil ved sending av forespørsel: ${e.message}", e)
