@@ -2,9 +2,11 @@ package no.nav.helsearbeidsgiver.bro.sykepenger
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.core.spec.style.FunSpec
+import io.mockk.Called
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonArray
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
@@ -91,24 +93,4 @@ class HentForespoerslerForPersonRiverTest :
             }
         }
 
-        test("Støtter eldre kall uten korrelasjons-ID") {
-            val fnr = Fnr.genererGyldig()
-
-            every {
-                mockForespoerselDao.hentEksponerteForespoerslerForPerson(fnr)
-            }.returns(emptyList())
-
-            testRapid.sendJson(
-                Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_PERSON.toJson(Pri.BehovType.serializer()),
-                Pri.Key.FNR to fnr.toJson(),
-            )
-            verifySequence {
-                mockForespoerselDao.hentEksponerteForespoerslerForPerson(fnr)
-                mockPriProducer.send(
-                    any(),
-                    Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()),
-                    Pri.Key.FORESPOERSEL_LISTE to JsonArray(emptyList()),
-                )
-            }
-        }
     })

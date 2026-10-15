@@ -15,7 +15,6 @@ import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.les
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.requireKeys
-import no.nav.helsearbeidsgiver.utils.json.fromJson
 import no.nav.helsearbeidsgiver.utils.json.fromJsonMapFiltered
 import no.nav.helsearbeidsgiver.utils.json.parseJson
 import no.nav.helsearbeidsgiver.utils.json.toJson
@@ -42,7 +41,7 @@ class HentForespoerslerForPersonRiver(
             .apply {
                 validate { msg ->
                     msg.demandValues(Pri.Key.BEHOV to Pri.BehovType.HENT_FORESPOERSLER_FOR_PERSON.name)
-                    msg.requireKeys(Pri.Key.FNR)
+                    msg.requireKeys(Pri.Key.FNR, Pri.Key.CORRELATION_ID)
                 }
             }.register(this)
     }
@@ -59,13 +58,10 @@ class HentForespoerslerForPersonRiver(
         sikkerLogger().info("Mottok melding på pri-topic med innhold:\n${json.toPretty()}")
         val message = json.fromJsonMapFiltered(Pri.Key.serializer())
         val fnr: Fnr
-        val correlationId: String?
+        val correlationId: String
         try {
             fnr = Pri.Key.FNR.les(Fnr.serializer(), message)
-            correlationId =
-                message[Pri.Key.CORRELATION_ID]?.let {
-                    it.fromJson(String.serializer())
-                }
+            correlationId = Pri.Key.CORRELATION_ID.les(String.serializer(), message)
         } catch (ex: Exception) {
             sikkerLogger().error("Klarte ikke å lese fnr eller korrelasjons-ID fra melding: ${ex.message}", ex)
             return
@@ -81,20 +77,17 @@ class HentForespoerslerForPersonRiver(
 
     private fun sendForespoerselListe(
         forespoerselListe: List<ForespoerselDto>,
-        correlationId: String?,
+        correlationId: String,
     ) {
         try {
             val liste =
                 forespoerselListe.map(::ForespoerselSimba).toJson(ForespoerselSimba.serializer())
-            val melding =
-                buildList {
-                    add(Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()))
-                    add(Pri.Key.FORESPOERSEL_LISTE to liste)
-                    correlationId?.let {
-                        add(Pri.Key.CORRELATION_ID to it.toJson())
-                    }
-                }
-            priProducer.send(UUID.randomUUID(), *melding.toTypedArray())
+            priProducer.send(
+                UUID.randomUUID(),
+                Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()),
+                Pri.Key.FORESPOERSEL_LISTE to liste,
+                Pri.Key.CORRELATION_ID to correlationId.toJson(),
+            )
         } catch (e: Exception) {
             sikkerLogger().error("Feil ved sending av forespørsel: ${e.message}", e)
         }
