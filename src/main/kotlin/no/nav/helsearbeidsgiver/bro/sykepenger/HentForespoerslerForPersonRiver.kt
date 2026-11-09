@@ -8,7 +8,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
 import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselDto
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselHagAdmin
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.utils.demandValues
@@ -79,7 +79,7 @@ class HentForespoerslerForPersonRiver(
     ) {
         try {
             val liste =
-                forespoerselListe.map(::ForespoerselSimba).toJson(ForespoerselSimba.serializer())
+                forespoerselListe.map(::ForespoerselHagAdmin).toJson(ForespoerselHagAdmin.serializer())
             priProducer.send(
                 UUID.randomUUID(),
                 Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()),

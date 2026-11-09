@@ -8,7 +8,7 @@ import io.mockk.mockk
 import io.mockk.verifySequence
 import kotlinx.serialization.json.JsonArray
 import no.nav.helsearbeidsgiver.bro.sykepenger.db.ForespoerselDao
-import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselSimba
+import no.nav.helsearbeidsgiver.bro.sykepenger.domene.ForespoerselHagAdmin
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.Pri
 import no.nav.helsearbeidsgiver.bro.sykepenger.kafkatopic.pri.PriProducer
 import no.nav.helsearbeidsgiver.bro.sykepenger.testutils.mockForespoerselDto
@@ -57,7 +57,10 @@ class HentForespoerslerForPersonRiverTest :
                     any(),
                     Pri.Key.NOTIS to Pri.NotisType.FORESPOERSEL_LISTE_FOR_PERSON.toJson(Pri.NotisType.serializer()),
                     Pri.Key.FORESPOERSEL_LISTE to
-                        listOf(ForespoerselSimba(forespoersel1), ForespoerselSimba(forespoersel2)).toJson(ForespoerselSimba.serializer()),
+                        listOf(
+                            ForespoerselHagAdmin(forespoersel1),
+                            ForespoerselHagAdmin(forespoersel2),
+                        ).toJson(ForespoerselHagAdmin.serializer()),
                     Pri.Key.FNR to fnr.toJson(),
                 )
             }
